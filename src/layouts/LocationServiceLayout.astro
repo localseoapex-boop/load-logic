@@ -1,0 +1,100 @@
+---
+/**
+ * LocationServiceLayout.astro — template for /locations/[city]/[service] (req #3).
+ *
+ * This is the workhorse of programmatic local SEO: one page per (city × service)
+ * targeting "[Service] in [City], [ST]" intent. It's fully data-driven from a
+ * Location + Service pair, so thousands of these pages share ONE template.
+ *
+ * Local relevance signals it builds automatically:
+ *   - geo-specific H1 + title + description
+ *   - 4-level breadcrumb trail (Home › Locations › City › Service)
+ *   - Service schema with areaServed = this city and provider = serving office
+ *   - internal links to sibling services in the same city + the same service in
+ *     nearby cities (related services + related locations)
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import InternalLinks from '../components/InternalLinks.astro';
+import type { Location } from '../data/locations';
+import type { Service } from '../data/services';
+import { getOffice, primaryOffice, officeNodeId } from '../data/offices';
+import { SITE } from '../config/site';
+import { servicesForLocation, nearbyCities, isServiceAvailable } from '../lib/links';
+import { cityUrl, serviceUrl, locationServiceUrl, absoluteUrl } from '../lib/urls';
+
+interface Props {
+  location: Location;
+  service: Service;
+}
+
+const { location, service } = Astro.props;
+const office = getOffice(location.officeId) ?? primaryOffice;
+
+const cityState = `${location.city}, ${location.region}`;
+const title = `${service.name} in ${cityState}`;
+const description = `${service.description} Serving ${cityState} and nearby areas.`;
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Locations', href: '/locations' },
+  { name: cityState, href: cityUrl(location.slug) },
+  { name: service.name },
+];
+
+// Other services available in THIS city (sibling cross-links).
+const otherServiceLinks = servicesForLocation(location)
+  .filter((s) => s.slug !== service.slug)
+  .map((s) => ({
+    label: `${s.name} in ${location.city}`,
+    href: locationServiceUrl(location.slug, s.slug),
+  }));
+
+// The SAME service in nearby cities that also offer it (related locations).
+const nearbyServiceLinks = nearbyCities(location.slug)
+  .filter((loc) => isServiceAvailable(loc, service.slug))
+  .map((loc) => ({
+    label: `${service.name} in ${loc.city}, ${loc.region}`,
+    href: locationServiceUrl(loc.slug, service.slug),
+  }));
+
+// Service schema scoped to this city, provided by the serving office.
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  serviceType: service.name,
+  provider: { '@id': officeNodeId(SITE.url, office) },
+  areaServed: { '@type': 'City', name: location.city },
+  url: absoluteUrl(locationServiceUrl(location.slug, service.slug)),
+};
+---
+
+<BaseLayout {title} {description}>
+  <article class="container page">
+    <Breadcrumbs items={crumbs} />
+
+    <header class="page-hero">
+      <p class="eyebrow">{cityState}</p>
+      <h1>{title}</h1>
+      <p class="lede">{service.tagline}</p>
+      <a class="cta" href={`tel:${office.phone}`}>Book {service.name.toLowerCase()} — {office.phone}</a>
+    </header>
+
+    <div class="page-body">
+      <p>
+        Looking for {service.name.toLowerCase()} in {cityState}? {service.intro} Our {location.city}
+        customers get the same upfront pricing and licensed technicians, dispatched from our {office.name}.
+      </p>
+      <h2>{service.name} services we provide in {location.city}</h2>
+      <ul>
+        {service.features.map((f) => <li>{f}</li>)}
+      </ul>
+      <slot />
+    </div>
+
+    <InternalLinks title={`Other services in ${location.city}`} links={otherServiceLinks} />
+    <InternalLinks title={`${service.name} in nearby cities`} links={nearbyServiceLinks} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
+  </article>
+</BaseLayout>

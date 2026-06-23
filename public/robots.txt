@@ -1,0 +1,8 @@
+# robots.txt — lives in /public so it's served verbatim at /robots.txt.
+# Allows all crawlers and points them to the sitemap that @astrojs/sitemap
+# generates at build time. Update the Sitemap URL if you change `site`.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://seo-starter-site.vercel.app/sitemap-index.xml

@@ -1,0 +1,27 @@
+---
+/**
+ * /locations/[city]/[service] — the combinatorial route (req #2, #7).
+ *
+ * getStaticPaths() produces the CARTESIAN PRODUCT of every location and the
+ * services it offers. This single file is what turns a handful of cities and
+ * services into hundreds of pages — N cities × M services, all from one
+ * template. Respecting each location's `services` list means partial-coverage
+ * cities (e.g. Oro Valley) don't generate pages for services they don't offer.
+ */
+import LocationServiceLayout from '../../../layouts/LocationServiceLayout.astro';
+import { locations } from '../../../data/locations';
+import { servicesForLocation } from '../../../lib/links';
+
+export function getStaticPaths() {
+  return locations.flatMap((location) =>
+    servicesForLocation(location).map((service) => ({
+      params: { city: location.slug, service: service.slug },
+      props: { location, service },
+    })),
+  );
+}
+
+const { location, service } = Astro.props;
+---
+
+<LocationServiceLayout {location} {service} />

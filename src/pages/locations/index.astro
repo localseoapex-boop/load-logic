@@ -1,0 +1,31 @@
+---
+/**
+ * /locations — hub page listing every city served.
+ *
+ * Breadcrumb parent for city pages and a crawl hub linking to all of them.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import InternalLinks from '../../components/InternalLinks.astro';
+import { locations } from '../../data/locations';
+import { cityUrl } from '../../lib/urls';
+
+const links = locations.map((loc) => ({
+  label: `${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
+}));
+---
+
+<BaseLayout
+  title="Service Areas"
+  description="See the cities we serve across Arizona — local crews and fast response in every area."
+>
+  <div class="container page">
+    <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Locations' }]} />
+    <header class="page-hero">
+      <h1>Service Areas</h1>
+      <p class="lede">Local teams across the Phoenix and Tucson metros.</p>
+    </header>
+    <InternalLinks title="Cities we serve" links={links} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,86 @@
+---
+/**
+ * BlogPostLayout.astro — template for individual blog articles.
+ *
+ * Passes type="article" to BaseLayout so Open Graph emits og:type=article
+ * (correct social rendering for posts). Adds an Article JSON-LD block with
+ * author, publish date, and headline for rich results, plus a readable
+ * prose container. Blog content drives top-of-funnel organic traffic, so the
+ * article schema and clean heading structure matter here.
+ */
+import BaseLayout from './BaseLayout.astro';
+import { SITE } from '../config/site';
+
+interface Props {
+  title: string;
+  description: string;
+  /** ISO date string, e.g. "2026-06-01". */
+  pubDate: string;
+  author?: string;
+  /** Hero/social image path. */
+  image?: string;
+}
+
+const { title, description, pubDate, author = SITE.name, image } = Astro.props;
+
+const formattedDate = new Date(pubDate).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  datePublished: pubDate,
+  author: { '@type': 'Organization', name: author },
+  publisher: { '@id': `${SITE.url}/#business` },
+  mainEntityOfPage: new URL(Astro.url.pathname, SITE.url).href,
+  ...(image ? { image: new URL(image, SITE.url).href } : {}),
+};
+---
+
+<BaseLayout {title} {description} {image} type="article">
+  <article class="post container">
+    <header class="post-header">
+      <h1>{title}</h1>
+      <p class="post-meta">
+        By {author} · <time datetime={pubDate}>{formattedDate}</time>
+      </p>
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} is:inline />
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    padding: 3rem 1rem;
+    max-width: 720px;
+  }
+  .post-header h1 {
+    font-size: 2.4rem;
+    margin: 0 0 0.5rem;
+  }
+  .post-meta {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0 0 2rem;
+  }
+  .prose {
+    font-size: 1.075rem;
+    line-height: 1.75;
+  }
+  .prose :global(h2) {
+    margin-top: 2rem;
+  }
+  .prose :global(p) {
+    margin: 1rem 0;
+  }
+</style>

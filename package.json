@@ -7,11 +7,14 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "og": "node scripts/generate-og.mjs",
+    "prebuild": "node scripts/generate-og.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.4.7"
   }
 }

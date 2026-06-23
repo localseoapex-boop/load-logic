@@ -1,0 +1,82 @@
+---
+/**
+ * ServiceLayout.astro — template for /services/[service] pages.
+ *
+ * Now DATA-DRIVEN: it takes a Service object and derives everything (title,
+ * breadcrumbs, body, internal links, schema) using the lib helpers. The page
+ * file just hands over the data — so all service pages share identical SEO
+ * structure and a new service needs zero template work.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import InternalLinks from '../components/InternalLinks.astro';
+import { BUSINESS, SITE } from '../config/site';
+import type { Service } from '../data/services';
+import { relatedServices, locationsForService } from '../lib/links';
+import { serviceUrl, locationServiceUrl, absoluteUrl } from '../lib/urls';
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+
+const title = `${service.name} Services`;
+const description = service.description;
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Services', href: '/services' },
+  { name: service.name },
+];
+
+// "Available in these areas" — every city that offers this service.
+const areaLinks = locationsForService(service.slug).map((loc) => ({
+  label: `${service.name} in ${loc.city}, ${loc.region}`,
+  href: locationServiceUrl(loc.slug, service.slug),
+}));
+
+// "Related services" — curated siblings, backfilled.
+const relatedLinks = relatedServices(service.slug).map((s) => ({
+  label: s.name,
+  href: serviceUrl(s.slug),
+  description: s.tagline,
+}));
+
+// Service structured data, referencing the primary business node.
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  serviceType: service.name,
+  provider: { '@id': `${SITE.url}/#business` },
+  areaServed: BUSINESS.areaServed,
+  url: absoluteUrl(serviceUrl(service.slug)),
+};
+---
+
+<BaseLayout {title} {description}>
+  <article class="container page">
+    <Breadcrumbs items={crumbs} />
+
+    <header class="page-hero">
+      <p class="eyebrow">Home Services</p>
+      <h1>{service.name}</h1>
+      <p class="lede">{service.tagline}</p>
+      <a class="cta" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phone}</a>
+    </header>
+
+    <div class="page-body">
+      <p>{service.intro}</p>
+      <h2>What we offer</h2>
+      <ul>
+        {service.features.map((f) => <li>{f}</li>)}
+      </ul>
+      <slot />
+    </div>
+
+    <InternalLinks title="Available in these areas" links={areaLinks} />
+    <InternalLinks title="Related services" links={relatedLinks} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
+  </article>
+</BaseLayout>

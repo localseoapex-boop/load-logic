@@ -1,0 +1,22 @@
+---
+/**
+ * /services/[service] — dynamic route generating ONE page per service.
+ *
+ * getStaticPaths() fans out over the services catalog at build time. Add a
+ * service to data/services.ts and its page appears here automatically — this is
+ * the "no duplicated layouts" pattern (req #7) for the service tier.
+ */
+import ServiceLayout from '../../layouts/ServiceLayout.astro';
+import { services } from '../../data/services';
+
+export function getStaticPaths() {
+  return services.map((service) => ({
+    params: { service: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props;
+---
+
+<ServiceLayout {service} />

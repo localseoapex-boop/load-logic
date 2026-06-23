@@ -1,0 +1,69 @@
+---
+/**
+ * CityLayout.astro — template for /locations/[city] pages.
+ *
+ * Data-driven from a Location object. Builds the city hero, breadcrumbs, the
+ * list of services available in that city (each linking to the dedicated
+ * location-service page), and nearby-city links. The serving office's phone is
+ * resolved via officeId so the CTA is locally relevant.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import InternalLinks from '../components/InternalLinks.astro';
+import type { Location } from '../data/locations';
+import { getOffice, primaryOffice } from '../data/offices';
+import { servicesForLocation, nearbyCities } from '../lib/links';
+import { cityUrl, locationServiceUrl } from '../lib/urls';
+
+interface Props {
+  location: Location;
+}
+
+const { location } = Astro.props;
+const office = getOffice(location.officeId) ?? primaryOffice;
+
+const title = `Home Services in ${location.city}, ${location.region}`;
+const description = `Plumbing, HVAC, electrical, and more for ${location.city}, ${location.region} homeowners. Local crews, fast response, and honest pricing.`;
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Locations', href: '/locations' },
+  { name: `${location.city}, ${location.region}` },
+];
+
+// Services this city offers -> deep links to the location-service combo pages.
+const serviceLinks = servicesForLocation(location).map((s) => ({
+  label: `${s.name} in ${location.city}`,
+  href: locationServiceUrl(location.slug, s.slug),
+  description: s.tagline,
+}));
+
+// Nearby cities for lateral internal linking.
+const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
+  label: `${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
+}));
+---
+
+<BaseLayout {title} {description}>
+  <article class="container page">
+    <Breadcrumbs items={crumbs} />
+
+    <header class="page-hero">
+      <p class="eyebrow">Serving {location.city}, {location.region}</p>
+      <h1>{title}</h1>
+      <p class="lede">{description}</p>
+      <a class="cta" href={`tel:${office.phone}`}>Call your local team — {office.phone}</a>
+    </header>
+
+    <div class="page-body">
+      <p>
+        Our {office.name.replace(' Office', '')} crews live and work in the area, so we know the
+        homes and the climate and can get to you fast.
+      </p>
+    </div>
+
+    <InternalLinks title={`Services in ${location.city}`} links={serviceLinks} />
+    <InternalLinks title="Nearby cities we serve" links={nearbyLinks} />
+  </article>
+</BaseLayout>

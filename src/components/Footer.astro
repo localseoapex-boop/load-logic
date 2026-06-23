@@ -1,0 +1,118 @@
+---
+/**
+ * Footer.astro — site footer with a NAP block PER office (requirement #5).
+ *
+ * Iterates offices.ts so every physical location shows its own address and
+ * phone in a semantic <address> element. This mirrors the multi-node
+ * LocalBusiness schema exactly — consistent NAP across page + schema + external
+ * listings is a core local-SEO ranking factor.
+ */
+import { SITE, FOOTER_LINKS } from '../config/site';
+import { offices } from '../data/offices';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand-col">
+      <p class="footer-brand">{SITE.name}</p>
+      <p class="footer-tagline">{SITE.description}</p>
+    </div>
+
+    {
+      offices.map((office) => (
+        <div class="footer-office">
+          <p class="footer-heading">{office.name}</p>
+          <address>
+            {office.address.street}
+            <br />
+            {office.address.city}, {office.address.region} {office.address.postalCode}
+            <br />
+            <a href={`tel:${office.phone}`}>{office.phone}</a>
+          </address>
+        </div>
+      ))
+    }
+
+    {
+      FOOTER_LINKS.map((group) => (
+        <nav class="footer-group" aria-label={group.title}>
+          <p class="footer-heading">{group.title}</p>
+          <ul>
+            {group.links.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+  </div>
+
+  <p class="footer-legal">
+    &copy; {year} {offices[0].legalName}. All rights reserved.
+  </p>
+</footer>
+
+<style>
+  .site-footer {
+    background: #111827;
+    color: #d1d5db;
+    margin-top: 4rem;
+  }
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+  }
+  .footer-brand-col {
+    min-width: 220px;
+  }
+  .footer-brand {
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+  .footer-tagline {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  address {
+    font-style: normal;
+    line-height: 1.7;
+    font-size: 0.9rem;
+  }
+  .footer-heading {
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 0.75rem;
+  }
+  .footer-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    line-height: 1.9;
+  }
+  .site-footer a {
+    color: #d1d5db;
+    text-decoration: none;
+  }
+  .site-footer a:hover {
+    color: #fff;
+  }
+  .footer-legal {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    border-top: 1px solid #374151;
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+</style>

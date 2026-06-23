@@ -1,0 +1,78 @@
+---
+/**
+ * BaseHead.astro — the reusable SEO <head> component.
+ *
+ * Centralizes every per-page SEO signal: title, description, canonical URL,
+ * Open Graph (Facebook/LinkedIn), and Twitter Card tags. Every page passes its
+ * own values; sensible defaults fall back to the site config so no page ships
+ * without meta tags.
+ *
+ * Canonical + OG URLs are built as ABSOLUTE urls from Astro.site (set in
+ * astro.config.mjs) + the current path, which is what crawlers require.
+ */
+import { SITE } from '../config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Path or absolute URL for the social share image. */
+  image?: string;
+  /** 'website' for landing/index pages, 'article' for blog posts. */
+  type?: 'website' | 'article';
+  /** Set true to keep a page out of the index (e.g. thank-you pages). */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = SITE.defaultOgImage,
+  type = 'website',
+  noindex = false,
+} = Astro.props;
+
+// Astro.site comes from `site` in astro.config.mjs. Astro.url is the current request URL.
+// Building from these guarantees correct canonical/OG URLs in every environment.
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const socialImageURL = new URL(image, Astro.site);
+
+// Title pattern: page-specific text + brand. The homepage passes the brand alone.
+const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
+---
+
+<!-- Essential -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary meta tags -->
+<title>{fullTitle}</title>
+<meta name="title" content={fullTitle} />
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalURL} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" href="/favicon.ico" />
+
+<!-- Open Graph / Facebook / LinkedIn -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={socialImageURL} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={fullTitle} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content={SITE.twitter} />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={socialImageURL} />

@@ -1,0 +1,21 @@
+---
+/**
+ * /locations/[city] — dynamic route generating ONE page per city.
+ *
+ * getStaticPaths() fans out over the locations catalog. Add a city to
+ * data/locations.ts and its page (plus its location-service pages) appears.
+ */
+import CityLayout from '../../../layouts/CityLayout.astro';
+import { locations } from '../../../data/locations';
+
+export function getStaticPaths() {
+  return locations.map((location) => ({
+    params: { city: location.slug },
+    props: { location },
+  }));
+}
+
+const { location } = Astro.props;
+---
+
+<CityLayout {location} />

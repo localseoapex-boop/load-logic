@@ -1,11 +1,99 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+/**
+ * Homepage (/) — uses BaseLayout directly (it's not a service/city/blog page).
+ *
+ * Passes the brand name as the title so BaseHead renders the bare brand (no
+ * "| brand" suffix) — the canonical homepage title pattern. Demonstrates linking
+ * into the service and location pages for internal-link equity.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, BUSINESS } from '../config/site';
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout
+  title={SITE.name}
+  description={SITE.description}
+>
+  <section class="hero container">
+    <h1>Trusted Home Services in {BUSINESS.address.city}</h1>
+    <p class="lede">{SITE.description}</p>
+    <div class="hero-actions">
+      <a class="btn primary" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phone}</a>
+      <a class="btn" href="/services/plumbing">View services</a>
+    </div>
+  </section>
+
+  <section class="container grid">
+    <a class="card" href="/services/plumbing">
+      <h2>Plumbing</h2>
+      <p>Leaks, water heaters, drains, and emergency repairs.</p>
+    </a>
+    <a class="card" href="/locations/phoenix-az">
+      <h2>Phoenix, AZ</h2>
+      <p>Fast, local service across the Phoenix metro area.</p>
+    </a>
+    <a class="card" href="/blog">
+      <h2>Tips &amp; Guides</h2>
+      <p>Maintenance advice to keep your home running.</p>
+    </a>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 4rem 1rem 2rem;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.75rem;
+    margin: 0 0 1rem;
+  }
+  .lede {
+    font-size: 1.25rem;
+    color: #4b5563;
+    max-width: 60ch;
+    margin: 0 auto 1.5rem;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    padding-top: 2rem;
+  }
+  .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+  }
+  .card h2 {
+    margin: 0 0 0.5rem;
+  }
+  .card p {
+    margin: 0;
+    color: #4b5563;
+  }
+</style>

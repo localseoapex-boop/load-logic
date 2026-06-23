@@ -1,0 +1,53 @@
+---
+/**
+ * LocalBusinessSchema.astro — LocalBusiness JSON-LD for ALL offices (req #5, #7).
+ *
+ * Emits a schema.org @graph with one LocalBusiness node per physical office.
+ * The primary office keeps the stable @id `${SITE.url}/#business` so Service and
+ * Article schema elsewhere can reference it; branch offices get `#office-<id>`.
+ *
+ * Driven entirely by offices.ts, so the structured data always matches the
+ * footer's NAP — a key local-SEO consistency signal.
+ */
+import { SITE } from '../config/site';
+import { offices, officeNodeId } from '../data/offices';
+
+const graph = offices.map((office) => ({
+  '@type': office.type,
+  '@id': officeNodeId(SITE.url, office),
+  name: office.name === offices[0].name ? SITE.name : `${SITE.name} — ${office.address.city}`,
+  legalName: office.legalName,
+  description: SITE.description,
+  url: SITE.url,
+  telephone: office.phone,
+  email: office.email,
+  priceRange: office.priceRange,
+  image: new URL(SITE.defaultOgImage, SITE.url).href,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: office.address.street,
+    addressLocality: office.address.city,
+    addressRegion: office.address.region,
+    postalCode: office.address.postalCode,
+    addressCountry: office.address.country,
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: office.geo.latitude,
+    longitude: office.geo.longitude,
+  },
+  openingHoursSpecification: office.hours.map((spec) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: spec.days,
+    opens: spec.opens,
+    closes: spec.closes,
+  })),
+}));
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': graph,
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />

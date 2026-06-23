@@ -1,0 +1,97 @@
+---
+/**
+ * Navigation.astro — site header + primary nav.
+ *
+ * Pulls links from NAV_LINKS so the menu is edited in one place. Highlights the
+ * active link by comparing each href against the current path (good for UX and
+ * gives crawlers clear, consistent internal linking). A prominent "Call" CTA is
+ * standard for home-service sites where phone calls are the main conversion.
+ */
+import { SITE, BUSINESS, NAV_LINKS } from '../config/site';
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? currentPath === '/' : currentPath.startsWith(href.split('/').slice(0, 2).join('/'));
+---
+
+<header class="site-header">
+  <nav class="nav" aria-label="Primary">
+    <a href="/" class="brand">{SITE.name}</a>
+
+    <ul class="nav-links">
+      {
+        NAV_LINKS.map((link) => (
+          <li>
+            <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a class="cta" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phone}</a>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+  }
+  .nav {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #111827;
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-left: auto;
+  }
+  .nav-links a {
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .nav-links a:hover,
+  .nav-links a[aria-current='page'] {
+    color: #2563eb;
+  }
+  .cta {
+    background: #2563eb;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cta:hover {
+    background: #1d4ed8;
+  }
+  @media (max-width: 640px) {
+    .nav {
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .nav-links {
+      margin-left: 0;
+      order: 3;
+      width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+/**
+ * /blog — blog index, now driven by the content collection.
+ *
+ * getCollection('blog') replaces the old hardcoded array: posts are discovered
+ * from src/content/blog, filtered to non-drafts, and sorted newest-first. Adding
+ * a Markdown file automatically lists it here — no edits to this file.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+---
+
+<BaseLayout
+  title="Home Maintenance Blog"
+  description="Practical home maintenance tips and guides from Acme Home Services — plumbing, HVAC, and electrical."
+>
+  <section class="container blog-index">
+    <h1>Home Maintenance Tips &amp; Guides</h1>
+    <ul class="post-list">
+      {
+        posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}`}>
+              <h2>{post.data.title}</h2>
+              <p class="date">
+                <time datetime={post.data.pubDate.toISOString().slice(0, 10)}>
+                  {post.data.pubDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+              </p>
+              <p>{post.data.description}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .blog-index {
+    padding: 3rem 1rem;
+    max-width: 760px;
+  }
+  .blog-index h1 {
+    font-size: 2.4rem;
+    margin-bottom: 2rem;
+  }
+  .post-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+  .post-list a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .post-list a:hover {
+    border-color: var(--accent);
+  }
+  .post-list h2 {
+    margin: 0 0 0.25rem;
+  }
+  .date {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
+  }
+  .post-list p:last-child {
+    margin: 0;
+    color: #4b5563;
+  }
+</style>
