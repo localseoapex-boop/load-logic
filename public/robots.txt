@@ -5,4 +5,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://seo-starter-site.vercel.app/sitemap-index.xml
+Sitemap: https://load-logic.vercel.app/sitemap-index.xml
