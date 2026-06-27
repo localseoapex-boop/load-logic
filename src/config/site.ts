@@ -10,9 +10,9 @@ import { primaryOffice } from '../data/offices';
 
 export const SITE = {
   /** Must match `site` in astro.config.mjs. Used to build absolute/canonical URLs. */
-  url: 'https://seo-starter-site.vercel.app',
+  url: 'https://load-logic.vercel.app',
   /** Brand / business name, reused in titles, schema, and footer. */
-  name: 'Acme Home Services',
+  name: 'Load Logic',
   /** Short tagline used as the default meta description fallback. */
   description:
     'Licensed, insured home service professionals — plumbing, HVAC, and electrical. Fast, honest, and local.',
@@ -21,7 +21,7 @@ export const SITE = {
   /** Default language for the <html lang> attribute. */
   locale: 'en',
   /** Twitter/X handle for twitter:site card attribution. */
-  twitter: '@acmehome',
+  twitter: '@loadlogic',
 } as const;
 
 /**

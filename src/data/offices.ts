@@ -45,11 +45,11 @@ export const offices: Office[] = [
   {
     id: 'phoenix',
     name: 'Phoenix Office',
-    legalName: 'Acme Home Services LLC',
+    legalName: 'Load Logic LLC',
     type: 'HomeAndConstructionBusiness',
     priceRange: '$$',
     phone: '+1-602-555-0142',
-    email: 'phoenix@acmehomeservices.com',
+    email: 'phoenix@loadlogic.com',
     address: {
       street: '123 Camelback Rd',
       city: 'Phoenix',
@@ -67,11 +67,11 @@ export const offices: Office[] = [
   {
     id: 'tucson',
     name: 'Tucson Office',
-    legalName: 'Acme Home Services LLC',
+    legalName: 'Load Logic LLC',
     type: 'HomeAndConstructionBusiness',
     priceRange: '$$',
     phone: '+1-520-555-0177',
-    email: 'tucson@acmehomeservices.com',
+    email: 'tucson@loadlogic.com',
     address: {
       street: '456 Speedway Blvd',
       city: 'Tucson',

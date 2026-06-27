@@ -2,7 +2,7 @@
 title: 5 Signs You Need a New Water Heater
 description: Running out of hot water? Here are five warning signs that it's time to replace your water heater before it fails completely.
 pubDate: 2026-06-01
-author: Acme Home Services
+author: Load Logic
 tags:
   - plumbing
   - water-heaters

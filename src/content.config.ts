@@ -26,7 +26,7 @@ const blog = defineCollection({
     // z.coerce.date() parses the YAML "2026-06-01" string into a real Date.
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    author: z.string().default('Acme Home Services'),
+    author: z.string().default('Load Logic'),
     /** Optional social/hero image path (under /public or an absolute URL). */
     heroImage: z.string().optional(),
     tags: z.array(z.string()).default([]),

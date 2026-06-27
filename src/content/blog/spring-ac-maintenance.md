@@ -2,7 +2,7 @@
 title: Spring AC Maintenance Checklist for Arizona Homes
 description: Get your air conditioner ready for the Arizona summer with this simple spring HVAC maintenance checklist for homeowners.
 pubDate: 2026-06-15
-author: Acme Home Services
+author: Load Logic
 tags:
   - hvac
   - maintenance
