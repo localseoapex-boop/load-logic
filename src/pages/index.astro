@@ -10,8 +10,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, BUSINESS } from '../config/site';
 import { services } from '../data/services';
-import { locations } from '../data/locations';
 import { serviceProcess } from '../data/service-content';
+import { serviceAreaLocations } from '../lib/links';
 import { serviceUrl, cityUrl } from '../lib/urls';
 
 const trustSignals = [
@@ -140,11 +140,11 @@ const faqSchema = {
     <div class="section-heading">
       <p class="eyebrow">Service areas</p>
       <h2>Proudly based in Mesa</h2>
-      <p>Local crews serving Mesa and the surrounding East Valley cities.</p>
+      <p>Mesa is our home turf — and we serve these surrounding East Valley cities too.</p>
     </div>
     <div class="card-grid">
       {
-        locations.map((loc) => (
+        serviceAreaLocations.map((loc) => (
           <a class="city-card" href={cityUrl(loc.slug)}>
             <h3>{loc.city}, {loc.region}</h3>
             <p>Junk removal &amp; cleanouts</p>

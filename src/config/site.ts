@@ -22,6 +22,14 @@ export const SITE = {
   locale: 'en',
   /** Twitter/X handle for twitter:site card attribution. */
   twitter: '@loadlogicjunk',
+  /**
+   * When true, the PRIMARY office's home city (offices[0].homeCitySlug) is NOT
+   * generated as a /locations/* service-area page — it is represented directly
+   * by the homepage and the canonical /services/* pages instead. This avoids
+   * duplicate "home city" pages. Flip to false for businesses that DO want a
+   * dedicated location page for their home city. See src/lib/links.ts.
+   */
+  excludeHomeCityFromServiceAreas: true,
 } as const;
 
 /**
@@ -59,7 +67,7 @@ export const BUSINESS = {
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
-  { label: 'Service Areas', href: '/locations' },
+  { label: 'Areas We Serve', href: '/locations' },
   { label: 'Blog', href: '/blog' },
 ] as const;
 
@@ -78,8 +86,9 @@ export const FOOTER_LINKS = [
     title: 'Company',
     links: [
       { label: 'All Services', href: '/services' },
-      { label: 'Service Areas', href: '/locations' },
-      { label: 'Mesa, AZ', href: '/locations/mesa-az' },
+      { label: 'Areas We Serve', href: '/locations' },
+      // Mesa is the home market — represented by the homepage, not a location page.
+      { label: 'Mesa Junk Removal', href: '/' },
       { label: 'Blog', href: '/blog' },
     ],
   },

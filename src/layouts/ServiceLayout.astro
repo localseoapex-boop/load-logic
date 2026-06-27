@@ -35,7 +35,8 @@ const { service } = Astro.props;
 const content = getServiceContent(service.slug);
 const faqs = getServiceFaqs(service.slug);
 
-const title = service.name;
+// These are the canonical Mesa service pages — title targets Mesa explicitly.
+const title = `${service.name} in Mesa, AZ`;
 const description = service.description;
 
 const crumbs = [
@@ -97,7 +98,7 @@ const faqSchema = {
       <p class="lede">{service.tagline}</p>
       <div class="hero-actions">
         <a class="button primary" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phoneDisplay}</a>
-        <a class="button outline" href="/locations/mesa-az">Mesa service area</a>
+        <a class="button outline" href="/locations">Areas we serve</a>
       </div>
       <ul class="hero-trust">
         {serviceTrustBullets.map((b) => <li>{b}</li>)}

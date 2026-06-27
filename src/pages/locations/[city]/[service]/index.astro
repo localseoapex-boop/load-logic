@@ -7,11 +7,12 @@
  * categories it offers, skipping combinations a city doesn't serve (req #9).
  */
 import LocationServiceLayout from '../../../../layouts/LocationServiceLayout.astro';
-import { locations } from '../../../../data/locations';
-import { servicesForLocation } from '../../../../lib/links';
+import { serviceAreaLocations, servicesForLocation } from '../../../../lib/links';
 
 export function getStaticPaths() {
-  return locations.flatMap((location) =>
+  // Iterate service-area cities only (home-market Mesa is excluded), so no
+  // /locations/mesa-az/[service] pages are generated.
+  return serviceAreaLocations.flatMap((location) =>
     servicesForLocation(location).map((service) => ({
       params: { city: location.slug, service: service.slug },
       props: { location, service },

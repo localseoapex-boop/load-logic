@@ -18,7 +18,7 @@ import type { Service } from '../data/services';
 import type { SubService } from '../data/subservices';
 import { getOffice, primaryOffice, officeNodeId } from '../data/offices';
 import { subServicesForCategory, nearbyCities, isServiceAvailable } from '../lib/links';
-import { cityUrl, locationServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
+import { serviceUrl, subServiceUrl, cityUrl, locationServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
 
 interface Props {
   location: Location;
@@ -33,12 +33,22 @@ const cityState = `${location.city}, ${location.region}`;
 const title = `${subService.name} in ${cityState}`;
 const description = `${subService.description} Serving ${cityState}.`;
 
+// Service-first breadcrumbs: canonical service › canonical sub-service › city.
+// No Mesa location crumb is generated from the location architecture.
 const crumbs = [
   { name: 'Home', href: '/' },
-  { name: 'Service Areas', href: '/locations' },
-  { name: cityState, href: cityUrl(location.slug) },
-  { name: service.name, href: locationServiceUrl(location.slug, service.slug) },
-  { name: subService.name },
+  { name: service.name, href: serviceUrl(service.slug) },
+  { name: subService.name, href: subServiceUrl(service.slug, subService.slug) },
+  { name: location.city },
+];
+
+// Back-link to the canonical (Mesa) sub-service page.
+const canonicalSubServiceLink = [
+  {
+    label: `${subService.name} in Mesa, AZ`,
+    href: subServiceUrl(service.slug, subService.slug),
+    description: 'Our primary Mesa service page.',
+  },
 ];
 
 // Sibling sub-services in this category, in this city.
@@ -91,6 +101,7 @@ const serviceSchema = {
       <slot />
     </div>
 
+    <InternalLinks title="Main service page" links={canonicalSubServiceLink} />
     <InternalLinks title={`Other ${service.name} services in ${location.city}`} links={siblingLinks} />
     <InternalLinks title={`${subService.name} in nearby cities`} links={nearbyLinks} />
 

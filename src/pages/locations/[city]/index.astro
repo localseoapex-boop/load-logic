@@ -6,10 +6,12 @@
  * data/locations.ts and its page (plus its location-service pages) appears.
  */
 import CityLayout from '../../../layouts/CityLayout.astro';
-import { locations } from '../../../data/locations';
+import { serviceAreaLocations } from '../../../lib/links';
 
 export function getStaticPaths() {
-  return locations.map((location) => ({
+  // serviceAreaLocations excludes the home-market city (Mesa), so no
+  // /locations/mesa-az page is ever generated.
+  return serviceAreaLocations.map((location) => ({
     params: { city: location.slug },
     props: { location },
   }));

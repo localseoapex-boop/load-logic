@@ -26,7 +26,7 @@ import {
   isServiceAvailable,
   subServicesForCategory,
 } from '../lib/links';
-import { cityUrl, locationServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
+import { serviceUrl, cityUrl, locationServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
 
 interface Props {
   location: Location;
@@ -40,11 +40,21 @@ const cityState = `${location.city}, ${location.region}`;
 const title = `${service.name} in ${cityState}`;
 const description = `${service.description} Serving ${cityState} and nearby areas.`;
 
+// Service-first breadcrumbs: the canonical Mesa service page is the parent, the
+// city is the leaf (Home › Furniture Removal › Chandler). No Mesa location crumb.
 const crumbs = [
   { name: 'Home', href: '/' },
-  { name: 'Service Areas', href: '/locations' },
-  { name: cityState, href: cityUrl(location.slug) },
-  { name: service.name },
+  { name: service.name, href: serviceUrl(service.slug) },
+  { name: location.city },
+];
+
+// Back-link to the canonical (Mesa) service page — city pages treat it as home.
+const canonicalServiceLink = [
+  {
+    label: `${service.name} in Mesa, AZ`,
+    href: serviceUrl(service.slug),
+    description: 'Our primary Mesa service page.',
+  },
 ];
 
 // Other services available in THIS city (sibling cross-links).
@@ -104,6 +114,7 @@ const serviceSchema = {
       <slot />
     </div>
 
+    <InternalLinks title="Main service page" links={canonicalServiceLink} />
     <InternalLinks title={`${service.name} options in ${location.city}`} links={subServiceLinks} />
     <InternalLinks title={`Other services in ${location.city}`} links={otherServiceLinks} />
     <InternalLinks title={`${service.name} in nearby cities`} links={nearbyServiceLinks} />

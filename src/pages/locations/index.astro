@@ -7,25 +7,29 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import InternalLinks from '../../components/InternalLinks.astro';
-import { locations } from '../../data/locations';
+import { serviceAreaLocations } from '../../lib/links';
 import { cityUrl } from '../../lib/urls';
 
-const links = locations.map((loc) => ({
+// Only surrounding service areas — the home market (Mesa) lives on the homepage.
+const links = serviceAreaLocations.map((loc) => ({
   label: `${loc.city}, ${loc.region}`,
   href: cityUrl(loc.slug),
 }));
 ---
 
 <BaseLayout
-  title="Service Areas"
-  description="Load Logic Junk Removal serves Mesa and the East Valley — Chandler, Gilbert, Tempe, Queen Creek, San Tan Valley, Apache Junction, Gold Canyon, Scottsdale, and Ahwatukee."
+  title="Areas We Serve"
+  description="Beyond our home base in Mesa, Load Logic Junk Removal serves the East Valley — Chandler, Gilbert, Tempe, Queen Creek, San Tan Valley, Apache Junction, Gold Canyon, Scottsdale, and Ahwatukee."
 >
   <div class="container page">
-    <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Service Areas' }]} />
+    <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Areas We Serve' }]} />
     <header class="page-hero">
-      <h1>Service Areas</h1>
-      <p class="lede">Mesa-based crews serving the entire East Valley, with fast scheduling in every city.</p>
+      <h1>Areas We Serve</h1>
+      <p class="lede">
+        Load Logic is based in Mesa and serves the surrounding East Valley. Looking for Mesa junk
+        removal? That is right here on our <a href="/services">services</a> pages.
+      </p>
     </header>
-    <InternalLinks title="Cities we serve" links={links} />
+    <InternalLinks title="Surrounding cities we serve" links={links} />
   </div>
 </BaseLayout>

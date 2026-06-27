@@ -25,6 +25,15 @@ export interface Office {
   id: string;
   /** Display name for the footer/schema, e.g. "Mesa Office". */
   name: string;
+  /**
+   * Location slug (from locations.ts) of the city this office physically calls
+   * home. The PRIMARY office's home city is represented directly by the homepage
+   * and the canonical /services/* pages, so — when
+   * SITE.excludeHomeCityFromServiceAreas is on — it is excluded from the
+   * generated /locations/* service-area pages (no duplicate Mesa pages).
+   * Data-driven: point this at whichever city slug an office occupies.
+   */
+  homeCitySlug: string;
   legalName: string;
   /** schema.org business @type. */
   type: string;
@@ -52,6 +61,7 @@ export const offices: Office[] = [
   {
     id: 'mesa',
     name: 'Mesa Office',
+    homeCitySlug: 'mesa-az',
     legalName: 'Load Logic Junk Removal LLC',
     type: 'LocalBusiness',
     priceRange: '$$',

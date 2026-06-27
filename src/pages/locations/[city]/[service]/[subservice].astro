@@ -9,11 +9,11 @@
  * sub-services (e.g. insulation) simply contribute nothing.
  */
 import LocationSubServiceLayout from '../../../../layouts/LocationSubServiceLayout.astro';
-import { locations } from '../../../../data/locations';
-import { servicesForLocation, subServicesForCategory } from '../../../../lib/links';
+import { serviceAreaLocations, servicesForLocation, subServicesForCategory } from '../../../../lib/links';
 
 export function getStaticPaths() {
-  return locations.flatMap((location) =>
+  // Service-area cities only — the home-market city (Mesa) is excluded.
+  return serviceAreaLocations.flatMap((location) =>
     servicesForLocation(location).flatMap((service) =>
       subServicesForCategory(service.slug).map((subService) => ({
         params: { city: location.slug, service: service.slug, subservice: subService.slug },
