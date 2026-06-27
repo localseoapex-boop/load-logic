@@ -24,6 +24,12 @@ The marketing site for **Load Logic**, built with [Astro](https://astro.build). 
 
 Brand and business details live in `src/config/site.ts` (org-level) and `src/data/offices.ts` (per-office NAP, hours, and service areas). The canonical site origin is set in both `astro.config.mjs` and `SITE.url` — keep them in sync.
 
+## ✍️ Copywriting Standards
+
+All site copy follows the rules in [`docs/copywriting-standards.md`](docs/copywriting-standards.md). This covers the homepage, service pages, service area pages, blog posts, FAQs, meta titles and descriptions, CTAs, and landing pages.
+
+Before creating or editing any content on this site, developers and AI assistants must read that file and follow it. The goal is copy that reads like an experienced local copywriter wrote it: natural, trustworthy, and free of AI clichés and corporate filler.
+
 ## 🧞 Commands
 
 All commands are run from the root of the project, from a terminal:
