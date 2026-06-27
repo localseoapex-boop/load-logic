@@ -15,11 +15,11 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 ---
 
 <BaseLayout
-  title="Home Maintenance Blog"
-  description="Practical home maintenance tips and guides from Load Logic — plumbing, HVAC, and electrical."
+  title="Junk Removal Tips & Guides"
+  description="Practical junk removal and cleanout tips from Load Logic — how to prepare for a pickup, what gets donated or recycled, and more."
 >
   <section class="container blog-index">
-    <h1>Home Maintenance Tips &amp; Guides</h1>
+    <h1>Junk Removal Tips &amp; Guides</h1>
     <ul class="post-list">
       {
         posts.map((post) => (

@@ -2,16 +2,28 @@
 /**
  * ServiceLayout.astro — template for /services/[service] pages.
  *
- * Now DATA-DRIVEN: it takes a Service object and derives everything (title,
- * breadcrumbs, body, internal links, schema) using the lib helpers. The page
- * file just hands over the data — so all service pages share identical SEO
- * structure and a new service needs zero template work.
+ * DATA-DRIVEN: it takes a Service object and derives everything (title,
+ * breadcrumbs, internal links, schema) from the catalog + the rich page copy in
+ * service-content.ts. The page file just hands over the data — so all service
+ * pages share identical SEO structure and a new service needs zero template work.
+ *
+ * Renders the full junk-removal service page: hero + trust, overview, reasons,
+ * what-we-remove, special handling, how-it-works, why-choose, problem/solution,
+ * internal-link blocks, FAQs (with FAQPage schema), and a final CTA band. Emits
+ * Service + FAQPage JSON-LD alongside the Breadcrumb schema.
  */
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import InternalLinks from '../components/InternalLinks.astro';
 import { BUSINESS, SITE } from '../config/site';
 import type { Service } from '../data/services';
+import {
+  getServiceContent,
+  getServiceFaqs,
+  serviceProcess,
+  whyChoose,
+  serviceTrustBullets,
+} from '../data/service-content';
 import { relatedServices, locationsForService, subServicesForCategory } from '../lib/links';
 import { serviceUrl, locationServiceUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
 
@@ -20,8 +32,10 @@ interface Props {
 }
 
 const { service } = Astro.props;
+const content = getServiceContent(service.slug);
+const faqs = getServiceFaqs(service.slug);
 
-const title = `${service.name} Services`;
+const title = service.name;
 const description = service.description;
 
 const crumbs = [
@@ -30,17 +44,17 @@ const crumbs = [
   { name: service.name },
 ];
 
-// "Available in these areas" — every city that offers this service.
-const areaLinks = locationsForService(service.slug).map((loc) => ({
-  label: `${service.name} in ${loc.city}, ${loc.region}`,
-  href: locationServiceUrl(loc.slug, service.slug),
-}));
-
-// Sub-services in this category (req #5) — e.g. all HVAC services.
+// Sub-services in this category (e.g. Residential / Commercial Junk Removal).
 const subServiceLinks = subServicesForCategory(service.slug).map((sub) => ({
   label: sub.name,
   href: subServiceUrl(service.slug, sub.slug),
   description: sub.tagline,
+}));
+
+// "Available in these areas" — every city that offers this service.
+const areaLinks = locationsForService(service.slug).map((loc) => ({
+  label: `${service.name} in ${loc.city}, ${loc.region}`,
+  href: locationServiceUrl(loc.slug, service.slug),
 }));
 
 // "Related services" — curated siblings, backfilled.
@@ -57,7 +71,19 @@ const serviceSchema = {
   serviceType: service.name,
   provider: { '@id': `${SITE.url}/#business` },
   areaServed: BUSINESS.areaServed,
+  description: service.description,
   url: absoluteUrl(serviceUrl(service.slug)),
+};
+
+// FAQPage schema — only the FAQs visible on this page.
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
 };
 ---
 
@@ -65,26 +91,139 @@ const serviceSchema = {
   <article class="container page">
     <Breadcrumbs items={crumbs} />
 
-    <header class="page-hero">
-      <p class="eyebrow">Home Services</p>
-      <h1>{service.name}</h1>
+    <header class="page-hero service-hero">
+      <p class="eyebrow">Junk Removal</p>
+      <h1>{service.name} in Mesa &amp; the East Valley</h1>
       <p class="lede">{service.tagline}</p>
-      <a class="cta" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phone}</a>
+      <div class="hero-actions">
+        <a class="button primary" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phoneDisplay}</a>
+        <a class="button outline" href="/locations/mesa-az">Mesa service area</a>
+      </div>
+      <ul class="hero-trust">
+        {serviceTrustBullets.map((b) => <li>{b}</li>)}
+      </ul>
     </header>
 
-    <div class="page-body">
-      <p>{service.intro}</p>
-      <h2>What we offer</h2>
-      <ul>
-        {service.features.map((f) => <li>{f}</li>)}
-      </ul>
+    <div class="service-flow">
+      {/* Overview */}
+      <section class="service-section">
+        <p class="intro-line">{service.intro}</p>
+        <div class="copy-stack">
+          {(content?.overview ?? []).map((p) => <p>{p}</p>)}
+        </div>
+      </section>
+
+      {/* What we offer + common reasons */}
+      <section class="service-section">
+        <h2>What we offer</h2>
+        <ul class="check-list">
+          {service.features.map((f) => <li>{f}</li>)}
+        </ul>
+        {content && content.reasons.length > 0 && (
+          <>
+            <h3>Common reasons customers call</h3>
+            <ul class="pill-list">
+              {content.reasons.map((r) => <li>{r}</li>)}
+            </ul>
+          </>
+        )}
+      </section>
+
+      {/* What we remove */}
+      {content && content.detailGroups.length > 0 && (
+        <section class="service-section">
+          <h2>What we take</h2>
+          <div class="detail-grid">
+            {content.detailGroups.map((group) => (
+              <div class="detail-card">
+                <h3>{group.title}</h3>
+                <ul>
+                  {group.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Special handling */}
+      {content?.specialNote && (
+        <section class="service-section">
+          <div class="warning-section">
+            <h3>Items that need special handling</h3>
+            <p>{content.specialNote}</p>
+          </div>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section class="service-section">
+        <h2>How it works</h2>
+        <ol class="number-list">
+          {serviceProcess.map((step) => (
+            <li>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Why choose us */}
+      <section class="service-section">
+        <h2>Why choose Load Logic</h2>
+        <ul class="check-list">
+          {whyChoose.map((w) => <li>{w}</li>)}
+        </ul>
+      </section>
+
+      {/* Problem / solution */}
+      {content && content.problems.length > 0 && (
+        <section class="service-section">
+          <h2>We solve the hard part</h2>
+          <div class="problem-grid">
+            {content.problems.map((p) => (
+              <div class="problem-card">
+                <h3>Problem</h3>
+                <p>{p.problem}</p>
+                <h3>Solution</h3>
+                <p>{p.solution}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <slot />
     </div>
 
-    <InternalLinks title={`${service.name} services`} links={subServiceLinks} />
+    <InternalLinks title={`${service.name} options`} links={subServiceLinks} />
     <InternalLinks title="Available in these areas" links={areaLinks} />
     <InternalLinks title="Related services" links={relatedLinks} />
 
+    {/* FAQs */}
+    <section class="service-section faq-block">
+      <h2>{service.name} FAQs</h2>
+      <div class="faq-list">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.question}</summary>
+            <p>{f.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    {/* Final CTA */}
+    <section class="cta-band">
+      <div>
+        <h2>Ready to clear it out?</h2>
+        <p>Get an upfront quote for {service.name.toLowerCase()} in Mesa and the East Valley.</p>
+      </div>
+      <a class="button primary" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phoneDisplay}</a>
+    </section>
+
     <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />
   </article>
 </BaseLayout>

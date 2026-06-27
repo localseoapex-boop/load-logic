@@ -1,7 +1,7 @@
 /**
  * Central site configuration — brand-level settings and navigation.
  *
- * Per-office NAP/hours now live in src/data/offices.ts (multi-office support).
+ * Per-office NAP/hours live in src/data/offices.ts (multi-office support).
  * BUSINESS below is derived from the PRIMARY office plus org-level fields, so
  * existing references (BUSINESS.phone, BUSINESS.address, ...) keep working with
  * zero duplicated data.
@@ -12,16 +12,16 @@ export const SITE = {
   /** Must match `site` in astro.config.mjs. Used to build absolute/canonical URLs. */
   url: 'https://load-logic.vercel.app',
   /** Brand / business name, reused in titles, schema, and footer. */
-  name: 'Load Logic',
+  name: 'Load Logic Junk Removal',
   /** Short tagline used as the default meta description fallback. */
   description:
-    'Licensed, insured home service professionals — plumbing, HVAC, and electrical. Fast, honest, and local.',
-  /** Default social share image (lives in /public). Replace with a real 1200x630 image. */
+    'Full-service junk removal and cleanouts in Mesa and the East Valley. Upfront pricing, fast scheduling, and all the heavy lifting handled.',
+  /** Default social share image (lives in /public). 1200x630, regenerated on build. */
   defaultOgImage: '/og-default.png',
   /** Default language for the <html lang> attribute. */
   locale: 'en',
   /** Twitter/X handle for twitter:site card attribution. */
-  twitter: '@loadlogic',
+  twitter: '@loadlogicjunk',
 } as const;
 
 /**
@@ -34,38 +34,53 @@ export const BUSINESS = {
   type: primaryOffice.type,
   priceRange: primaryOffice.priceRange,
   phone: primaryOffice.phone,
+  /** Human-friendly phone for display in CTAs and copy. */
+  phoneDisplay: '(480) 712-0431',
   email: primaryOffice.email,
   address: primaryOffice.address,
   geo: primaryOffice.geo,
   openingHours: primaryOffice.hours,
-  /** All cities served across every office — handy for area-served lists. */
-  areaServed: ['Phoenix', 'Scottsdale', 'Tempe', 'Mesa', 'Chandler', 'Tucson', 'Oro Valley'],
+  /** All cities served — handy for area-served lists. */
+  areaServed: [
+    'Mesa',
+    'Chandler',
+    'Gilbert',
+    'Tempe',
+    'Queen Creek',
+    'San Tan Valley',
+    'Apache Junction',
+    'Gold Canyon',
+    'Scottsdale',
+    'Ahwatukee',
+  ],
 } as const;
 
 /** Primary navigation links rendered in the header. */
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
-  { label: 'Locations', href: '/locations' },
+  { label: 'Service Areas', href: '/locations' },
   { label: 'Blog', href: '/blog' },
 ] as const;
 
 /** Footer link groups. */
 export const FOOTER_LINKS = [
   {
-    title: 'Services',
+    title: 'Popular Services',
     links: [
-      { label: 'HVAC', href: '/services/hvac' },
-      { label: 'Plumbing', href: '/services/plumbing' },
-      { label: 'Electrical', href: '/services/electrical' },
-      { label: 'Drains', href: '/services/drains' },
+      { label: 'Junk Removal', href: '/services/junk-removal' },
+      { label: 'Furniture Removal', href: '/services/furniture-removal' },
+      { label: 'Garage Cleanouts', href: '/services/garage-cleanouts' },
+      { label: 'Same-Day Junk Removal', href: '/services/same-day-junk-removal' },
     ],
   },
   {
     title: 'Company',
     links: [
+      { label: 'All Services', href: '/services' },
+      { label: 'Service Areas', href: '/locations' },
+      { label: 'Mesa, AZ', href: '/locations/mesa-az' },
       { label: 'Blog', href: '/blog' },
-      { label: 'Service Areas', href: '/locations/phoenix-az' },
     ],
   },
 ] as const;

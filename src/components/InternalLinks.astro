@@ -57,21 +57,24 @@ const { title, links } = Astro.props;
     gap: 0.75rem;
   }
   .internal-links li {
-    border: 1px solid #e5e7eb;
+    background: var(--white);
+    border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 0.75rem 1rem;
-    transition: border-color 0.2s;
+    padding: 0.85rem 1rem;
+    transition: border-color 0.2s, transform 0.15s ease;
   }
   .internal-links li:hover {
-    border-color: var(--accent);
+    border-color: var(--green);
+    transform: translateY(-2px);
   }
   .internal-links a {
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
+    color: var(--green-dark);
   }
   .internal-links p {
     margin: 0.25rem 0 0;
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--muted);
   }
 </style>

@@ -2,14 +2,15 @@
 /**
  * CityLayout.astro — template for /locations/[city] pages.
  *
- * Data-driven from a Location object. Builds the city hero, breadcrumbs, the
- * list of services available in that city (each linking to the dedicated
- * location-service page), and nearby-city links. The serving office's phone is
- * resolved via officeId so the CTA is locally relevant.
+ * Data-driven from a Location object. Builds the city hero, breadcrumbs, unique
+ * local intro + neighborhoods, the list of services available in that city (each
+ * linking to the dedicated location-service page), and nearby-city links. The
+ * serving office's phone is resolved via officeId so the CTA is locally relevant.
  */
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import InternalLinks from '../components/InternalLinks.astro';
+import { BUSINESS } from '../config/site';
 import type { Location } from '../data/locations';
 import { getOffice, primaryOffice } from '../data/offices';
 import { servicesForLocation, nearbyCities } from '../lib/links';
@@ -21,14 +22,15 @@ interface Props {
 
 const { location } = Astro.props;
 const office = getOffice(location.officeId) ?? primaryOffice;
+const cityState = `${location.city}, ${location.region}`;
 
-const title = `Home Services in ${location.city}, ${location.region}`;
-const description = `Plumbing, HVAC, electrical, and more for ${location.city}, ${location.region} homeowners. Local crews, fast response, and honest pricing.`;
+const title = `Junk Removal in ${cityState}`;
+const description = `Junk removal and cleanouts in ${cityState} — furniture, appliances, mattresses, garages, estates, and construction debris, with upfront pricing.`;
 
 const crumbs = [
   { name: 'Home', href: '/' },
-  { name: 'Locations', href: '/locations' },
-  { name: `${location.city}, ${location.region}` },
+  { name: 'Service Areas', href: '/locations' },
+  { name: cityState },
 ];
 
 // Services this city offers -> deep links to the location-service combo pages.
@@ -40,7 +42,7 @@ const serviceLinks = servicesForLocation(location).map((s) => ({
 
 // Nearby cities for lateral internal linking.
 const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
-  label: `${loc.city}, ${loc.region}`,
+  label: `Junk removal in ${loc.city}, ${loc.region}`,
   href: cityUrl(loc.slug),
 }));
 ---
@@ -50,20 +52,37 @@ const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
     <Breadcrumbs items={crumbs} />
 
     <header class="page-hero">
-      <p class="eyebrow">Serving {location.city}, {location.region}</p>
+      <p class="eyebrow">Serving {cityState}</p>
       <h1>{title}</h1>
-      <p class="lede">{description}</p>
-      <a class="cta" href={`tel:${office.phone}`}>Call your local team — {office.phone}</a>
+      <p class="lede">{location.intro ?? description}</p>
+      <div class="hero-actions">
+        <a class="button primary" href={`tel:${office.phone}`}>Get a free quote — {BUSINESS.phoneDisplay}</a>
+        <a class="button outline" href="/services">View all services</a>
+      </div>
     </header>
 
     <div class="page-body">
       <p>
-        Our {office.name.replace(' Office', '')} crews live and work in the area, so we know the
-        homes and the climate and can get to you fast.
+        Load Logic is a Mesa-based junk removal team serving {location.city} and the surrounding East
+        Valley. We bring the truck and the muscle, give you an upfront price before we load, and clean
+        up the area when the job is done — no dumpster rental, no heavy lifting on your end.
       </p>
+      {location.neighborhoods && location.neighborhoods.length > 0 && (
+        <p class="areas-line">
+          <strong>Areas we serve in {location.city}:</strong> {location.neighborhoods.join(' · ')}
+        </p>
+      )}
     </div>
 
     <InternalLinks title={`Services in ${location.city}`} links={serviceLinks} />
-    <InternalLinks title="Nearby cities we serve" links={nearbyLinks} />
+    <InternalLinks title="Nearby areas we serve" links={nearbyLinks} />
+
+    <section class="cta-band">
+      <div>
+        <h2>Need junk gone in {location.city}?</h2>
+        <p>Call or send a few photos for a fast, upfront quote.</p>
+      </div>
+      <a class="button primary" href={`tel:${office.phone}`}>Call {BUSINESS.phoneDisplay}</a>
+    </section>
   </article>
 </BaseLayout>

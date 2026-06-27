@@ -63,13 +63,13 @@ const serviceSchema = {
       <p class="eyebrow">{service.name}</p>
       <h1>{subService.name}</h1>
       <p class="lede">{subService.tagline}</p>
-      <a class="cta" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phone}</a>
+      <a class="button primary" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phoneDisplay}</a>
     </header>
 
     <div class="page-body">
       <p>{subService.intro}</p>
       <h2>What's included</h2>
-      <ul>
+      <ul class="check-list">
         {subService.features.map((f) => <li>{f}</li>)}
       </ul>
       <slot />

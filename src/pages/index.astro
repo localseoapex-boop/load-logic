@@ -3,97 +3,209 @@
  * Homepage (/) — uses BaseLayout directly (it's not a service/city/blog page).
  *
  * Passes the brand name as the title so BaseHead renders the bare brand (no
- * "| brand" suffix) — the canonical homepage title pattern. Demonstrates linking
- * into the service and location pages for internal-link equity.
+ * "| brand" suffix) — the canonical homepage title pattern. Pulls the service
+ * and city catalogs so the grids stay data-driven (add a service or city and it
+ * appears here automatically) and every card is an internal link for SEO equity.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, BUSINESS } from '../config/site';
+import { services } from '../data/services';
+import { locations } from '../data/locations';
+import { serviceProcess } from '../data/service-content';
+import { serviceUrl, cityUrl } from '../lib/urls';
+
+const trustSignals = [
+  'Upfront, volume-based quotes',
+  'No dumpster rental needed',
+  'Full-service loading & hauling',
+  'Donation & recycling first',
+];
+
+const testimonials = [
+  {
+    quote:
+      'They gave a clear quote from photos, showed up in the window, and had our garage cleared before lunch.',
+    name: 'M. Alvarez',
+    location: 'Mesa',
+  },
+  {
+    quote:
+      'Careful with the walls, quick with the heavy furniture, and they swept the patio before leaving.',
+    name: 'J. Morgan',
+    location: 'Gilbert',
+  },
+  {
+    quote:
+      'I needed a rental cleaned out fast. Load Logic made it simple and kept me updated the whole time.',
+    name: 'R. Patel',
+    location: 'Chandler',
+  },
+];
+
+const faqs = [
+  {
+    question: 'How is junk removal priced?',
+    answer:
+      'Most jobs are priced by how much space your items take in the truck, plus any unusual labor, access, or disposal needs. You approve the price before loading starts.',
+  },
+  {
+    question: 'Can I get same-day junk removal?',
+    answer:
+      'Same-day pickup is often available when you contact us early, share photos, and the job fits an existing Mesa or East Valley route.',
+  },
+  {
+    question: 'What items do you not take?',
+    answer:
+      'We do not haul hazardous waste, wet paint, fuels, oils, chemicals, asbestos, biohazards, or medical waste. Contact us first if you are unsure.',
+  },
+  {
+    question: 'Do I need to move things outside first?',
+    answer:
+      'No. Curbside pickup is fastest, but our crew can remove approved items from inside the home, garage, patio, or yard whenever access is safe.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
 ---
 
-<BaseLayout
-  title={SITE.name}
-  description={SITE.description}
->
-  <section class="hero container">
-    <h1>Trusted Home Services in {BUSINESS.address.city}</h1>
-    <p class="lede">{SITE.description}</p>
-    <div class="hero-actions">
-      <a class="btn primary" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phone}</a>
-      <a class="btn" href="/services/plumbing">View services</a>
+<BaseLayout title={SITE.name} description={SITE.description}>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Mesa &amp; the East Valley</p>
+      <h1>Junk Removal Done the Easy Way</h1>
+      <p class="lead">
+        Load Logic clears furniture, appliances, garages, estates, and construction debris across the
+        East Valley — you point, we haul. Upfront pricing and no dumpster rental required.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href={`tel:${BUSINESS.phone}`}>Get a free quote — {BUSINESS.phoneDisplay}</a>
+        <a class="button secondary" href="/services">See all services</a>
+      </div>
+      <div class="hero-strip">
+        {trustSignals.map((t) => <span>{t}</span>)}
+      </div>
     </div>
   </section>
 
-  <section class="container grid">
-    <a class="card" href="/services/plumbing">
-      <h2>Plumbing</h2>
-      <p>Leaks, water heaters, drains, and emergency repairs.</p>
-    </a>
-    <a class="card" href="/locations/phoenix-az">
-      <h2>Phoenix, AZ</h2>
-      <p>Fast, local service across the Phoenix metro area.</p>
-    </a>
-    <a class="card" href="/blog">
-      <h2>Tips &amp; Guides</h2>
-      <p>Maintenance advice to keep your home running.</p>
-    </a>
+  <!-- Services -->
+  <section class="section">
+    <div class="section-heading">
+      <p class="eyebrow">What we haul</p>
+      <h2>Junk removal &amp; cleanout services</h2>
+      <p>One crew for the heavy, awkward, and time-consuming jobs — at home or for your business.</p>
+    </div>
+    <div class="card-grid">
+      {
+        services.map((s) => (
+          <a class="service-card" href={serviceUrl(s.slug)}>
+            <h3>{s.name}</h3>
+            <p>{s.tagline}</p>
+            <span>Learn more →</span>
+          </a>
+        ))
+      }
+    </div>
   </section>
-</BaseLayout>
 
-<style>
-  .hero {
-    padding: 4rem 1rem 2rem;
-    text-align: center;
-  }
-  .hero h1 {
-    font-size: 2.75rem;
-    margin: 0 0 1rem;
-  }
-  .lede {
-    font-size: 1.25rem;
-    color: #4b5563;
-    max-width: 60ch;
-    margin: 0 auto 1.5rem;
-  }
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .btn {
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-  }
-  .btn.primary {
-    background: var(--accent);
-    color: #fff;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-    padding-top: 2rem;
-  }
-  .card {
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s;
-  }
-  .card:hover {
-    border-color: var(--accent);
-  }
-  .card h2 {
-    margin: 0 0 0.5rem;
-  }
-  .card p {
-    margin: 0;
-    color: #4b5563;
-  }
-</style>
+  <!-- How it works -->
+  <section class="section alt">
+    <div class="section-heading">
+      <p class="eyebrow">How it works</p>
+      <h2>Four simple steps</h2>
+      <p>From first call to a clean space, here is how a typical pickup goes.</p>
+    </div>
+    <ol class="number-list">
+      {
+        serviceProcess.map((step) => (
+          <li>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- Service areas -->
+  <section class="section">
+    <div class="section-heading">
+      <p class="eyebrow">Service areas</p>
+      <h2>Proudly based in Mesa</h2>
+      <p>Local crews serving Mesa and the surrounding East Valley cities.</p>
+    </div>
+    <div class="card-grid">
+      {
+        locations.map((loc) => (
+          <a class="city-card" href={cityUrl(loc.slug)}>
+            <h3>{loc.city}, {loc.region}</h3>
+            <p>Junk removal &amp; cleanouts</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section alt">
+    <div class="section-heading">
+      <p class="eyebrow">What customers say</p>
+      <h2>Trusted across the East Valley</h2>
+    </div>
+    <div class="card-grid testimonial-grid">
+      {
+        testimonials.map((t) => (
+          <blockquote class="proof-card">
+            <p>“{t.quote}”</p>
+            <cite>
+              {t.name} · {t.location}
+            </cite>
+          </blockquote>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="section-heading">
+      <p class="eyebrow">Good to know</p>
+      <h2>Frequently asked questions</h2>
+    </div>
+    <div class="faq-list">
+      {
+        faqs.map((f) => (
+          <details>
+            <summary>{f.question}</summary>
+            <p>{f.answer}</p>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-band">
+    <div>
+      <h2>Ready to clear it out?</h2>
+      <p>Call or send a few photos for a fast, upfront quote anywhere in the East Valley.</p>
+    </div>
+    <a class="button primary" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phoneDisplay}</a>
+  </section>
+
+  <!-- Sticky mobile call/quote bar -->
+  <div class="mobile-sticky">
+    <a href={`tel:${BUSINESS.phone}`}>Call now</a>
+    <a href="/services">Free quote</a>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />
+</BaseLayout>

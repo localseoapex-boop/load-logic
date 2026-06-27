@@ -19,7 +19,7 @@ import InternalLinks from '../components/InternalLinks.astro';
 import type { Location } from '../data/locations';
 import type { Service } from '../data/services';
 import { getOffice, primaryOffice, officeNodeId } from '../data/offices';
-import { SITE } from '../config/site';
+import { SITE, BUSINESS } from '../config/site';
 import {
   servicesForLocation,
   nearbyCities,
@@ -42,7 +42,7 @@ const description = `${service.description} Serving ${cityState} and nearby area
 
 const crumbs = [
   { name: 'Home', href: '/' },
-  { name: 'Locations', href: '/locations' },
+  { name: 'Service Areas', href: '/locations' },
   { name: cityState, href: cityUrl(location.slug) },
   { name: service.name },
 ];
@@ -89,24 +89,32 @@ const serviceSchema = {
       <p class="eyebrow">{cityState}</p>
       <h1>{title}</h1>
       <p class="lede">{service.tagline}</p>
-      <a class="cta" href={`tel:${office.phone}`}>Book {service.name.toLowerCase()} — {office.phone}</a>
+      <a class="button primary" href={`tel:${office.phone}`}>Book {service.name.toLowerCase()} — {BUSINESS.phoneDisplay}</a>
     </header>
 
     <div class="page-body">
       <p>
         Looking for {service.name.toLowerCase()} in {cityState}? {service.intro} Our {location.city}
-        customers get the same upfront pricing and licensed technicians, dispatched from our {office.name}.
+        customers get the same upfront pricing and full-service crews, dispatched from our Mesa base.
       </p>
-      <h2>{service.name} services we provide in {location.city}</h2>
-      <ul>
+      <h2>{service.name} we handle in {location.city}</h2>
+      <ul class="check-list">
         {service.features.map((f) => <li>{f}</li>)}
       </ul>
       <slot />
     </div>
 
-    <InternalLinks title={`${service.name} services in ${location.city}`} links={subServiceLinks} />
+    <InternalLinks title={`${service.name} options in ${location.city}`} links={subServiceLinks} />
     <InternalLinks title={`Other services in ${location.city}`} links={otherServiceLinks} />
     <InternalLinks title={`${service.name} in nearby cities`} links={nearbyServiceLinks} />
+
+    <section class="cta-band">
+      <div>
+        <h2>{service.name} in {location.city}, made easy</h2>
+        <p>Upfront pricing, fast scheduling, and all the heavy lifting handled.</p>
+      </div>
+      <a class="button primary" href={`tel:${office.phone}`}>Call {BUSINESS.phoneDisplay}</a>
+    </section>
 
     <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
   </article>

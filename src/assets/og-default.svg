@@ -12,27 +12,27 @@
   <!-- Background gradient -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1d4ed8" />
-      <stop offset="1" stop-color="#111827" />
+      <stop offset="0" stop-color="#123d32" />
+      <stop offset="1" stop-color="#23624d" />
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)" />
 
   <!-- Accent bar -->
-  <rect x="80" y="250" width="64" height="8" rx="4" fill="#60a5fa" />
+  <rect x="80" y="232" width="72" height="9" rx="4" fill="#d7ec76" />
 
   <!-- Brand name -->
-  <text x="80" y="340" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="700" fill="#ffffff">
-    Acme Home Services
+  <text x="80" y="330" font-family="system-ui, Arial, sans-serif" font-size="78" font-weight="800" fill="#ffffff">
+    Load Logic Junk Removal
   </text>
 
   <!-- Tagline -->
-  <text x="80" y="410" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="400" fill="#cbd5e1">
-    Plumbing · HVAC · Electrical · Drain · Insulation
+  <text x="80" y="402" font-family="system-ui, Arial, sans-serif" font-size="34" font-weight="400" fill="#cdd6d1">
+    Junk Removal · Cleanouts · Hauling — Mesa &amp; the East Valley
   </text>
 
   <!-- Footer / domain -->
-  <text x="80" y="540" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600" fill="#93c5fd">
-    seo-starter-site.vercel.app
+  <text x="80" y="540" font-family="system-ui, Arial, sans-serif" font-size="28" font-weight="700" fill="#d7ec76">
+    load-logic.vercel.app
   </text>
 </svg>

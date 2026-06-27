@@ -30,14 +30,18 @@ const isActive = (href: string) =>
       }
     </ul>
 
-    <a class="cta" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phone}</a>
+    <a class="cta" href={`tel:${BUSINESS.phone}`}>Call {BUSINESS.phoneDisplay}</a>
   </nav>
 </header>
 
 <style>
   .site-header {
-    border-bottom: 1px solid #e5e7eb;
-    background: #fff;
+    border-bottom: 1px solid var(--line);
+    background: rgba(251, 252, 248, 0.94);
+    backdrop-filter: saturate(180%) blur(6px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
   .nav {
     max-width: 1100px;
@@ -48,9 +52,9 @@ const isActive = (href: string) =>
     gap: 1.5rem;
   }
   .brand {
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.15rem;
-    color: #111827;
+    color: var(--green-dark);
     text-decoration: none;
   }
   .nav-links {
@@ -62,26 +66,27 @@ const isActive = (href: string) =>
     margin-left: auto;
   }
   .nav-links a {
-    color: #374151;
+    color: var(--muted);
     text-decoration: none;
     font-size: 0.95rem;
+    font-weight: 700;
   }
   .nav-links a:hover,
   .nav-links a[aria-current='page'] {
-    color: #2563eb;
+    color: var(--green);
   }
   .cta {
-    background: #2563eb;
-    color: #fff;
+    background: var(--lime);
+    color: var(--ink);
     text-decoration: none;
-    padding: 0.5rem 0.9rem;
+    padding: 0.55rem 0.95rem;
     border-radius: 8px;
     font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 800;
     white-space: nowrap;
   }
   .cta:hover {
-    background: #1d4ed8;
+    background: #c9e25e;
   }
   @media (max-width: 640px) {
     .nav {

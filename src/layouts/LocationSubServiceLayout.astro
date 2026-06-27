@@ -12,7 +12,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import InternalLinks from '../components/InternalLinks.astro';
-import { SITE } from '../config/site';
+import { SITE, BUSINESS } from '../config/site';
 import type { Location } from '../data/locations';
 import type { Service } from '../data/services';
 import type { SubService } from '../data/subservices';
@@ -35,7 +35,7 @@ const description = `${subService.description} Serving ${cityState}.`;
 
 const crumbs = [
   { name: 'Home', href: '/' },
-  { name: 'Locations', href: '/locations' },
+  { name: 'Service Areas', href: '/locations' },
   { name: cityState, href: cityUrl(location.slug) },
   { name: service.name, href: locationServiceUrl(location.slug, service.slug) },
   { name: subService.name },
@@ -76,16 +76,16 @@ const serviceSchema = {
       <p class="eyebrow">{cityState} · {service.name}</p>
       <h1>{title}</h1>
       <p class="lede">{subService.tagline}</p>
-      <a class="cta" href={`tel:${office.phone}`}>Book {subService.name.toLowerCase()} — {office.phone}</a>
+      <a class="button primary" href={`tel:${office.phone}`}>Book {subService.name.toLowerCase()} — {BUSINESS.phoneDisplay}</a>
     </header>
 
     <div class="page-body">
       <p>
         Need {subService.name.toLowerCase()} in {cityState}? {subService.intro} Our {location.city}
-        customers get upfront pricing and licensed technicians, dispatched from our {office.name}.
+        customers get upfront pricing and full-service crews, dispatched from our Mesa base.
       </p>
       <h2>What's included</h2>
-      <ul>
+      <ul class="check-list">
         {subService.features.map((f) => <li>{f}</li>)}
       </ul>
       <slot />

@@ -25,10 +25,11 @@ const graph = offices.map((office) => ({
   image: new URL(SITE.defaultOgImage, SITE.url).href,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: office.address.street,
+    // streetAddress / postalCode are omitted until the real Mesa address is published.
+    ...(office.address.street ? { streetAddress: office.address.street } : {}),
     addressLocality: office.address.city,
     addressRegion: office.address.region,
-    postalCode: office.address.postalCode,
+    ...(office.address.postalCode ? { postalCode: office.address.postalCode } : {}),
     addressCountry: office.address.country,
   },
   geo: {

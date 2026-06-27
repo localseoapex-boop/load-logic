@@ -45,30 +45,50 @@ const { title, description, image, type, noindex } = Astro.props;
 <style is:global>
   :root {
     --content-width: 1100px;
-    --accent: #2563eb;
+    --ink: #18201d;
+    --muted: #5d6964;
+    --line: #dce3df;
+    --paper: #fbfcf8;
+    --white: #ffffff;
+    --green: #23624d;
+    --green-dark: #123d32;
+    --lime: #d7ec76;
+    --clay: #c85f3f;
+    --sky: #eef5f1;
+    --shadow: 0 18px 50px rgba(18, 61, 50, 0.12);
+    /* Backward-compat: components that reference --accent now read green. */
+    --accent: var(--green);
   }
   * {
     box-sizing: border-box;
   }
   html {
-    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    color: #1f2937;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
     line-height: 1.6;
+    scroll-behavior: smooth;
   }
   body {
     margin: 0;
+    background: var(--paper);
   }
   main {
     min-height: 60vh;
   }
   a {
-    color: var(--accent);
+    color: var(--green);
   }
   h1,
   h2,
   h3 {
-    line-height: 1.2;
-    color: #111827;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+  }
+  h2 {
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
   }
   img {
     max-width: 100%;
@@ -80,46 +100,509 @@ const { title, description, image, type, noindex } = Astro.props;
     padding: 0 1rem;
   }
 
-  /* Shared landing-page primitives, used by the Service / City / Location-Service
-     templates so per-template CSS stays minimal and the look is consistent. */
+  /* ───────────── Shared landing-page primitives ───────────── */
   .page {
     padding: 0 1rem 3rem;
   }
   .page-hero {
-    padding: 1.5rem 0 0;
+    padding: 1.75rem 0 0;
   }
   .page-hero h1 {
-    font-size: 2.5rem;
     margin: 0.25rem 0 0.75rem;
   }
   .eyebrow {
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     font-size: 0.8rem;
-    color: var(--accent);
-    font-weight: 600;
+    color: var(--clay);
+    font-weight: 800;
     margin: 0;
   }
   .lede {
     font-size: 1.2rem;
-    color: #4b5563;
-    max-width: 60ch;
-  }
-  .cta {
-    display: inline-block;
-    margin-top: 1rem;
-    background: var(--accent);
-    color: #fff;
-    text-decoration: none;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 600;
-  }
-  .cta:hover {
-    background: #1d4ed8;
+    color: var(--muted);
+    max-width: 62ch;
   }
   .page-body {
     margin-top: 2.5rem;
-    max-width: 70ch;
+    max-width: 72ch;
+  }
+  .page-body h2 {
+    margin-top: 2rem;
+  }
+  .areas-line {
+    color: var(--muted);
+  }
+  .intro-line {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ───────────── Buttons ───────────── */
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font-weight: 800;
+    min-height: 48px;
+    padding: 0.8rem 1.15rem;
+    text-decoration: none;
+    line-height: 1.1;
+  }
+  .button.primary {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .button.primary:hover {
+    background: #c9e25e;
+  }
+  .button.secondary {
+    background: var(--white);
+    color: var(--green-dark);
+    border-color: var(--line);
+  }
+  .button.outline {
+    border-color: var(--green);
+    color: var(--green-dark);
+  }
+  .button.outline:hover {
+    background: var(--sky);
+  }
+  /* Legacy .cta still styled in case any page uses it. */
+  .cta {
+    display: inline-block;
+    margin-top: 1rem;
+    background: var(--green);
+    color: #fff;
+    text-decoration: none;
+    padding: 0.8rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  /* ───────────── Homepage hero ───────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--green-dark), var(--green));
+    color: var(--white);
+    padding: clamp(3.5rem, 8vw, 6.5rem) clamp(1.1rem, 4vw, 3.5rem);
+  }
+  .hero-content {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .hero .eyebrow {
+    color: var(--lime);
+  }
+  .hero h1 {
+    color: var(--white);
+    margin: 0.5rem 0 1rem;
+  }
+  .lead {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    max-width: 60ch;
+    margin: 0;
+  }
+  .hero-strip {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+  }
+  .hero-strip span {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 0.85rem;
+  }
+
+  /* ───────────── Sections ───────────── */
+  .section {
+    padding: clamp(3rem, 7vw, 6rem) clamp(1.1rem, 4vw, 3.5rem);
+  }
+  .section.alt {
+    background: var(--sky);
+  }
+  .section-heading {
+    max-width: 760px;
+    margin: 0 auto 1.75rem;
+  }
+  .section-heading h2 {
+    margin: 0.25rem 0 0.5rem;
+  }
+  .section-heading p {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* ───────────── Card grids ───────────── */
+  .card-grid {
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .service-card,
+  .city-card,
+  .proof-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 1.4rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .service-card:hover,
+  .city-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--green);
+  }
+  .service-card h3,
+  .city-card h3 {
+    margin: 0 0 0.4rem;
+  }
+  .service-card p,
+  .city-card p {
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+  }
+  .service-card span {
+    color: var(--green);
+    font-weight: 800;
+    font-size: 0.9rem;
+  }
+  .testimonial-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .proof-card {
+    margin: 0;
+  }
+  .proof-card p {
+    margin: 0 0 1rem;
+    font-size: 1.02rem;
+  }
+  .proof-card cite {
+    color: var(--green-dark);
+    font-weight: 800;
+    font-style: normal;
+  }
+
+  /* ───────────── Numbered + check lists ───────────── */
+  .number-list {
+    counter-reset: steps;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1200px;
+  }
+  .number-list li {
+    counter-increment: steps;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.2rem;
+  }
+  .number-list li::before {
+    content: counter(steps);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--green);
+    color: var(--white);
+    border-radius: 999px;
+    font-weight: 800;
+    height: 30px;
+    width: 30px;
+    margin-bottom: 0.75rem;
+  }
+  .number-list h3 {
+    font-size: 1.1rem;
+    margin: 0 0 0.35rem;
+  }
+  .number-list p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .check-list {
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 1.25rem 0 0;
+    padding: 0;
+  }
+  .check-list li {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.85rem 1rem 0.85rem 2.2rem;
+    position: relative;
+  }
+  .check-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0.85rem;
+    color: var(--green);
+    font-weight: 900;
+  }
+  .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+  }
+  .pill-list li {
+    background: var(--sky);
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--green-dark);
+  }
+
+  /* ───────────── Service page flow ───────────── */
+  .service-hero .hero-trust {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+  }
+  .service-hero .hero-trust li {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--green-dark);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.7rem 0.85rem;
+  }
+  .service-flow {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+    margin-top: 2.5rem;
+  }
+  .service-section {
+    max-width: 1000px;
+  }
+  .service-section > h2 {
+    margin-bottom: 0.75rem;
+  }
+  .copy-stack {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: 0.75rem;
+  }
+  .copy-stack p {
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin: 0;
+  }
+  .detail-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1.25rem;
+  }
+  .detail-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 1.2rem;
+  }
+  .detail-card h3 {
+    font-size: 1.05rem;
+    margin: 0 0 0.6rem;
+  }
+  .detail-card ul {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .detail-card li {
+    color: var(--muted);
+  }
+  .warning-section {
+    background: var(--white);
+    border: 1px solid rgba(200, 95, 63, 0.32);
+    border-left: 4px solid var(--clay);
+    border-radius: 8px;
+    padding: 1.25rem 1.4rem;
+  }
+  .warning-section h3 {
+    margin: 0 0 0.5rem;
+    color: var(--clay);
+  }
+  .warning-section p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .problem-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1.25rem;
+  }
+  .problem-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 1.2rem;
+  }
+  .problem-card h3 {
+    color: var(--green);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+  }
+  .problem-card h3:nth-of-type(2) {
+    margin-top: 0.75rem;
+  }
+  .problem-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* ───────────── FAQ ───────────── */
+  .faq-list {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 940px;
+    margin: 0 auto;
+  }
+  .faq-block {
+    max-width: none;
+    margin-top: 2.5rem;
+  }
+  details {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  details p {
+    color: var(--muted);
+    margin: 0.75rem 0 0;
+  }
+
+  /* ───────────── CTA band ───────────── */
+  .cta-band {
+    background: var(--green-dark);
+    color: var(--white);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: clamp(2.25rem, 5vw, 3.5rem) clamp(1.1rem, 4vw, 3.5rem);
+    margin-top: 3rem;
+    border-radius: 8px;
+  }
+  .cta-band h2 {
+    color: var(--white);
+    margin: 0 0 0.35rem;
+  }
+  .cta-band p {
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+  }
+
+  /* ───────────── Sticky mobile bar ───────────── */
+  .mobile-sticky {
+    display: none;
+  }
+
+  /* ───────────── Responsive ───────────── */
+  @media (max-width: 900px) {
+    .hero-strip,
+    .card-grid,
+    .number-list,
+    .check-list,
+    .detail-grid,
+    .problem-grid,
+    .testimonial-grid,
+    .service-hero .hero-trust {
+      grid-template-columns: 1fr 1fr;
+    }
+    .cta-band {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  @media (max-width: 600px) {
+    .hero-strip,
+    .card-grid,
+    .number-list,
+    .check-list,
+    .detail-grid,
+    .problem-grid,
+    .testimonial-grid,
+    .service-hero .hero-trust {
+      grid-template-columns: 1fr;
+    }
+    .hero-actions .button {
+      width: 100%;
+    }
+    .mobile-sticky {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0.6rem;
+      background: var(--white);
+      border-top: 1px solid var(--line);
+    }
+    .mobile-sticky a {
+      text-align: center;
+      font-weight: 800;
+      padding: 0.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      background: var(--green);
+      color: var(--white);
+    }
+    .mobile-sticky a:last-child {
+      background: var(--lime);
+      color: var(--ink);
+    }
+    main {
+      padding-bottom: 4rem;
+    }
   }
 </style>
