@@ -24,6 +24,12 @@ The marketing site for **Load Logic**, built with [Astro](https://astro.build). 
 
 Brand and business details live in `src/config/site.ts` (org-level) and `src/data/offices.ts` (per-office NAP, hours, and service areas). The canonical site origin is set in both `astro.config.mjs` and `SITE.url` — keep them in sync.
 
+## 🧭 Project Philosophy
+
+This project is a reusable framework for building local service business websites, not a one-off site. Before making architectural changes, developers and AI assistants should read [`docs/project-philosophy.md`](docs/project-philosophy.md).
+
+It explains the principles the framework is built on: configurable systems over hardcoded logic, data-driven page generation, SEO as part of the architecture, performance, simplicity, and the local SEO model where the primary office city lives on the homepage and core service pages while surrounding markets get service-area pages.
+
 ## ✍️ Copywriting Standards
 
 All site copy follows the rules in [`docs/copywriting-standards.md`](docs/copywriting-standards.md). This covers the homepage, service pages, service area pages, blog posts, FAQs, meta titles and descriptions, CTAs, and landing pages.
