@@ -2,6 +2,15 @@
 
 The marketing site for **Load Logic**, built with [Astro](https://astro.build). It ships an SEO-focused content framework with structured data (schema.org), multi-office support, location and service landing pages, and a Markdown-driven blog.
 
+## 📚 Framework Documentation
+
+Before making changes to this project, review these documents in order:
+
+1. **Project Philosophy** (`docs/project-philosophy.md`) – Understand the principles and architectural goals of the framework.
+2. **Copywriting Standards** (`docs/copywriting-standards.md`) – Follow the writing standards for all content.
+3. **SEO Methodology Interview** (`docs/seo-methodology-interview.md`) – Understand the reasoning behind the framework's SEO decisions.
+4. **SEO Standards** *(Coming Soon)* – The official SEO playbook built from the methodology interview.
+
 ## 🚀 Project Structure
 
 ```text
@@ -35,6 +44,14 @@ It explains the principles the framework is built on: configurable systems over 
 All site copy follows the rules in [`docs/copywriting-standards.md`](docs/copywriting-standards.md). This covers the homepage, service pages, service area pages, blog posts, FAQs, meta titles and descriptions, CTAs, and landing pages.
 
 Before creating or editing any content on this site, developers and AI assistants must read that file and follow it. The goal is copy that reads like an experienced local copywriter wrote it: natural, trustworthy, and free of AI clichés and corporate filler.
+
+## 🔎 SEO Methodology Interview
+
+Before making SEO-related architecture or content decisions, review [`docs/seo-methodology-interview.md`](docs/seo-methodology-interview.md).
+
+This document captures the reasoning behind the framework's SEO decisions through a structured question-and-answer interview covering website architecture, URL strategy, internal linking, content strategy, local SEO, technical SEO, and overall framework philosophy.
+
+It serves as the raw methodology behind the framework. The answers captured in this document will be distilled into `docs/seo-standards.md`, which will become the official SEO playbook for every website built from this framework.
 
 ## 🧞 Commands
 
