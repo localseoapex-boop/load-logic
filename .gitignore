@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 # reference material (not part of the production site)
 rebuild-kit/
+
+# Local reference material
+reference/
