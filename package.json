@@ -13,7 +13,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "favicon": "node scripts/generate-favicon.mjs",
-    "check:urls": "node scripts/check-urls.mjs"
+    "check:urls": "node scripts/check-urls.mjs",
+    "photos": "node scripts/generate-photos.mjs",
+    "diagrams": "node scripts/generate-load-diagrams.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

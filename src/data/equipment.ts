@@ -1,27 +1,29 @@
 /**
  * equipment.ts — what the business actually hauls with, and what that enables.
  *
- * ─────────────────────────── Unconfirmed state ───────────────────────────
+ * Confirmed by the owner on 2026-08-18: a dump trailer of roughly 6 cubic yards
+ * and an open utility trailer of roughly 9 cubic yards, with ONE tow vehicle, so
+ * only one trailer is in service at a time.
  *
- * The real vehicle and its capacity have NOT been confirmed yet. That single
- * fact blocks three things, so it is tracked here rather than guessed:
+ * That last detail is the most operationally important thing in this file. It
+ * means a large cleanout is several trips rather than one big load, and it sets
+ * the honest ceiling on what a single visit can clear. `fleetLimits` below states
+ * it, and the UI is expected to surface it rather than imply unlimited capacity.
  *
- *   1. Absolute load volumes in src/data/pricing.ts. A "half load" only becomes
- *      a real number once you know the size of the thing being half filled.
- *   2. Generated photography. The vehicle appears in nearly every image, so a
- *      wrong one would have to be regenerated across the whole set. See
- *      docs/image-art-direction.md section 2.1.
- *   3. Honest capability claims. Telling a customer with a hot tub that it fits
- *      in one trip is a promise about equipment we do not have on file.
- *
- * Until `confirmed` is true, `EquipmentCapability` renders nothing and the site
- * makes no claim about fleet, capacity, or what fits in a single trip.
+ * The 9 cubic yard utility trailer is the reference volume for the load size
+ * scale in src/data/pricing.ts, because it is the larger single-trip capacity.
+ * The dump trailer is the heavy-material option: less volume, but a floor and
+ * walls built to take dense debris and tip it out.
  *
  * ─────────────────────── Relationship ownership ───────────────────────
  *
  * EQUIPMENT owns:
  *   equipment -> services  (what this equipment makes possible)
  *   equipment -> loadSizes (the sizes it can handle in one trip)
+ *
+ * A vehicle only lists a load size it can genuinely carry in ONE trip, so the
+ * dump trailer stops at a half load: three quarters of the reference volume is
+ * about 6.75 cubic yards, which is more than it holds.
  */
 import type { Verifiable } from './ontology';
 
@@ -53,12 +55,82 @@ export interface Vehicle extends Verifiable {
   loadSizes: string[];
 }
 
+const CONFIRMED = {
+  verified: true as const,
+  source: 'Confirmed by the business owner',
+  confirmedAt: '2026-08-18',
+};
+
+export const vehicles: Vehicle[] = [
+  {
+    slug: 'utility-trailer',
+    name: 'Open utility trailer',
+    kind: 'open-trailer',
+    cubicYards: 9,
+    enables: [
+      'Bulky household loads where volume matters more than weight',
+      'Loading long or awkward items over the side rather than through a door',
+      'Seeing exactly how full the load is, so the volume you are quoted is the volume you can check',
+      'Full garage, room, and whole-property cleanouts',
+    ],
+    limits: [
+      'One trailer is in service at a time, so larger jobs run as multiple trips',
+      'Not the right choice for dense debris, which is what the dump trailer is for',
+    ],
+    services: [
+      'junk-removal',
+      'furniture-removal',
+      'appliance-removal',
+      'garage-cleanouts',
+      'estate-cleanouts',
+      'mattress-removal',
+      'shed-removal',
+      'hoarder-cleanouts',
+      'office-cleanouts',
+      'foreclosure-cleanouts',
+      'same-day-junk-removal',
+      'hot-tub-removal',
+    ],
+    loadSizes: ['single-item', 'small', 'quarter', 'half', 'three-quarter', 'full'],
+    ...CONFIRMED,
+  },
+  {
+    slug: 'dump-trailer',
+    name: 'Dump trailer',
+    kind: 'dump-trailer',
+    cubicYards: 6,
+    enables: [
+      'Dense material like concrete, tile, brick, soil, and roofing debris',
+      'Tipping a load out rather than unloading it by hand, which keeps heavy jobs to one trip',
+      'Loading debris at ground level off a low tailgate',
+      'Remodel and landscaping debris that would be unsafe to stack high',
+    ],
+    limits: [
+      'Less volume than the utility trailer, so it is the wrong pick for bulky light loads',
+      'Heavy material is limited by weight before it is limited by space',
+      'One trailer is in service at a time, so a job needing both runs as separate trips',
+    ],
+    services: ['construction-debris-removal', 'yard-waste-removal', 'junk-removal', 'hot-tub-removal'],
+    loadSizes: ['single-item', 'small', 'quarter', 'half'],
+    ...CONFIRMED,
+  },
+];
+
 /**
- * Empty until the real equipment is confirmed. Populating this with a plausible
- * trailer would create a fictional fleet, which is exactly the failure mode this
- * module is structured to avoid.
+ * The honest ceiling on a single visit.
+ *
+ * One tow vehicle means one trailer in service at a time. Components that talk
+ * about large cleanouts must reflect this rather than implying a job of any size
+ * clears in one load.
  */
-export const vehicles: Vehicle[] = [];
+export const fleetLimits = {
+  simultaneousTrailers: 1,
+  reason: 'One tow vehicle, so one trailer is hitched at a time.',
+  consequence:
+    'Jobs larger than a single trailer are planned as multiple trips and quoted together, rather than discovered halfway through the day.',
+  /** Largest volume clearable in one trip, in cubic yards. */
+  maxSingleTripCubicYards: 9,
+};
 
 export interface Tool {
   slug: string;
@@ -86,9 +158,24 @@ export const getVehicle = (slug: string): Vehicle | undefined =>
 /** Gate for every equipment claim on the site. */
 export const hasConfirmedEquipment = (): boolean => vehicles.some((v) => v.verified);
 
-/** Total single-trip capacity across confirmed vehicles, or undefined. */
+/**
+ * Largest volume clearable in ONE trip, or undefined if nothing is confirmed.
+ *
+ * Deliberately the maximum across vehicles, never the sum. Only one trailer is
+ * hitched at a time, so adding the two capacities together would claim a
+ * single-trip capacity the business does not have.
+ */
 export const confirmedCapacityCubicYards = (): number | undefined => {
-  const known = vehicles.filter((v) => v.verified && typeof v.cubicYards === 'number');
-  if (known.length === 0) return undefined;
-  return known.reduce((sum, v) => sum + (v.cubicYards ?? 0), 0);
+  const known = vehicles
+    .filter((v) => v.verified && typeof v.cubicYards === 'number')
+    .map((v) => v.cubicYards as number);
+  return known.length > 0 ? Math.max(...known) : undefined;
 };
+
+/** The vehicle best suited to a service, preferring capacity for bulky work. */
+export const vehiclesForService = (serviceSlug: string): Vehicle[] =>
+  vehicles.filter((v) => v.verified && v.services.includes(serviceSlug));
+
+/** The heavy-material option, when one is confirmed. */
+export const heavyMaterialVehicle = (): Vehicle | undefined =>
+  vehicles.find((v) => v.verified && (v.kind === 'dump-trailer' || v.kind === 'dump-truck'));

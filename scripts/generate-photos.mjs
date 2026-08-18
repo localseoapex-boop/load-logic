@@ -64,6 +64,33 @@ const NEGATIVE =
  * unless told repeatedly, and an unbriefed figure in workwear reads as a claim
  * about who works here. Set `empty: true` on a shot to apply it.
  */
+/**
+ * The locked vehicle. Confirmed by the owner on 2026-08-18: a pickup towing an
+ * open utility trailer of roughly 9 cubic yards. One tow vehicle, so a frame must
+ * never show two trailers or two staged loads.
+ */
+const TRAILER =
+  'a white pickup truck towing a large open utility trailer with mesh side rails, plain and unbranded with no lettering or decals';
+
+/** The heavy-material trailer, for equipment shots only. */
+const DUMP_TRAILER =
+  'a black hydraulic dump trailer with solid high walls behind a white pickup truck, plain and unbranded with no lettering or decals';
+
+/**
+ * The load-size scale shows the TRAILER ONLY, with no tow vehicle.
+ *
+ * The first attempt included the pickup and failed: the truck dominated every
+ * frame, the trailer was small and clipped, the fill level was unreadable, and
+ * the model swapped in a different truck each time with visible brand badges. The
+ * scale is a measuring instrument, so the thing being measured has to fill the
+ * frame and nothing else may compete with it.
+ */
+const SCALE_TRAILER =
+  'a single large open utility trailer with mesh side rails, unhitched and standing alone on a plain concrete driveway, ' +
+  'photographed square on from the side with the full length of the trailer filling the frame, ' +
+  'no truck and no tow vehicle anywhere in the picture, plain and unbranded with no lettering or decals, ' +
+  'flat even overcast light, plain background';
+
 const EMPTY =
   'completely unoccupied, not a single person anywhere in the frame, no people, no human figures, ' +
   'no silhouettes, empty of all people';
@@ -112,17 +139,16 @@ const SHOTS = [
     id: 'hero-load-vehicle',
     dir: 'home',
     ratio: '16:9',
-    scene: `${WORKERS}, loading a sofa into the open hauling trailer`,
+    scene: `${WORKERS}, lifting a worn sofa up over the side rail into ${TRAILER} parked on the driveway`,
     env: true,
-    needsVehicle: true,
   },
   {
     id: 'chapter-street',
     dir: 'home',
     ratio: '21:9',
-    scene: 'the loaded hauling vehicle parked on a residential street, workers walking back toward the house',
+    scene: `${TRAILER} parked at the kerb, the trailer piled with mixed household junk and furniture`,
     env: true,
-    needsVehicle: true,
+    empty: true,
   },
 
   /* Service imagery */
@@ -305,9 +331,17 @@ const SHOTS = [
     id: 'equip-vehicle',
     dir: 'equipment',
     ratio: '21:9',
-    scene: 'the hauling vehicle parked on a driveway with its loading surface open and ramp down, nobody in frame',
+    scene: `${TRAILER}, empty, parked on a driveway with its rear gate lowered as a ramp`,
     env: true,
-    needsVehicle: true,
+    empty: true,
+  },
+  {
+    id: 'equip-dump-trailer',
+    dir: 'equipment',
+    ratio: '21:9',
+    scene: `${DUMP_TRAILER}, empty, parked on a driveway, the heavy material option`,
+    env: true,
+    empty: true,
   },
 
   /* City context, reused across all nine location pages */
@@ -336,21 +370,64 @@ const SHOTS = [
     env: true,
   },
 
-  /* Load size scale: one locked trailer, only the fill level changes */
+  /* Load size scale.
+     Every fill level is DERIVED from one empty trailer frame, so the trailer,
+     the driveway, the camera position and the light are identical across the
+     whole scale. That consistency is the entire point: the visitor is reading a
+     measuring instrument, not looking at seven different trailers.
+     See section 5.1 of docs/image-art-direction.md for why derivation runs from
+     the empty state outwards. */
+  {
+    id: 'load-empty',
+    dir: 'loads',
+    ratio: '3:2',
+    scene: `${SCALE_TRAILER}, the deck completely empty and bare`,
+    env: false,
+    empty: true,
+  },
+  /* In a derived frame the source image ALREADY supplies the trailer, so the
+     prompt leads with the load and mentions the trailer only briefly. The first
+     attempt re-described the trailer in full and the model dutifully rendered an
+     empty trailer every time, ignoring the load entirely. Describe the change,
+     not what is already there.
+
+     Strength scales with how much of the frame has to change: a single sofa needs
+     far fewer new pixels than a heaped full load. */
   ...[
-    ['load-single-item', 'a single sofa alone in the otherwise empty hauling trailer'],
-    ['load-small', 'a small amount of furniture and a few boxes filling roughly one eighth of the hauling trailer'],
-    ['load-quarter', 'furniture and boxes filling roughly one quarter of the hauling trailer'],
-    ['load-half', 'mixed household junk filling roughly half of the hauling trailer'],
-    ['load-three-quarter', 'mixed household junk filling roughly three quarters of the hauling trailer'],
-    ['load-full', 'mixed household junk filling the hauling trailer completely to the top of its rails'],
-  ].map(([id, fill]) => ({
+    ['load-single-item', 'a single worn beige three-seat sofa sitting on the trailer deck', 0.84],
+    ['load-small', 'a small pile of about ten cardboard boxes and a wooden chair stacked on the trailer deck', 0.86],
+    [
+      'load-quarter',
+      'a pile of boxes, bin bags and a small dresser stacked on the trailer deck, reaching a quarter of the way up the mesh side rails',
+      0.88,
+    ],
+    [
+      'load-half',
+      'a large pile of old furniture, mattresses, bin bags and boxes stacked on the trailer, reaching halfway up the mesh side rails',
+      0.9,
+    ],
+    [
+      'load-three-quarter',
+      'a very large pile of old furniture, mattresses, bin bags and boxes stacked high on the trailer, reaching almost to the top of the mesh side rails',
+      0.92,
+    ],
+    [
+      'load-full',
+      'an enormous heaped pile of old furniture, mattresses, bin bags, boxes and junk packed onto the trailer, ' +
+        'overflowing above the top of the mesh side rails, the trailer completely full',
+      0.94,
+    ],
+  ].map(([id, fill, strength]) => ({
     id,
     dir: 'loads',
-    ratio: '1:1',
-    scene: `${fill}, viewed from the side at a fixed camera position, nobody in frame`,
-    env: true,
-    needsVehicle: true,
+    ratio: '3:2',
+    derivedFrom: 'load-empty',
+    strength,
+    scene:
+      `${fill}, on a large open utility trailer with mesh side rails standing on a concrete driveway, ` +
+      'photographed square on from the side, no truck or tow vehicle in the picture, unbranded, flat overcast light',
+    env: false,
+    empty: true,
   })),
 ];
 

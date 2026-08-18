@@ -45,7 +45,7 @@ rather than a stock library.
 | Element | Locked description |
 |---|---|
 | Workers | Two working adults, dark green work polo shirts, jeans, work gloves, work boots. Mixed build and appearance. Always mid-task. **Faces turned away, obscured by the load, or cropped by the frame.** Never facing or acknowledging the camera. |
-| Vehicle | **Pending confirmation of the real equipment.** See section 2.1. Whatever is confirmed becomes the single locked vehicle across every image. |
+| Vehicle | A pickup truck towing an **open utility trailer with mesh side rails**. **Unbranded.** No decals, no lettering. The dump trailer appears only in the equipment shots. |
 | Light | Overcast bright, or low early-morning sun. Never midday harsh, never golden-hour glamour. |
 | Palette | Muted. Desert tan, concrete gray, dusty green. Nothing neon except the work gloves. |
 | Camera | Eye level, 35mm. Occasionally 50mm for detail shots. Never drone, never worm's-eye, never wide-angle distortion. |
@@ -57,9 +57,17 @@ Generated equipment represents the actual type of vehicle and gear the business
 runs. Inventing a fleet that does not exist is a fabricated business fact and
 misleads a customer trying to judge whether their job fits.
 
-The vehicle type must be confirmed before the image set is generated, because it
-is the one detail visible in nearly every frame and it also determines the load
-volumes in `pricing.ts`. Until confirmed, no vehicle-visible image is generated.
+**Confirmed by the owner, 2026-08-18:**
+
+| Equipment | Capacity | Role |
+|---|---|---|
+| Open utility trailer | ~9 cubic yards | The default. Bulky household loads. **The trailer shown in the load-size scale**, because open rails make the fill level readable from the side. |
+| Dump trailer | ~6 cubic yards | Heavy material: concrete, tile, brick, soil, roofing. Appears only in equipment shots. |
+
+**One tow vehicle, so one trailer at a time.** No image may show both trailers
+together, or two loads staged at once, because that would depict a capacity the
+business does not have. Larger jobs are multiple trips, and the imagery should not
+imply otherwise.
 
 **Vehicles stay unbranded.** Generated text is unreliable and a fabricated decal
 would invent a business fact. Real branded photography replaces these images as it
@@ -98,37 +106,38 @@ Avoid:
 
 ## 4. Shot List
 
-Approximately 32 unique images. Images are reused strategically across the 175
-pages; only the pages where imagery changes the visitor's understanding get a
-dedicated shot.
+**28 photographs plus 6 drawn diagrams.** Images are reused strategically across
+the 175 pages; only the pages where imagery changes the visitor's understanding
+get a dedicated shot.
 
-### Hero and chapter breaks (4)
+### Hero and chapter breaks (5)
 
 | ID | Ratio | Scene |
 |---|---|---|
-| `hero-load` | 16:9 | Two crew lifting a sofa into the open trailer, driveway, mid-motion |
-| `hero-mobile` | 4:5 | Tighter vertical crop of the same action for small screens |
-| `chapter-garage` | 21:9 | Wide view of a half-cleared garage, boxes staged on the driveway |
-| `chapter-street` | 21:9 | Truck and loaded trailer parked on a residential street, crew walking back |
+| `hero-carry` | 16:9 | Two workers carrying a sofa out through an open garage door |
+| `hero-load-vehicle` | 16:9 | Two workers lifting a sofa over the rail into the trailer |
+| `hero-mobile` | 4:5 | Macro detail: one gloved hand gripping the frame rail under a sofa |
+| `chapter-garage` | 21:9 | Half-cleared garage, boxes staged on the driveway, unoccupied |
+| `chapter-street` | 21:9 | Truck and loaded trailer at the kerb |
 
-### Load size scale (6)
-
-The signature component. Same trailer, same driveway, same camera position, same
-light. Only the fill level changes. Generated from a single locked seed with
-image-to-image so the trailer and background stay identical.
+### Load size scale (6 diagrams, not photographs)
 
 `load-single-item` · `load-small` · `load-quarter` · `load-half` ·
-`load-three-quarter` · `load-full` — all 1:1.
+`load-three-quarter` · `load-full`
+
+Drawn as SVG by `scripts/generate-load-diagrams.mjs`. See section 5.2 for the
+three failed photographic attempts and why drawing is the right answer.
 
 ### Before and after (3 pairs, 6 images)
 
-Identical camera position and light within each pair. Only the state changes.
+Identical camera position and light within each pair. The **empty frame is
+generated first** and the packed frame derives from it. See section 5.1.
 
 | Pair | Scene |
 |---|---|
-| `ba-garage` | Packed two-car garage, then the same garage empty with a swept floor |
-| `ba-estate` | Crowded bedroom of stored furniture and boxes, then the same room clear |
-| `ba-yard` | Backyard pile of branches, pallets and an old grill, then clear gravel |
+| `ba-garage-before` / `ba-garage-after` | Packed two-car garage, then the same garage empty |
+| `ba-estate-before` / `ba-estate-after` | Crowded bedroom of stored furniture, then the same room clear |
+| `ba-yard-before` / `ba-yard-after` | Yard corner piled with branches and pallets, then clear gravel |
 
 ### Service imagery (10)
 
@@ -147,20 +156,25 @@ Mapped across all 14 services; related services share an image.
 | `svc-office` | 4:3 | office-cleanouts, commercial-junk-removal |
 | `svc-turnover` | 4:3 | foreclosure-cleanouts, same-day-junk-removal, junk-removal |
 
-### Equipment and capability (3)
+### Equipment and capability (4)
 
-Generated only after the real vehicle type is confirmed (section 2.1).
-
-`equip-vehicle` (21:9, the confirmed vehicle with its loading surface open) ·
-`equip-tools` (3:2, straps, dollies, gloves staged on a tailgate) ·
-`equip-sorting` (3:2, items separated into donation and disposal groups)
+| ID | Ratio | Scene |
+|---|---|---|
+| `equip-vehicle` | 21:9 | The open utility trailer, empty, rear gate lowered |
+| `equip-dump-trailer` | 21:9 | The dump trailer, the heavy-material option |
+| `equip-tools` | 3:2 | Hand truck, ratchet straps, moving blanket, gloves, broom |
+| `equip-sorting` | 3:2 | Items separated into usable and broken groups |
 
 ### Context (3)
 
 Reused across all nine city pages. Cities are differentiated by structured local
-data, not by pretending to have photographed each one.
+data in `locations.ts`, not by pretending to have photographed each one.
 
 `ctx-suburb` · `ctx-gated` · `ctx-apartment` — all 3:2.
+
+### Team (0)
+
+Deliberately empty. See section 2.2.
 
 ---
 
@@ -257,3 +271,35 @@ Before an image is committed, it must pass all of the following:
 - [ ] Real descriptive alt text has been written for it
 
 Any image failing a check is regenerated, not accepted with an excuse.
+
+### 5.2 The load size scale is drawn, not photographed
+
+The load scale ships as SVG diagrams from `scripts/generate-load-diagrams.mjs`,
+not as photography. Three generation attempts failed for a structural reason
+worth recording, because the instinct to retry it as photography will recur.
+
+| Attempt | Setup | Outcome |
+|---|---|---|
+| 1 | Trailer plus tow vehicle in frame | The truck dominated, the trailer was small and clipped, fill levels were unreadable, and a different truck with visible brand badges appeared in each frame. |
+| 2 | Trailer only, derivation strength 0.8, full trailer description in the prompt | The trailer held perfectly, but the deck came back empty every time. The prompt re-described what the source image already showed, so the model reproduced the trailer and ignored the load. |
+| 3 | Trailer only, load-led prompt, strength 0.84 to 0.94 | Fill levels finally read as a progression, but by then the vehicle had changed: two of the six frames turned into flatbed trucks. |
+
+The tension is inherent rather than a prompting mistake. Enough pixel change to
+show a load is enough pixel change to replace the vehicle, and a scale whose
+instrument changes between readings is not measuring anything.
+
+The diagram wins on every axis that matters here:
+
+- fill levels are mathematically exact, drawn to preserve **area** so each step is
+  genuinely proportional rather than approximately so
+- the trailer is identical by construction
+- it stays crisp at any size and costs about 1 KB rather than 400 KB
+- it is honestly a diagram, instead of a photograph implying we photographed this
+  exact load on this exact trailer
+
+Fractions are read from `src/data/pricing.ts`, so the drawing and the data cannot
+disagree. Rerun the script after changing a load size.
+
+**Photography still carries the loaded trailer elsewhere.** `chapter-street` and
+`equip-vehicle` show the real setup in context. The scale is the one place where
+precision beats atmosphere.

@@ -48,7 +48,7 @@ import { faqs, type Faq } from '../data/faqs';
 import { jobs, type Job } from '../data/jobs';
 import { verifiedReviews } from '../data/reviews';
 import { quoteActions } from '../data/quote-actions';
-import { vehicles } from '../data/equipment';
+import { vehicles, confirmedCapacityCubicYards } from '../data/equipment';
 import { getServiceFaqs } from '../data/service-content';
 import { serviceSlugsFor } from './links';
 
@@ -409,6 +409,46 @@ export const graphIntegrityErrors = (): string[] => {
   vehicles.forEach((v) => {
     v.services.forEach((s) => check(serviceSlugs.has(s), `vehicle:${v.slug}`, 'services', s, 'service'));
     v.loadSizes.forEach((l) => check(loadSizeSlugs.has(l), `vehicle:${v.slug}`, 'loadSizes', l, 'loadSize'));
+    if (v.verified && !v.source) {
+      errors.push(`vehicle:${v.slug}: verified equipment requires a source`);
+    }
+    // A vehicle must not claim a single-trip load size larger than it holds, or
+    // the load scale would promise a capacity the equipment does not have.
+    if (typeof v.cubicYards === 'number') {
+      v.loadSizes.forEach((slug) => {
+        const load = getLoadSize(slug);
+        if (load && typeof load.cubicYards === 'number' && load.cubicYards > v.cubicYards + 0.01) {
+          errors.push(
+            `vehicle:${v.slug}: claims load size "${slug}" (${load.cubicYards} cu yd) but holds only ${v.cubicYards} cu yd`,
+          );
+        }
+      });
+    }
+  });
+
+  // Load volumes are derived from the reference trailer, so the full load must
+  // match the largest confirmed single-trip capacity.
+  const capacity = confirmedCapacityCubicYards();
+  const fullLoad = loadSizes.find((l) => l.fraction === 1);
+  if (capacity !== undefined && fullLoad && fullLoad.cubicYards !== capacity) {
+    errors.push(
+      `loadSize:full: ${fullLoad.cubicYards} cu yd does not match the largest confirmed vehicle capacity of ${capacity} cu yd`,
+    );
+  }
+
+  jobs.forEach((j) => {
+    if (j.vehicle) {
+      check(
+        vehicles.some((v) => v.slug === j.vehicle),
+        `job:${j.slug}`,
+        'vehicle',
+        j.vehicle,
+        'vehicle',
+      );
+    }
+    if (j.loadCount !== undefined && j.loadCount < 1) {
+      errors.push(`job:${j.slug}: loadCount must be at least 1`);
+    }
   });
 
   // Every service should be reachable through at least one situation, or no

@@ -14,10 +14,15 @@
  * price a customer might rely on is exactly the kind of fabrication this data
  * layer exists to prevent.
  *
- * `cubicYards` and `dimensions` on each load size are likewise absent until the
- * real hauling equipment is confirmed, because a fraction of a load only becomes
- * an absolute volume once you know the size of the thing being filled. See
- * src/data/equipment.ts.
+ * `cubicYards` IS now populated, because the equipment is confirmed. The
+ * reference volume is the 9 cubic yard open utility trailer from
+ * src/data/equipment.ts, which is the larger of the two trailers and therefore
+ * the maximum single-trip capacity. A "full load" means that trailer filled.
+ *
+ * The business runs one tow vehicle, so only one trailer is hitched at a time.
+ * Anything bigger than a full load is several trips, quoted together. Components
+ * describing large cleanouts must say so rather than implying unlimited capacity.
+ * See `fleetLimits` in src/data/equipment.ts.
  *
  * ─────────────────────── Relationship ownership ───────────────────────
  *
@@ -52,21 +57,28 @@ const unpublished = (note: string): PriceRange => ({
 export interface LoadSize {
   slug: string;
   name: string;
-  /** Portion of one full truckload, used to draw the visual scale. */
+  /** Portion of one full trailer load, used to draw the visual scale. */
   fraction: number;
   summary: string;
   /**
-   * Relative volume descriptions, not absolute measurements. These stay true
-   * regardless of which vehicle the business runs.
+   * Relative volume descriptions. Kept alongside `cubicYards` because "a packed
+   * two-car garage" is far easier for a homeowner to judge than a number.
    */
   exampleContents: string[];
   /** Situation slugs that typically produce this much. CANONICAL. */
   situations: string[];
   /** Service slugs commonly booked at this size. CANONICAL. */
   services: string[];
-  /** Image id from the load scale set. See docs/image-art-direction.md. */
+  /**
+   * Diagram id for this step of the load scale.
+   *
+   * Resolves to src/assets/diagrams/<image>.svg, NOT to a photograph. The scale
+   * is drawn rather than shot because a measuring instrument has to be identical
+   * in every frame, and generated photography could not hold the trailer steady
+   * while the load changed. See docs/image-art-direction.md section 5.2.
+   */
   image: string;
-  /** Absolute volume. Unset until the real equipment is confirmed. */
+  /** Absolute volume, from the 9 cu yd reference trailer. See equipment.ts. */
   cubicYards?: number;
   price: PriceRange;
   order: number;
@@ -82,6 +94,7 @@ export const loadSizes: LoadSize[] = [
     situations: ['replacing-furniture', 'replacing-appliance'],
     services: ['furniture-removal', 'mattress-removal', 'appliance-removal', 'same-day-junk-removal'],
     image: 'load-single-item',
+    cubicYards: 0.75,
     price: unpublished('Single items are quoted individually. Send a photo for a firm price.'),
     order: 1,
   },
@@ -99,6 +112,7 @@ export const loadSizes: LoadSize[] = [
     situations: ['replacing-furniture', 'yard-cleanup'],
     services: ['junk-removal', 'furniture-removal', 'yard-waste-removal'],
     image: 'load-small',
+    cubicYards: 1.5,
     price: unpublished('Quoted from photos or a short description.'),
     order: 2,
   },
@@ -106,7 +120,7 @@ export const loadSizes: LoadSize[] = [
     slug: 'quarter',
     name: 'Quarter load',
     fraction: 0.25,
-    summary: 'About a quarter of the truck. One small room, or a modest yard cleanup.',
+    summary: 'About a quarter of the trailer. One small room, or a modest yard cleanup.',
     exampleContents: [
       'A cleared home office',
       'A pile of branches and trimmings',
@@ -116,6 +130,7 @@ export const loadSizes: LoadSize[] = [
     situations: ['yard-cleanup', 'garage-reset'],
     services: ['junk-removal', 'yard-waste-removal', 'garage-cleanouts', 'shed-removal'],
     image: 'load-quarter',
+    cubicYards: 2.25,
     price: unpublished('Volume-based. Confirmed on site before loading starts.'),
     order: 3,
   },
@@ -123,7 +138,7 @@ export const loadSizes: LoadSize[] = [
     slug: 'half',
     name: 'Half load',
     fraction: 0.5,
-    summary: 'Half the truck. A one-car garage, or a full room of furniture and boxes.',
+    summary: 'Half the trailer. A one-car garage, or a full room of furniture and boxes.',
     exampleContents: [
       'A single-car garage cleared out',
       'A living room and a bedroom',
@@ -133,6 +148,7 @@ export const loadSizes: LoadSize[] = [
     situations: ['garage-reset', 'moving-out', 'rental-turnover', 'renovation-cleanup'],
     services: ['garage-cleanouts', 'junk-removal', 'construction-debris-removal', 'foreclosure-cleanouts'],
     image: 'load-half',
+    cubicYards: 4.5,
     price: unpublished('Volume-based. Confirmed on site before loading starts.'),
     order: 4,
   },
@@ -140,7 +156,7 @@ export const loadSizes: LoadSize[] = [
     slug: 'three-quarter',
     name: 'Three-quarter load',
     fraction: 0.75,
-    summary: 'Most of the truck. A two-car garage, or several rooms at once.',
+    summary: 'Most of the trailer. A two-car garage, or several rooms at once.',
     exampleContents: [
       'A packed two-car garage',
       'Most of a two-bedroom apartment',
@@ -150,6 +166,7 @@ export const loadSizes: LoadSize[] = [
     situations: ['downsizing', 'pre-sale-prep', 'office-change', 'backyard-project'],
     services: ['garage-cleanouts', 'estate-cleanouts', 'office-cleanouts', 'hot-tub-removal'],
     image: 'load-three-quarter',
+    cubicYards: 6.75,
     price: unpublished('Volume-based. Confirmed on site before loading starts.'),
     order: 5,
   },
@@ -157,16 +174,18 @@ export const loadSizes: LoadSize[] = [
     slug: 'full',
     name: 'Full load',
     fraction: 1,
-    summary: 'The truck filled. Whole-property cleanouts and large estates.',
+    summary:
+      'The trailer filled to the rails. Bigger jobs than this are planned as several trips and quoted together.',
     exampleContents: [
-      'A whole-house cleanout',
-      'An estate with garage and yard included',
-      'A foreclosure turnover',
-      'A full property clear before a listing',
+      'A packed garage plus a room of furniture',
+      'A one-bedroom apartment cleared completely',
+      'A large yard and shed clearance',
+      'One load of a multi-load estate cleanout',
     ],
     situations: ['estate-settlement', 'foreclosure-turnover', 'hoarding-cleanup'],
     services: ['estate-cleanouts', 'foreclosure-cleanouts', 'hoarder-cleanouts', 'junk-removal'],
     image: 'load-full',
+    cubicYards: 9,
     price: unpublished('Large jobs are quoted on site or from photos. Multiple loads are priced together.'),
     order: 6,
   },
@@ -309,3 +328,17 @@ export const pricingFactorsForService = (serviceSlug: string): PricingFactor[] =
 
 /** The load scale in visual order, smallest first. */
 export const loadScale = (): LoadSize[] => [...loadSizes].sort((a, b) => a.order - b.order);
+
+/**
+ * The volume a full load refers to, in cubic yards.
+ *
+ * Read from the confirmed equipment rather than hardcoded, so replacing a trailer
+ * updates every load size at once. Returns undefined if no equipment is
+ * confirmed, in which case the scale stays purely relative.
+ */
+export const referenceCubicYards = (): number | undefined =>
+  loadSizes.find((l) => l.fraction === 1)?.cubicYards;
+
+/** Formatted volume for display, e.g. "4.5 cu yd". Empty when unknown. */
+export const formatVolume = (load: LoadSize): string =>
+  typeof load.cubicYards === 'number' ? `${load.cubicYards} cu yd` : '';

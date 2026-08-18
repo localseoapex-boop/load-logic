@@ -53,12 +53,22 @@ export interface Job extends Verifiable {
   propertyType: string;
   /** Situation slug. CANONICAL. */
   situation: string;
-  /** Load size slug from pricing.ts. CANONICAL. */
+  /** Load size slug from pricing.ts, per load. CANONICAL. */
   loadSize: string;
+  /**
+   * Number of trailer loads the job took. Defaults to 1.
+   *
+   * The business tows one trailer at a time (see equipment.ts `fleetLimits`), so
+   * a whole-property cleanout is several trips rather than one enormous load.
+   * Recording it keeps the volume figures honest.
+   */
+  loadCount?: number;
   /** Material slugs removed. CANONICAL. */
   materials: string[];
   /** Access factor slugs that shaped the work. CANONICAL. */
   accessFactors: string[];
+  /** Which trailer the job ran with, when it is worth stating. CANONICAL. */
+  vehicle?: string;
   /** Number of crew on site. */
   crew: number;
   /** Time on site, in minutes. */
@@ -107,6 +117,7 @@ export const jobs: Job[] = [
     propertyType: 'executor',
     situation: 'estate-settlement',
     loadSize: 'full',
+    loadCount: 3,
     materials: ['sofa', 'dresser', 'boxes', 'clothing', 'kitchenware', 'books', 'mattress'],
     accessFactors: ['stairs', 'inside-home'],
     crew: 3,
@@ -116,7 +127,7 @@ export const jobs: Job[] = [
       { route: 'transfer-station', share: 45 },
       { route: 'landfill', share: 15 },
     ],
-    note: 'Family sorted room by room ahead of the crew, which is what kept the donation share high. Photo albums and documents were set aside and never loaded.',
+    note: 'Three full trailer loads across two days, since one trailer is towed at a time. Family sorted room by room ahead of the crew, which is what kept the donation share high. Photo albums and documents were set aside and never loaded.',
     representative: true,
     verified: false,
   },
@@ -158,6 +169,7 @@ export const jobs: Job[] = [
       { route: 'transfer-station', share: 70 },
     ],
     note: 'A 36 inch side gate meant the spa had to be cut into sections in place. It was drained and electrically disconnected before the crew arrived, which is what kept it to one visit.',
+    vehicle: 'dump-trailer',
     representative: true,
     verified: false,
   },
@@ -193,6 +205,10 @@ export const jobsForLocationService = (locationSlug: string, serviceSlug: string
 
 /** Real documented jobs only. Empty until verified records exist. */
 export const documentedJobs = (): Job[] => jobs.filter((j) => !j.representative && j.verified);
+
+/** Total volume a job moved, in cubic yards, or undefined if unknown. */
+export const jobVolume = (job: Job, loadCubicYards: number | undefined): number | undefined =>
+  typeof loadCubicYards === 'number' ? loadCubicYards * (job.loadCount ?? 1) : undefined;
 
 /** Human-readable time on site, e.g. "2 hr 30 min". */
 export const formatDuration = (minutes: number): string => {

@@ -304,8 +304,10 @@ split.
 3. **Ledger** — hairline data table, mono values. Pricing, comparisons, specs.
 4. **Typographic index** — dense two-column category → item list, hairline
    separated, no cards. What we remove, what we don't.
-5. **Photo scale strip** — horizontal sequence of images at equal ratio reading as
-   a measurement instrument. The load-size estimator.
+5. **Scale strip** — horizontal sequence at equal ratio reading as a measurement
+   instrument. The load-size estimator, drawn as SVG diagrams rather than
+   photographs so every step is exactly proportional and the trailer is identical
+   at each reading. See `docs/image-art-direction.md` section 5.2.
 6. **Asymmetric split** — `2fr 1fr` or `1fr 2fr` photo/text, alternating anchor
    side. Situations, equipment.
 7. **Panel grid** — genuine card grid, permitted at most once per page, and only
