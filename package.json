@@ -8,10 +8,12 @@
   "scripts": {
     "dev": "astro dev",
     "og": "node scripts/generate-og.mjs",
-    "prebuild": "node scripts/generate-og.mjs",
+    "prebuild": "node scripts/generate-og.mjs && node scripts/generate-favicon.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "favicon": "node scripts/generate-favicon.mjs",
+    "check:urls": "node scripts/check-urls.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

@@ -7,32 +7,38 @@
   rasterizes it to public/og-default.png at 1200x630 — the canonical OG size.
 
   Edit colors/text here, then run `npm run og` (or any build) to regenerate.
+
+  Rebuilt on the bone + spruce + hi-vis palette from DESIGN.md. The flat spruce
+  field replaces the old diagonal gradient, and the mark carries the accent.
+  Type is set in a system grotesque stack rather than Archivo, because the
+  rasterizer has no access to the self-hosted webfont.
 -->
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background gradient -->
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#123d32" />
-      <stop offset="1" stop-color="#23624d" />
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#bg)" />
+  <!-- Flat brand field. No gradient. -->
+  <rect width="1200" height="630" fill="#123329" />
 
-  <!-- Accent bar -->
-  <rect x="80" y="232" width="72" height="9" rx="4" fill="#d7ec76" />
+  <!-- The mark, scaled from the 32px original -->
+  <g transform="translate(80, 92) scale(2.6)">
+    <rect x="4" y="14" width="13" height="14" fill="#F4F2ED" />
+    <rect x="19" y="19" width="9" height="9" fill="#F4F2ED" />
+    <rect x="19" y="8" width="9" height="9" fill="#CFE034" />
+  </g>
 
   <!-- Brand name -->
-  <text x="80" y="330" font-family="system-ui, Arial, sans-serif" font-size="78" font-weight="800" fill="#ffffff">
-    Load Logic Junk Removal
+  <text x="80" y="360" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-2" fill="#F4F2ED">
+    Load Logic
   </text>
 
-  <!-- Tagline -->
-  <text x="80" y="402" font-family="system-ui, Arial, sans-serif" font-size="34" font-weight="400" fill="#cdd6d1">
-    Junk Removal · Cleanouts · Hauling — Mesa &amp; the East Valley
+  <!-- What and where -->
+  <text x="80" y="424" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#A9B5AD">
+    Junk removal and cleanouts across Mesa and the East Valley
   </text>
 
-  <!-- Footer / domain -->
-  <text x="80" y="540" font-family="system-ui, Arial, sans-serif" font-size="28" font-weight="700" fill="#d7ec76">
-    load-logic.vercel.app
+  <!-- Hairline rule -->
+  <rect x="80" y="486" width="1040" height="1" fill="#2B4A3E" />
+
+  <!-- Footer line -->
+  <text x="80" y="536" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="0.5" fill="#CFE034">
+    Get a photo quote
   </text>
 </svg>

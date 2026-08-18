@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mark.svg — the Load Logic mark.
+
+  CONCEPT: a load being packed. Three blocks of different sizes fitted together
+  with deliberate space still open at the top left, which is the load not yet
+  filled. It states the business model in one glyph: you pay for the share of the
+  truck you fill, and the crew packs it efficiently.
+
+  It also rhymes with the site's signature component, the load size scale, so the
+  brand and the most useful thing on the site share a visual idea.
+
+  Square corners, matching the shape system in DESIGN.md. The single hi-vis block
+  is the one place the accent appears outside an action, and it is a deliberate
+  brand exception rather than a drift in the icon rules.
+
+  Usage: pairs with the wordmark set in Archivo. Never redraw, restretch, or
+  recolor outside the two approved variants (this one and favicon.svg).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Load Logic">
+  <!-- large block, the bulk of the load -->
+  <rect x="4" y="14" width="13" height="14" fill="#123329" />
+  <!-- small block, packed alongside -->
+  <rect x="19" y="19" width="9" height="9" fill="#123329" />
+  <!-- top block, the accent -->
+  <rect x="19" y="8" width="9" height="9" fill="#CFE034" />
+</svg>

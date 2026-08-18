@@ -180,12 +180,41 @@ data, not by pretending to have photographed each one.
 **Notes**
 
 - The CLI prints a Python dict, not JSON. Extract the URL with a regex, not `jq`.
-- Download the returned URL with `curl`, then convert and store as described
-  below. The fal URL is temporary and must never be referenced from the site.
-- Use a fixed `seed` plus `fal-ai/flux/dev/image-to-image` for the load-size scale
-  and the before/after pairs so continuity holds across a set.
+- Download the returned URL, then store it as described below. The fal URL is
+  temporary and must never be referenced from the site.
 - Hero images may use a higher-tier model if `flux/dev` output is not strong
   enough at full-bleed scale. Evaluate before committing.
+
+### 5.1 Paired shots: generate the EMPTY state first
+
+Two independent text-to-image runs will never produce the same room twice, which
+destroys the entire point of a before-and-after. Pairs are produced as a
+derivation through `fal-ai/flux/dev/image-to-image`, passing the source frame's
+returned URL as `image_url`.
+
+**The derivation runs backwards.** Generate the EMPTY "after" frame first, then
+derive the PACKED "before" frame from it.
+
+This is counter-intuitive and it is the whole trick. Asking the model to ADD
+contents to a room it can already see is reliable. Asking it to REMOVE them is
+not: it preserves the architecture but repopulates the space with something else
+every time. Emptying a packed garage produced a garage containing a car.
+
+Tuning, established by iteration:
+
+| `strength` | Result |
+|---|---|
+| `0.72` | Room preserved, but too little added. A thin, unconvincing "before". |
+| **`0.82`** | **Correct.** Architecture, camera and light hold, contents fill convincingly. |
+| `0.88` | Too loose. The model rebuilds the room into a different one. |
+
+The same technique applies to the load-size scale, where the empty vehicle is the
+base frame and each fill level is derived from it.
+
+**Workflow limitation to know about:** a derived shot needs a live URL for its
+source, so regenerating a derived frame re-rolls its source too. Iterating on
+one half of a pair in isolation is not currently possible without uploading the
+stored file first.
 
 ---
 
