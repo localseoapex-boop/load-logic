@@ -1,0 +1,187 @@
+---
+/**
+ * SiteFooter.astro — NAP per office, navigation, and the closing phone action.
+ *
+ * Iterates offices.ts so every physical location shows its own address and phone
+ * in a semantic <address> element. This mirrors the multi-node LocalBusiness
+ * schema exactly, and consistent NAP across page, schema and external listings
+ * is a core local-SEO ranking factor. That behaviour is preserved from the old
+ * footer; only the presentation changed.
+ *
+ * Service links are generated from the catalogue rather than hardcoded, so a new
+ * service appears here automatically.
+ */
+import { SITE, BUSINESS, FOOTER_LINKS } from '../config/site';
+import { offices } from '../data/offices';
+import { serviceAreaLocations } from '../lib/links';
+import { cityUrl } from '../lib/urls';
+import BrandMark from './BrandMark.astro';
+
+const year = new Date().getFullYear();
+const areas = serviceAreaLocations;
+---
+
+<footer class="site-footer on-spruce">
+  <div class="container container-wide inner">
+    <div class="brand-col">
+      <a class="brand" href="/">
+        <BrandMark size={32} onDark />
+        <span class="wordmark">Load Logic</span>
+      </a>
+      <p class="tagline">{SITE.description}</p>
+    </div>
+
+    {
+      offices.map((office) => (
+        <div class="col">
+          <p class="heading">{office.name}</p>
+          <address>
+            {office.address.street && (
+              <>
+                {office.address.street}
+                <br />
+              </>
+            )}
+            {office.address.city}, {office.address.region}
+            {office.address.postalCode ? ` ${office.address.postalCode}` : ''}
+            <br />
+            <a class="data phone" href={`tel:${office.phone}`}>
+              {BUSINESS.phoneDisplay}
+            </a>
+          </address>
+        </div>
+      ))
+    }
+
+    {
+      FOOTER_LINKS.map((group) => (
+        <nav class="col" aria-label={group.title}>
+          <p class="heading">{group.title}</p>
+          <ul>
+            {group.links.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+
+    <nav class="col" aria-label="Areas we serve">
+      <p class="heading">Areas we serve</p>
+      <ul class="areas">
+        {areas.map((loc) => <li><a href={cityUrl(loc.slug)}>{loc.city}</a></li>)}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container container-wide legal">
+    <p>&copy; {year} {offices[0].legalName}. All rights reserved.</p>
+    <p class="mesa">Based in Mesa, Arizona. Serving the East Valley.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--spruce);
+    color: var(--on-spruce-2);
+    font-size: var(--t3);
+  }
+
+  .inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--s7) var(--s6);
+    padding-block: var(--s9) var(--s7);
+  }
+
+  .brand-col {
+    grid-column: 1 / -1;
+    max-width: 42ch;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s3);
+    text-decoration: none;
+    margin-bottom: var(--s4);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  .tagline {
+    line-height: 1.6;
+  }
+
+  .heading {
+    font-family: var(--font-display);
+    font-size: var(--lbl);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: var(--s4);
+  }
+
+  address {
+    font-style: normal;
+    line-height: 1.8;
+  }
+
+  .phone {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .areas {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s2) var(--s4);
+  }
+
+  .site-footer a {
+    color: var(--on-spruce-2);
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding-block: var(--s5) var(--s7);
+    border-top: 1px solid var(--rule-on-spruce);
+    font-size: var(--lbl);
+    letter-spacing: 0.02em;
+  }
+
+  .mesa {
+    color: var(--on-spruce-2);
+  }
+
+  @media (min-width: 768px) {
+    .brand-col {
+      grid-column: span 2;
+    }
+  }
+</style>

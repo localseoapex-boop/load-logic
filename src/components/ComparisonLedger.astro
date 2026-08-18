@@ -1,0 +1,240 @@
+---
+/**
+ * ComparisonLedger.astro — decision support, including when to not hire us.
+ *
+ * Renders any comparison from comparisons.ts: DIY versus full service, and
+ * dumpster versus full service. Both include an explicit "choose the other
+ * option when..." list, which is the part that makes the rest credible. A
+ * comparison where one column wins every row is an advertisement, not a
+ * decision aid.
+ *
+ * GATED HONESTY. Dumpster rental is not a service Load Logic offers, so that
+ * comparison carries `available: false` and this component labels it as a
+ * decision aid rather than an offering. Nothing here implies you can book a
+ * dumpster from us.
+ *
+ * Set as a ruled ledger. Comparison tables rendered as two tall cards with
+ * filled progress bars are dashboard chrome; rules and type do this better.
+ */
+import { getComparison } from '../data/comparisons';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const comparison = getComparison(slug);
+---
+
+{
+  comparison && (
+    <div class="cmp" data-reveal>
+      <p class="intro">{comparison.intro}</p>
+
+      <div class="table" role="table" aria-label={comparison.title}>
+        <div class="thead" role="row">
+          <span role="columnheader" class="col-dim" />
+          <span role="columnheader" class="col-a">
+            {comparison.columns[0]}
+          </span>
+          <span role="columnheader" class="col-b">
+            {comparison.columns[1]}
+          </span>
+        </div>
+
+        {comparison.rows.map((row) => (
+          <div class="tr" role="row">
+            <span class="dim" role="rowheader">
+              {row.dimension}
+            </span>
+            <span class="a" role="cell">
+              <span class="mobile-key">{comparison.columns[0]}</span>
+              {row.alternative}
+            </span>
+            <span class="b" role="cell">
+              <span class="mobile-key">{comparison.columns[1]}</span>
+              {row.loadLogic}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div class="verdicts">
+        <section>
+          <h3>Choose {comparison.alternative.toLowerCase()} when</h3>
+          <ul>
+            {comparison.chooseAlternativeWhen.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section class="ours">
+          <h3>Call us when</h3>
+          <ul>
+            {comparison.chooseLoadLogicWhen.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      {!comparison.available && (
+        <p class="unavailable">
+          We do not rent dumpsters. This is here to help you pick the right
+          option, not to sell you one we do not have.
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .cmp {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  .intro {
+    font-size: var(--t1);
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+
+  /* ─── Ledger ─── */
+
+  .table {
+    display: grid;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .tr {
+    display: grid;
+    gap: var(--s2);
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .dim {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--t2);
+  }
+
+  .a,
+  .b {
+    color: var(--ink-2);
+  }
+
+  /* On the Load Logic column, ink rather than muted: it is the answer the
+     visitor is evaluating, and equal weight would make the table unreadable. */
+  .b {
+    color: var(--ink);
+  }
+
+  .mobile-key {
+    display: block;
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: var(--s1);
+  }
+
+  /* ─── Verdicts ─── */
+
+  .verdicts {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  .verdicts h3 {
+    font-size: var(--t1);
+    padding-bottom: var(--s3);
+    border-bottom: 2px solid var(--rule-strong);
+    margin-bottom: var(--s4);
+  }
+
+  .ours h3 {
+    border-bottom-color: var(--ink);
+  }
+
+  .verdicts ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .verdicts li {
+    position: relative;
+    padding-inline-start: var(--s5);
+    color: var(--ink-2);
+  }
+
+  .verdicts li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.72em;
+    width: 12px;
+    height: 2px;
+    background: var(--rule-strong);
+  }
+
+  .ours li::before {
+    background: var(--hi-vis);
+  }
+
+  .ours li {
+    color: var(--ink);
+  }
+
+  .unavailable {
+    padding: var(--s4) var(--s5);
+    border-inline-start: 3px solid var(--rust);
+    background: var(--rust-tint);
+    font-size: var(--t3);
+    max-width: 62ch;
+  }
+
+  @media (min-width: 800px) {
+    .thead {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s6);
+      padding-bottom: var(--s3);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .thead span {
+      font-size: var(--lbl);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+
+    .col-b {
+      color: var(--ink);
+    }
+
+    .tr {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s6);
+      align-items: baseline;
+    }
+
+    .mobile-key {
+      display: none;
+    }
+
+    .verdicts {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s8);
+    }
+  }
+</style>

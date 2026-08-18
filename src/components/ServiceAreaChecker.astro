@@ -1,0 +1,329 @@
+---
+/**
+ * ServiceAreaChecker.astro — "Do you serve my area?"
+ *
+ * THE MOST IMPORTANT RULE HERE IS WHAT IT DOES NOT SAY. An unlisted ZIP NEVER
+ * returns "we do not serve you". The ZIP data in locations.ts is compiled from
+ * public sources and may not match the real service boundary exactly, so a
+ * missing entry is a gap in our data, not a fact about the business. An unknown
+ * ZIP returns "we are not sure, ask us" with both conversion actions attached.
+ * Turning away a customer we could serve because of a data gap is the one
+ * failure mode this component exists to prevent.
+ *
+ * PROGRESSIVE ENHANCEMENT. Every city and every ZIP is in the HTML underneath.
+ * Without JavaScript the visitor gets the complete coverage list, which is also
+ * what search engines and AI crawlers read.
+ */
+import { locations, servedZips } from '../data/locations';
+import { serviceAreaLocations } from '../lib/links';
+import { cityUrl } from '../lib/urls';
+import { BUSINESS } from '../config/site';
+import { primaryQuoteAction } from '../data/quote-actions';
+
+const quote = primaryQuoteAction();
+const areas = serviceAreaLocations;
+const home = locations.find((l) => !areas.includes(l));
+
+/** slug -> city label, for the script to report a match by name. */
+const zipMap = Object.fromEntries(
+  locations.flatMap((l) => (l.zips ?? []).map((z) => [z, `${l.city}, ${l.region}`])),
+);
+---
+
+<div class="checker" data-reveal>
+  <form class="form" data-zip-form novalidate>
+    <label class="label" for="zip">Check your ZIP code</label>
+    <div class="field">
+      <input
+        id="zip"
+        name="zip"
+        type="text"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="5"
+        placeholder="85201"
+        autocomplete="postal-code"
+        data-zip-input
+      />
+      <button type="submit">Check</button>
+    </div>
+  </form>
+
+  <output class="result" data-zip-result role="status" aria-live="polite"></output>
+
+  <div class="coverage">
+    <p class="coverage-lede">
+      Based in {home ? `${home.city}, ${home.region}` : 'Mesa, AZ'} and working
+      across the East Valley. {servedZips().length} ZIP codes listed.
+    </p>
+    <ul class="cities">
+      {
+        home && (
+          <li class="home">
+            <span class="city">{home.city}</span>
+            <span class="zips data">{(home.zips ?? []).join(' ')}</span>
+          </li>
+        )
+      }
+      {
+        areas.map((loc) => (
+          <li>
+            <a class="city" href={cityUrl(loc.slug)}>
+              {loc.city}
+            </a>
+            <span class="zips data">{(loc.zips ?? []).join(' ')}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="not-listed">
+      Not on the list? It may still be within reach. Ask and we will tell you
+      straight.
+    </p>
+  </div>
+</div>
+
+<script is:inline define:vars={{ zipMap, quoteHref: quote.href, phone: BUSINESS.phone, phoneDisplay: BUSINESS.phoneDisplay }}>
+  (() => {
+    const form = document.querySelector('[data-zip-form]');
+    const input = document.querySelector('[data-zip-input]');
+    const result = document.querySelector('[data-zip-result]');
+    if (!form || !input || !result) return;
+
+    const render = (state, title, body) => {
+      result.dataset.state = state;
+      result.innerHTML =
+        `<p class="result-title">${title}</p><p class="result-body">${body}</p>` +
+        `<p class="result-actions">` +
+        `<a class="result-cta" href="${quoteHref}?from=zip">Get a Photo Quote</a>` +
+        `<a class="result-alt" href="tel:${phone}">Call ${phoneDisplay}</a>` +
+        `</p>`;
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const zip = String(input.value || '').trim().slice(0, 5);
+
+      if (!/^\d{5}$/.test(zip)) {
+        render('ask', 'Enter a five digit ZIP', 'Or just send photos and we will confirm the area for you.');
+        return;
+      }
+
+      const city = zipMap[zip];
+
+      if (city) {
+        render('yes', `Yes, we cover ${city}`, `${zip} is in the service area. Send photos and we will come back with an estimate.`);
+      } else {
+        // Deliberately NOT "we do not serve you". The dataset may be incomplete,
+        // and a data gap must never read as a refusal.
+        render(
+          'ask',
+          'Not on our list, so ask us',
+          `We do not have ${zip} listed, which does not necessarily mean we cannot get there. Send photos or call and we will tell you straight away.`,
+        );
+      }
+    });
+  })();
+</script>
+
+<style>
+  .checker {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  .form {
+    max-width: 24rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: var(--s2);
+  }
+
+  .field {
+    display: flex;
+    gap: var(--s2);
+  }
+
+  input {
+    flex: 1;
+    min-height: 48px;
+    padding: var(--s3) var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-family: var(--font-data);
+    font-size: var(--t2);
+    letter-spacing: 0.04em;
+  }
+
+  input::placeholder {
+    color: var(--ink-3);
+  }
+
+  input:focus-visible {
+    border-color: var(--ink);
+  }
+
+  button {
+    min-height: 48px;
+    padding-inline: var(--s5);
+    background: var(--spruce);
+    color: #fff;
+    border: 0;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  button:hover {
+    background: var(--spruce-2);
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  /* ─── Result ─── */
+
+  .result:empty {
+    display: none;
+  }
+
+  .result {
+    display: block;
+    padding: var(--s5);
+    border-inline-start: 3px solid var(--rule-strong);
+    background: var(--surface);
+    max-width: 44rem;
+  }
+
+  .result[data-state='yes'] {
+    border-inline-start-color: var(--hi-vis);
+  }
+
+  .result[data-state='ask'] {
+    border-inline-start-color: var(--spruce-2);
+  }
+
+  .result :global(.result-title) {
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 700;
+  }
+
+  .result :global(.result-body) {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 56ch;
+  }
+
+  .result :global(.result-actions) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s3);
+    margin-top: var(--s4);
+  }
+
+  .result :global(.result-cta) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: var(--s5);
+    background: var(--hi-vis);
+    color: var(--ink);
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .result :global(.result-alt) {
+    font-weight: 600;
+    color: var(--spruce-2);
+  }
+
+  /* ─── Coverage list ─── */
+
+  .coverage-lede {
+    color: var(--ink-2);
+    margin-bottom: var(--s4);
+    max-width: 56ch;
+  }
+
+  .cities {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .cities li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2) var(--s5);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .city {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  a.city:hover {
+    color: var(--spruce-2);
+  }
+
+  .home .city::after {
+    content: 'home base';
+    margin-inline-start: var(--s3);
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--spruce-2);
+    font-weight: 600;
+  }
+
+  .zips {
+    font-size: var(--t3);
+    color: var(--ink-3);
+    text-align: end;
+  }
+
+  .not-listed {
+    margin-top: var(--s4);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  @media (min-width: 900px) {
+    .checker {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: var(--s8);
+      align-items: start;
+    }
+
+    .form {
+      grid-column: 1;
+    }
+
+    .result {
+      grid-column: 1;
+    }
+
+    .coverage {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+  }
+</style>

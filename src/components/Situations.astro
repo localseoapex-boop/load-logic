@@ -1,0 +1,312 @@
+---
+/**
+ * Situations.astro — "Why people call us", as an editorial split.
+ *
+ * People do not search for junk removal in the abstract. They search because
+ * they are moving, closing out a parent's house, or standing in a garage they
+ * cannot park in. Leading with the situation rather than the service name meets
+ * them where they actually are, and routes them into the right page.
+ *
+ * The layout alternates the photograph side, and the section is capped at four
+ * entries here so the alternation never runs long enough to read as a zigzag
+ * template. Remaining situations are offered as a compact text list underneath,
+ * which is a different layout family rather than more of the same one.
+ *
+ * Each entry exposes the structured relationship: what it typically produces as
+ * a load size, and which services solve it.
+ */
+import { Image } from 'astro:assets';
+import { situations } from '../data/situations';
+import { getService } from '../data/services';
+import { getLoadSize } from '../data/pricing';
+import { serviceUrl } from '../lib/urls';
+
+interface Props {
+  /** Situation slugs to feature with imagery. The rest render as a list. */
+  featured?: string[];
+}
+
+const { featured = ['garage-reset', 'moving-out', 'estate-settlement', 'renovation-cleanup'] } =
+  Astro.props;
+
+/**
+ * Service imagery, reused across situations. Imported explicitly rather than
+ * through import.meta.glob, whose type generic is ambiguous with JSX once the
+ * Astro compiler hands the file to esbuild as TSX.
+ *
+ * The situation-to-photograph mapping lives here so the data modules stay free
+ * of presentation concerns.
+ */
+import imgGarage from '../assets/photos/services/svc-garage.jpg';
+import imgFurniture from '../assets/photos/services/svc-furniture.jpg';
+import imgEstate from '../assets/photos/services/svc-estate.jpg';
+import imgConstruction from '../assets/photos/services/svc-construction.jpg';
+import imgYard from '../assets/photos/services/svc-yard.jpg';
+import imgTurnover from '../assets/photos/services/svc-turnover.jpg';
+import imgHotTub from '../assets/photos/services/svc-hottub.jpg';
+import imgOffice from '../assets/photos/services/svc-office.jpg';
+
+const IMAGE_BY_SITUATION: Record<string, ImageMetadata> = {
+  'garage-reset': imgGarage,
+  'moving-out': imgFurniture,
+  'estate-settlement': imgEstate,
+  'renovation-cleanup': imgConstruction,
+  'yard-cleanup': imgYard,
+  'rental-turnover': imgTurnover,
+  'backyard-project': imgHotTub,
+  'office-change': imgOffice,
+};
+
+const ALT_BY_SITUATION: Record<string, string> = {
+  'garage-reset': 'A suburban two-car garage packed with storage totes, shelving and boxes',
+  'moving-out': 'Two workers carrying a sofa through a living room doorway with floor protection down',
+  'estate-settlement': 'A bedroom in an older home crowded with stacked boxes and stored furniture',
+  'renovation-cleanup': 'A pile of drywall, cut lumber and old cabinets in a stripped room',
+};
+
+/**
+ * Everything is resolved here rather than in the template.
+ *
+ * Template expressions are compiled as TSX, so a TypeScript type predicate like
+ * `.filter((s): s is Service => ...)` inside one is a syntax error: esbuild sees
+ * the parameter list, then the annotation colon, and fails. Frontmatter is plain
+ * TypeScript and has no such restriction, so all narrowing happens up here and
+ * the template only iterates finished data.
+ */
+const featuredSituations = featured
+  .map((slug) => situations.find((s) => s.slug === slug))
+  .filter((s): s is NonNullable<typeof s> => Boolean(s));
+
+const entries = featuredSituations.map((situation) => ({
+  situation,
+  image: IMAGE_BY_SITUATION[situation.slug],
+  load: getLoadSize(situation.typicalLoad),
+  services: situation.services
+    .map(getService)
+    .filter((s): s is NonNullable<typeof s> => Boolean(s))
+    .slice(0, 3),
+}));
+
+const rest = situations
+  .filter((s) => !featured.includes(s.slug))
+  .map((situation) => ({ situation, primary: getService(situation.services[0]) }));
+---
+
+<div class="situations">
+  {
+    entries.map(({ situation, image, load, services }, i) => (
+      <article class:list={['split', { flip: i % 2 === 1 }]} data-reveal>
+        {image && (
+          <div class="media">
+            <Image
+              src={image}
+              alt={ALT_BY_SITUATION[situation.slug] ?? situation.name}
+              widths={[420, 720]}
+              sizes="(min-width: 900px) 45vw, 100vw"
+              loading="lazy"
+            />
+          </div>
+        )}
+
+        <div class="body">
+          <p class="quote">{situation.question}</p>
+          <h3>{situation.name}</h3>
+          <p class="summary">{situation.summary}</p>
+
+          {load && (
+            <dl class="facts">
+              <dt>Usually</dt>
+              <dd class="data">
+                {load.name.toLowerCase()}, about {Math.round(load.fraction * 100)}% of a trailer
+              </dd>
+            </dl>
+          )}
+
+          <ul class="services">
+            {services.map((service) => (
+              <li>
+                <a href={serviceUrl(service.slug)}>{service.name}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+    ))
+  }
+
+  <!-- A different layout family for the remainder, rather than ten more splits. -->
+  <div class="more" data-reveal>
+    <p class="more-label label">Also common</p>
+    <ul>
+      {
+        rest.map(({ situation, primary }) => (
+          <li>
+            {primary ? (
+              <a href={serviceUrl(primary.slug)}>
+                <span class="more-name">{situation.name}</span>
+                <span class="more-q">{situation.question}</span>
+              </a>
+            ) : (
+              <span class="more-name">{situation.name}</span>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
+
+<style>
+  .situations {
+    display: grid;
+    gap: var(--s8);
+  }
+
+  .split {
+    display: grid;
+    gap: var(--s5);
+    align-items: center;
+  }
+
+  .media img {
+    width: 100%;
+    height: 100%;
+    /* Square corners. Photography is never a rounded card. */
+    border-radius: var(--r-flat);
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* The question, set as the visitor would say it. */
+  .quote {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-style: italic;
+    color: var(--ink-2);
+    margin-bottom: var(--s3);
+    max-width: 34ch;
+  }
+
+  h3 {
+    font-size: var(--d3);
+  }
+
+  .summary {
+    margin-top: var(--s3);
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  .facts {
+    margin-top: var(--s4);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule);
+  }
+
+  .facts dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .facts dd {
+    margin: var(--s1) 0 0;
+    font-size: var(--t3);
+    color: var(--ink);
+  }
+
+  .services {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+
+  .services a {
+    display: inline-block;
+    padding: var(--s2) var(--s4);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r-pill);
+    font-size: var(--t3);
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    transition:
+      border-color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  .services a:hover {
+    background: var(--surface);
+    border-color: var(--ink);
+  }
+
+  /* ─── The remainder, as a dense index ─── */
+
+  .more {
+    padding-top: var(--s6);
+    border-top: 2px solid var(--ink);
+  }
+
+  .more-label {
+    margin-bottom: var(--s4);
+  }
+
+  .more ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  .more li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .more a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s4);
+    padding-block: var(--s3);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .more a:hover .more-name {
+    color: var(--spruce-2);
+  }
+
+  .more-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    min-width: 14rem;
+  }
+
+  .more-q {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 900px) {
+    .split {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s8);
+    }
+
+    /* Alternating anchor side, capped at four entries so it never becomes a
+       zigzag template. */
+    .flip .media {
+      order: 2;
+    }
+
+    .more ul {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+  }
+</style>

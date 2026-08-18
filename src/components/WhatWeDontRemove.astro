@@ -1,0 +1,114 @@
+---
+/**
+ * WhatWeDontRemove.astro — the exclusions, stated plainly and usefully.
+ *
+ * Most junk removal sites bury this or omit it. Stating it clearly is a trust
+ * signal AND a filter: a customer with a garage full of paint learns it in ten
+ * seconds instead of on the day the crew arrives.
+ *
+ * AGENTIC REQUIREMENT: every exclusion carries a reason and, wherever one exists,
+ * a real alternative. "We cannot take this" is a dead end; "we cannot take this,
+ * here is who can" is an answer. The alternatives in materials.ts point at
+ * genuinely available public routes rather than at named partners we have not
+ * verified.
+ *
+ * Rendered in `--rust`, the semantic warning colour, which appears nowhere
+ * decorative on the site.
+ */
+import { prohibitedMaterials } from '../data/materials';
+
+const items = prohibitedMaterials();
+---
+
+<div class="excl" data-reveal>
+  <ul>
+    {
+      items.map((item) => (
+        <li>
+          <div class="what">
+            <h3>{item.name}</h3>
+            <p class="aliases">{item.aliases.slice(0, 4).join(', ')}</p>
+          </div>
+          <div class="why">
+            <p class="reason">{item.note}</p>
+            {item.alternative && (
+              <p class="alt">
+                <span class="alt-label">Instead</span>
+                {item.alternative}
+              </p>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="ask">
+    Not sure about something? Ask before the pickup and we will tell you where it
+    should go, even when the answer is not us.
+  </p>
+</div>
+
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  li {
+    display: grid;
+    gap: var(--s3);
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h3 {
+    font-size: var(--t1);
+    /* The rule marker is the semantic warning colour, used only here and on
+       other genuine restrictions. */
+    border-inline-start: 3px solid var(--rust);
+    padding-inline-start: var(--s3);
+  }
+
+  .aliases {
+    margin-top: var(--s2);
+    padding-inline-start: calc(var(--s3) + 3px);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .reason {
+    color: var(--ink-2);
+  }
+
+  .alt {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    color: var(--ink);
+  }
+
+  .alt-label {
+    display: inline-block;
+    margin-inline-end: var(--s2);
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--rust);
+  }
+
+  .ask {
+    margin-top: var(--s6);
+    max-width: 52ch;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 768px) {
+    li {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: var(--s7);
+      align-items: start;
+    }
+  }
+</style>

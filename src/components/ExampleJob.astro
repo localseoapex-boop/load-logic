@@ -1,0 +1,272 @@
+---
+/**
+ * ExampleJob.astro — one job as a complete record.
+ *
+ * The densest node in the knowledge graph rendered as a spec sheet: city,
+ * service, situation, what came out, how much space it took, how many loads,
+ * how long, and where the material went. It answers the volume question, the
+ * cost question and the trust question at once, which no amount of marketing
+ * copy does.
+ *
+ * HONESTY GATE. Every entry in jobs.ts is currently `representative: true`, so
+ * this component labels it visibly as a representative example and never as a
+ * documented customer job. No name, no date, no address, and nothing here is
+ * emitted as review or completed-work schema. When real records arrive with
+ * `representative: false` and a source, the label disappears automatically and
+ * nothing else changes.
+ */
+import { getLocation } from '../data/locations';
+import { getService } from '../data/services';
+import { getSituation } from '../data/situations';
+import { getLoadSize } from '../data/pricing';
+import { getMaterial } from '../data/materials';
+import { getDisposalRoute } from '../data/disposal';
+import { getVehicle } from '../data/equipment';
+import { formatDuration, type Job } from '../data/jobs';
+import { locationServiceUrl, serviceUrl } from '../lib/urls';
+
+interface Props {
+  job: Job;
+}
+
+const { job } = Astro.props;
+
+const location = getLocation(job.location);
+const service = getService(job.service);
+const situation = getSituation(job.situation);
+const load = getLoadSize(job.loadSize);
+const vehicle = job.vehicle ? getVehicle(job.vehicle) : undefined;
+const loads = job.loadCount ?? 1;
+
+const materials = job.materials
+  .map(getMaterial)
+  .filter((m): m is NonNullable<typeof m> => Boolean(m));
+
+const disposal = job.disposal
+  .map((d) => ({ route: getDisposalRoute(d.route), share: d.share }))
+  .filter((d): d is { route: NonNullable<typeof d.route>; share: number } => Boolean(d.route))
+  .sort((a, b) => b.share - a.share);
+
+const totalVolume = load?.cubicYards ? load.cubicYards * loads : undefined;
+---
+
+<article class="job" data-reveal>
+  <header class="head">
+    <div>
+      {
+        job.representative && (
+          <p class="badge">Representative example</p>
+        )
+      }
+      <h3>{job.title}</h3>
+      <p class="where">
+        {location && service && (
+          <a href={locationServiceUrl(location.slug, service.slug)}>
+            {service.name} in {location.city}, {location.region}
+          </a>
+        )}
+      </p>
+    </div>
+  </header>
+
+  <!-- The spec sheet. Mono values, hairline rules, no cards. -->
+  <dl class="specs">
+    {
+      situation && (
+        <div>
+          <dt>Situation</dt>
+          <dd>{situation.name}</dd>
+        </div>
+      )
+    }
+    {
+      load && (
+        <div>
+          <dt>Load size</dt>
+          <dd class="data">
+            {load.name}
+            {loads > 1 && ` × ${loads}`}
+          </dd>
+        </div>
+      )
+    }
+    {
+      totalVolume && (
+        <div>
+          <dt>Volume</dt>
+          <dd class="data">about {totalVolume} cu yd</dd>
+        </div>
+      )
+    }
+    <div>
+      <dt>Crew</dt>
+      <dd class="data">{job.crew} people</dd>
+    </div>
+    <div>
+      <dt>Time on site</dt>
+      <dd class="data">{formatDuration(job.minutesOnSite)}</dd>
+    </div>
+    {
+      vehicle && (
+        <div>
+          <dt>Equipment</dt>
+          <dd>{vehicle.name}</dd>
+        </div>
+      )
+    }
+  </dl>
+
+  <div class="detail">
+    <section>
+      <h4 class="label">What came out</h4>
+      <p class="items">{materials.map((m) => m.name).join(' · ')}</p>
+    </section>
+
+    <section>
+      <h4 class="label">Where it went</h4>
+      <ul class="disposal">
+        {
+          disposal.map(({ route, share }) => (
+            <li>
+              <span class="bar" style={`--share: ${share}%`} aria-hidden="true" />
+              <span class="route">{route.name}</span>
+              <span class="share data">{share}%</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+
+  <p class="note">{job.note}</p>
+</article>
+
+<style>
+  .job {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    padding: var(--s6);
+  }
+
+  .badge {
+    display: inline-block;
+    margin-bottom: var(--s3);
+    padding: var(--s1) var(--s3);
+    background: var(--bone-2);
+    border-radius: var(--r-pill);
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  h3 {
+    font-size: var(--d3);
+    max-width: 28ch;
+  }
+
+  .where {
+    margin-top: var(--s2);
+    font-size: var(--t3);
+  }
+
+  .where a {
+    color: var(--spruce-2);
+  }
+
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--s4) var(--s5);
+    margin-block: var(--s6);
+    padding-block: var(--s5);
+    border-block: 1px solid var(--rule);
+  }
+
+  .specs dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: var(--s1);
+  }
+
+  .specs dd {
+    margin: 0;
+    font-size: var(--t2);
+    font-weight: 600;
+  }
+
+  .detail {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  h4 {
+    margin-bottom: var(--s3);
+  }
+
+  .items {
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  .disposal {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .disposal li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: var(--s1) var(--s3);
+  }
+
+  /* A bare proportional rule, not a filled progress track. The track is what
+     makes these read as dashboard chrome. */
+  .bar {
+    grid-column: 1 / -1;
+    display: block;
+    height: 3px;
+    width: var(--share);
+    background: var(--spruce-2);
+  }
+
+  .disposal li:last-child .bar {
+    background: var(--ink-3);
+  }
+
+  .route {
+    font-size: var(--t3);
+  }
+
+  .share {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .note {
+    margin-top: var(--s6);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--rule);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  @media (min-width: 768px) {
+    .job {
+      padding: var(--s7);
+    }
+
+    .detail {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: var(--s8);
+    }
+  }
+</style>

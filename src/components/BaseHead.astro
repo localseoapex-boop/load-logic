@@ -56,6 +56,22 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" href="/favicon.ico" />
 
+<!--
+  Font preload. Archivo carries every heading including the LCP text, so the
+  latin subset is fetched at high priority rather than waiting on the CSS to be
+  parsed first. The file is served from /public precisely so this URL is stable
+  and predictable; a Vite-hashed asset could not be referenced from here.
+  The latin-extended subset is deliberately NOT preloaded: it is rarely needed
+  and would compete for bandwidth with the hero image.
+-->
+<link
+  rel="preload"
+  href="/fonts/archivo-latin-var.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+
 <!-- Open Graph / Facebook / LinkedIn -->
 <meta property="og:type" content={type} />
 <meta property="og:url" content={canonicalURL} />

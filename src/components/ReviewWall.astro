@@ -1,0 +1,169 @@
+---
+/**
+ * ReviewWall.astro — verified customer reviews, or nothing at all.
+ *
+ * reviews.ts currently holds three unverified entries (the testimonials that
+ * used to be hardcoded into the old homepage and rendered as though real), and
+ * `verifiedReviews()` returns an empty array. So this component renders NOTHING.
+ *
+ * That is the correct behaviour, not a gap to paper over:
+ *   - no invented quotes, no initials-only attributions
+ *   - no placeholder or skeleton that could ship to production by accident
+ *   - no Review or AggregateRating schema anywhere on the site
+ *
+ * When real reviews arrive with `verified: true` and a source, the section
+ * appears automatically. The parent decides whether to render its heading by
+ * calling `hasVerifiedReviews()` first, so an empty wall never leaves an orphan
+ * heading above blank space.
+ *
+ * Presentation, once populated: one large pull quote plus a compact list, not
+ * three identical cards or a dot carousel.
+ */
+import { verifiedReviews } from '../data/reviews';
+import { getLocation } from '../data/locations';
+import { getService } from '../data/services';
+
+interface Props {
+  /** Narrow to one city, for location pages. */
+  location?: string;
+  /** Narrow to one service, for service pages. */
+  service?: string;
+  limit?: number;
+}
+
+const { location, service, limit = 5 } = Astro.props;
+
+let reviews = verifiedReviews();
+if (location) reviews = reviews.filter((r) => r.location === location);
+if (service) reviews = reviews.filter((r) => r.service === service);
+reviews = reviews.slice(0, limit);
+
+const [lead, ...rest] = reviews;
+
+const contextFor = (r: (typeof reviews)[number]) =>
+  [r.location ? getLocation(r.location)?.city : undefined, r.service ? getService(r.service)?.name : undefined]
+    .filter(Boolean)
+    .join(' · ');
+---
+
+{
+  lead && (
+    <div class="reviews" data-reveal>
+      <figure class="lead">
+        <blockquote>
+          <p>{lead.text}</p>
+        </blockquote>
+        <figcaption>
+          <span class="name">{lead.author}</span>
+          <span class="context data">{contextFor(lead)}</span>
+          {lead.source && (
+            <a class="verify" href={lead.source} rel="nofollow noopener">
+              Verified on {lead.platform}
+            </a>
+          )}
+        </figcaption>
+      </figure>
+
+      {rest.length > 0 && (
+        <ul class="rest">
+          {rest.map((review) => (
+            <li>
+              <p class="text">{review.text}</p>
+              <p class="attribution">
+                <span class="name">{review.author}</span>
+                <span class="context data">{contextFor(review)}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .reviews {
+    display: grid;
+    gap: var(--s8);
+  }
+
+  blockquote p {
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    max-width: 26ch;
+    text-wrap: balance;
+  }
+
+  blockquote p::before {
+    content: '\201C';
+  }
+
+  blockquote p::after {
+    content: '\201D';
+  }
+
+  figcaption {
+    margin-top: var(--s5);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s4);
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .context {
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .verify {
+    font-size: var(--t3);
+    color: var(--spruce-2);
+  }
+
+  .rest {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .rest li {
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .text {
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+
+  .attribution {
+    margin-top: var(--s2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    font-size: var(--t3);
+  }
+
+  @media (min-width: 900px) {
+    .reviews {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s8);
+      align-items: start;
+    }
+
+    blockquote p {
+      font-size: var(--d2);
+    }
+  }
+</style>

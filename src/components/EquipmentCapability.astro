@@ -1,0 +1,195 @@
+---
+/**
+ * EquipmentCapability.astro — what we haul with, and honestly what that limits.
+ *
+ * Stating the limits is the point. "One tow vehicle, so one trailer at a time,
+ * so a big job is several trips" is exactly the kind of detail that sets correct
+ * expectations and separates a real operator from a stock page claiming a fleet.
+ *
+ * GATED ON VERIFICATION. Renders nothing at all unless equipment.ts holds
+ * verified vehicles. Nothing about capacity is inferred or rounded up, and the
+ * two trailer capacities are NEVER added together, because only one can be towed
+ * at a time.
+ */
+import { Image } from 'astro:assets';
+import { vehicles, tools, fleetLimits, hasConfirmedEquipment } from '../data/equipment';
+import equipVehicle from '../assets/photos/equipment/equip-vehicle.jpg';
+import equipDump from '../assets/photos/equipment/equip-dump-trailer.jpg';
+
+const confirmed = vehicles.filter((v) => v.verified);
+const show = hasConfirmedEquipment();
+
+const photoFor: Record<string, ImageMetadata> = {
+  'utility-trailer': equipVehicle,
+  'dump-trailer': equipDump,
+};
+
+const altFor: Record<string, string> = {
+  'utility-trailer':
+    'An open utility trailer with mesh side rails, empty, parked on a driveway with the rear gate lowered',
+  'dump-trailer': 'A black hydraulic dump trailer with solid high walls behind a pickup truck',
+};
+---
+
+{
+  show && (
+    <div class="equip">
+      <div class="vehicles">
+        {confirmed.map((vehicle) => (
+          <article class="vehicle" data-reveal>
+            {photoFor[vehicle.slug] && (
+              <Image
+                class="photo"
+                src={photoFor[vehicle.slug]}
+                alt={altFor[vehicle.slug] ?? vehicle.name}
+                widths={[520, 900]}
+                sizes="(min-width: 900px) 45vw, 100vw"
+                loading="lazy"
+              />
+            )}
+
+            <div class="head">
+              <h3>{vehicle.name}</h3>
+              {vehicle.cubicYards && (
+                <p class="capacity data">{vehicle.cubicYards} cu yd</p>
+              )}
+            </div>
+
+            <h4 class="label">What it lets us do</h4>
+            <ul class="enables">
+              {vehicle.enables.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+
+            <h4 class="label limits-label">Where it stops</h4>
+            <ul class="limits">
+              {vehicle.limits.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+
+      {/* The single most useful operational fact on the page. */}
+      <aside class="constraint" data-reveal>
+        <p class="constraint-lede">
+          One truck, so one trailer at a time.
+        </p>
+        <p>{fleetLimits.consequence}</p>
+        <p class="tools-intro">
+          Everything else comes on the truck: {tools.map((t) => t.name.toLowerCase()).join(', ')}.
+        </p>
+      </aside>
+    </div>
+  )
+}
+
+<style>
+  .equip {
+    display: grid;
+    gap: var(--s8);
+  }
+
+  .vehicles {
+    display: grid;
+    gap: var(--s8);
+  }
+
+  .photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 21 / 9;
+    object-fit: cover;
+    margin-bottom: var(--s5);
+  }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding-bottom: var(--s3);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  h3 {
+    font-size: var(--d3);
+  }
+
+  .capacity {
+    font-size: var(--t2);
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .label {
+    margin-top: var(--s5);
+    margin-bottom: var(--s3);
+  }
+
+  .limits-label {
+    color: var(--rust);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  li {
+    position: relative;
+    padding-inline-start: var(--s5);
+    color: var(--ink-2);
+    max-width: 54ch;
+  }
+
+  li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.72em;
+    width: 12px;
+    height: 2px;
+    background: var(--hi-vis);
+  }
+
+  .limits li::before {
+    background: var(--rust);
+  }
+
+  .constraint {
+    background: var(--spruce);
+    color: var(--on-spruce-2);
+    padding: var(--s6);
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .constraint-lede {
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 700;
+    color: #fff;
+    max-width: 20ch;
+  }
+
+  .tools-intro {
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule-on-spruce);
+    font-size: var(--t3);
+  }
+
+  @media (min-width: 900px) {
+    .vehicles {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .constraint {
+      padding: var(--s7);
+    }
+  }
+</style>

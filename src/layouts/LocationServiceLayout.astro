@@ -27,6 +27,9 @@ import {
   subServicesForCategory,
 } from '../lib/links';
 import { serviceUrl, cityUrl, locationServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
+// Loads the pre-redesign stylesheet. This template still uses the old class
+// names and is rebuilt in a later phase; see src/styles/legacy.css.
+import '../styles/legacy.css';
 
 interface Props {
   location: Location;

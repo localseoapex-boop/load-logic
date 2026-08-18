@@ -1,0 +1,101 @@
+---
+/**
+ * FinalQuoteCta.astro — the closing conversion block.
+ *
+ * A full-bleed spruce block. DESIGN.md caps these at three per page so they stay
+ * punctuation, and this is the one that earns a place at the end.
+ *
+ * Deliberately different from the old site's `.cta-band`, which was copy-pasted
+ * verbatim at the bottom of five layouts with the same two lines every time.
+ * This takes its heading from the caller so a service page, a city page and the
+ * homepage each close on something specific to what the visitor just read.
+ *
+ * Both conversion actions, both first class. On mobile they stack full width.
+ */
+import QuoteCta from './QuoteCta.astro';
+import { primaryQuoteAction } from '../data/quote-actions';
+
+interface Props {
+  heading: string;
+  body?: string;
+  source?: string;
+}
+
+const { heading, body, source = 'footer-cta' } = Astro.props;
+const quote = primaryQuoteAction();
+---
+
+<section class="final on-spruce">
+  <div class="container container-wide inner">
+    <div class="copy">
+      <h2>{heading}</h2>
+      {body && <p class="body">{body}</p>}
+    </div>
+
+    <div class="action">
+      <QuoteCta size="lg" onDark {source} />
+      <ol class="steps">
+        {quote.nextSteps.map((step) => <li>{step}</li>)}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .final {
+    background: var(--spruce);
+    color: var(--on-spruce-2);
+    padding-block: var(--sec-feature-t) var(--sec-feature-b);
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--s7);
+    align-items: start;
+  }
+
+  h2 {
+    color: #fff;
+    max-width: 18ch;
+  }
+
+  .body {
+    margin-top: var(--s4);
+    font-size: var(--t1);
+    max-width: 44ch;
+  }
+
+  /* What happens next, so the CTA is a step rather than a leap. */
+  .steps {
+    margin-top: var(--s6);
+    padding: var(--s5) 0 0;
+    border-top: 1px solid var(--rule-on-spruce);
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-inline-start: var(--s6);
+    font-size: var(--t3);
+  }
+
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    font-family: var(--font-data);
+    color: var(--hi-vis);
+    font-weight: 600;
+  }
+
+  @media (min-width: 900px) {
+    .inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s9);
+    }
+  }
+</style>

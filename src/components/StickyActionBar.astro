@@ -1,0 +1,94 @@
+---
+/**
+ * StickyActionBar.astro — the persistent mobile conversion bar.
+ *
+ * Renders on EVERY page through BaseLayout. On the old site this markup lived
+ * only in index.astro, so 174 of 175 pages had no persistent mobile CTA,
+ * including every page organic search actually lands on. That was the single
+ * cheapest conversion fix available and it is fixed here by construction.
+ *
+ * Two targets at equal width, matching the locked labels in DESIGN.md. Phone is
+ * not demoted: on a phone, mid-task in a garage, calling is often the fastest
+ * path and the bar treats both as first class.
+ *
+ * Mobile only. Above 768px the header already carries both actions, and a
+ * floating bar would just cover content.
+ */
+import { BUSINESS } from '../config/site';
+import { primaryQuoteAction } from '../data/quote-actions';
+
+const quote = primaryQuoteAction();
+---
+
+<div class="action-bar">
+  <a class="call" href={`tel:${BUSINESS.phone}`}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z"
+        fill="currentColor"></path>
+    </svg>
+    Call Now
+  </a>
+  <a class="quote" href={`${quote.href}?from=sticky`}>{quote.label}</a>
+</div>
+
+<style>
+  .action-bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--z-sticky-bar);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s2);
+    padding: var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom, 0px));
+    background: var(--bone);
+    border-top: 1px solid var(--rule);
+    box-shadow: var(--shadow-float);
+  }
+
+  .action-bar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s2);
+    /* Comfortably above the 48px minimum: these are the two most important
+       targets on a phone. */
+    min-height: 48px;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t2);
+    text-decoration: none;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  .call {
+    background: var(--spruce);
+    color: #fff;
+  }
+
+  .call:active {
+    background: var(--spruce-2);
+  }
+
+  .call svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .quote {
+    background: var(--hi-vis);
+    color: var(--ink);
+  }
+
+  .quote:active {
+    background: var(--hi-vis-press);
+  }
+
+  @media (min-width: 768px) {
+    .action-bar {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,328 @@
+---
+/**
+ * SiteHeader.astro — brand, primary nav, and the two conversion actions.
+ *
+ * MOBILE IS THE POINT HERE. The old header stacked into three rows and consumed
+ * 170px before the hero began, on the device most visitors arrive with. This one
+ * is a single 64px bar at every width: mark and wordmark left, "Call Now" and a
+ * menu trigger right. Nav links move into a disclosure panel.
+ *
+ * The mobile panel is a <details> element, so it opens and closes with zero
+ * JavaScript and remains operable if scripting fails. The only script is a tiny
+ * listener that closes the panel on navigation and on Escape.
+ *
+ * Links come from NAV_LINKS so the menu is edited in one place, and the active
+ * link is marked with aria-current for both users and crawlers.
+ */
+import { SITE, BUSINESS, NAV_LINKS } from '../config/site';
+import { primaryQuoteAction } from '../data/quote-actions';
+import Button from './Button.astro';
+import BrandMark from './BrandMark.astro';
+
+const currentPath = Astro.url.pathname;
+const quote = primaryQuoteAction();
+
+/** A link is active when it is the homepage exactly, or a section prefix match. */
+const isActive = (href: string) =>
+  href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="/" aria-label={`${SITE.name} home`}>
+      <BrandMark size={30} />
+      <span class="wordmark">Load Logic</span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Primary">
+      <ul>
+        {
+          NAV_LINKS.map((link) => (
+            <li>
+              <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="actions">
+      <a class="phone" href={`tel:${BUSINESS.phone}`}>
+        <span class="phone-label">Call Now</span>
+        <span class="phone-number data">{BUSINESS.phoneDisplay}</span>
+      </a>
+      <div class="quote-btn">
+        <Button href={quote.href} variant="primary">{quote.label}</Button>
+      </div>
+
+      <details class="menu">
+        <summary aria-label="Menu">
+          <span class="bars" aria-hidden="true"></span>
+          <span class="menu-text">Menu</span>
+        </summary>
+        <div class="panel">
+          <nav aria-label="Primary mobile">
+            <ul>
+              {
+                NAV_LINKS.map((link) => (
+                  <li>
+                    <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+          <Button href={quote.href} variant="primary" full>{quote.label}</Button>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  // The panel is a <details>, so open/close already works without this. These
+  // two listeners only add the conveniences a native disclosure does not give:
+  // close on Escape, and close when a link inside is followed.
+  const menu = document.querySelector('.menu');
+  if (menu instanceof HTMLDetailsElement) {
+    menu.addEventListener('click', (event) => {
+      if (event.target instanceof HTMLAnchorElement) menu.open = false;
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--bone);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .bar {
+    width: 100%;
+    max-width: var(--w-wide);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: var(--s6);
+  }
+
+  /* ─── Brand ─── */
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    text-decoration: none;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* ─── Desktop nav ─── */
+
+  .desktop-nav {
+    display: none;
+    margin-inline-start: auto;
+  }
+
+  .desktop-nav ul {
+    display: flex;
+    gap: var(--s6);
+    list-style: none;
+    padding: 0;
+  }
+
+  .desktop-nav a {
+    font-size: var(--t3);
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+    padding-block: var(--s2);
+  }
+
+  .desktop-nav a:hover {
+    color: var(--ink);
+  }
+
+  /* Active state is a rule under the link, not a colour change alone. */
+  .desktop-nav a[aria-current='page'] {
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--hi-vis);
+  }
+
+  /* ─── Actions ─── */
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    margin-inline-start: auto;
+  }
+
+  .phone {
+    display: none;
+    flex-direction: column;
+    line-height: 1.15;
+    text-decoration: none;
+    text-align: right;
+  }
+
+  .phone-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .phone-number {
+    font-size: var(--t3);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .phone:hover .phone-number {
+    color: var(--spruce-2);
+  }
+
+  .quote-btn {
+    display: none;
+  }
+
+  /* ─── Mobile disclosure ─── */
+
+  .menu > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    height: 44px;
+    padding-inline: var(--s3);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--t3);
+    font-weight: 600;
+  }
+
+  .menu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bars,
+  .bars::before,
+  .bars::after {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: var(--ink);
+    content: '';
+  }
+
+  .bars {
+    position: relative;
+  }
+
+  .bars::before {
+    position: absolute;
+    top: -5px;
+  }
+
+  .bars::after {
+    position: absolute;
+    top: 5px;
+  }
+
+  .menu[open] .bars {
+    background: transparent;
+  }
+
+  .menu[open] .bars::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+
+  .menu[open] .bars::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
+
+  .panel {
+    position: absolute;
+    inset-inline: 0;
+    top: 64px;
+    background: var(--bone);
+    border-bottom: 1px solid var(--rule);
+    padding: var(--s4) var(--gutter) var(--s6);
+    box-shadow: var(--shadow-float);
+  }
+
+  .panel ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--s5);
+  }
+
+  .panel li + li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .panel a {
+    display: block;
+    padding: var(--s4) 0;
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .panel a[aria-current='page'] {
+    color: var(--spruce-2);
+  }
+
+  /* ─── Breakpoints ─── */
+
+  @media (min-width: 768px) {
+    .phone {
+      display: flex;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .desktop-nav {
+      display: block;
+      margin-inline-start: 0;
+    }
+
+    .quote-btn {
+      display: block;
+    }
+
+    .menu {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,160 @@
+---
+/**
+ * RelatedRail.astro — internal links that read as navigation, not as plumbing.
+ *
+ * Replaces the old InternalLinks component's stacked card grids. On a city and
+ * service page those grids were roughly 70% of the visible content, styled
+ * identically to the real content blocks, so SEO scaffolding and substance were
+ * indistinguishable.
+ *
+ * WHAT IS PRESERVED, exactly: the links themselves, their order, their caps, and
+ * every crawl path. Callers still compute them with the lib/links.ts helpers, so
+ * the relationship engine and the SEO architecture are untouched. Only the
+ * presentation changed.
+ *
+ * A horizontal scroll rail on small screens and a dense ruled index above 768px.
+ * Neither reads as a wall of identical boxes.
+ */
+export interface RailLink {
+  label: string;
+  href: string;
+  description?: string;
+}
+
+interface Props {
+  title: string;
+  links: RailLink[];
+  /** `index` for a ruled list, `rail` for a scrolling row of larger targets. */
+  variant?: 'index' | 'rail';
+}
+
+const { title, links, variant = 'index' } = Astro.props;
+---
+
+{
+  links.length > 0 && (
+    <nav class:list={['related', variant]} aria-label={title} data-reveal>
+      <h2 class="title">{title}</h2>
+      <ul>
+        {links.map((link) => (
+          <li>
+            <a href={link.href}>
+              <span class="label-text">{link.label}</span>
+              {link.description && <span class="desc">{link.description}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .title {
+    font-size: var(--lbl);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink-2);
+    padding-bottom: var(--s3);
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: var(--s2);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ─── index: a dense ruled list ─── */
+
+  .index li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .index a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s5);
+    padding-block: var(--s3);
+    text-decoration: none;
+    color: var(--ink);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .index a:hover {
+    color: var(--spruce-2);
+  }
+
+  .index .label-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    flex: 0 0 auto;
+    min-width: 16rem;
+  }
+
+  .index .desc {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* ─── rail: a scrolling row of larger targets ─── */
+
+  .rail ul {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(15rem, 1fr);
+    gap: var(--s3);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* Room for the focus ring, and a hint of the next item so the affordance
+       is obvious without a scrollbar. */
+    padding-block: var(--s1) var(--s4);
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+  }
+
+  .rail li {
+    scroll-snap-align: start;
+  }
+
+  .rail a {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    height: 100%;
+    padding: var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .rail a:hover {
+    border-color: var(--ink);
+  }
+
+  .rail .label-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .rail .desc {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 768px) {
+    .rail ul {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      overflow: visible;
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+  }
+</style>

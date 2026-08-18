@@ -1,0 +1,529 @@
+---
+/**
+ * QuoteForm.astro — the photo quote request.
+ *
+ * FIELDS COME FROM DATA. The inputs are generated from `quote-actions.ts`, which
+ * also documents why each one is asked for. The form and its documentation
+ * therefore cannot drift apart, and the same definition is what /knowledge.json
+ * publishes to AI consumers as "here is how to actually book this".
+ *
+ * PROGRESSIVE DISCLOSURE. The five `initial` fields are always visible. The rest
+ * sit inside a <details> that opens with no JavaScript, so the form looks short
+ * but the detail is one click away and fully present for anyone who wants it.
+ *
+ * BACKEND STATUS. The POST target is `/api/quote`, which does not exist yet:
+ * shipping it needs the Vercel adapter plus Resend and Blob credentials, which
+ * is phase 9 work. Until then the form is marked `data-endpoint-pending` and the
+ * script intercepts submission to show the phone and SMS fallbacks rather than
+ * posting into a void. Nothing here silently loses a lead.
+ */
+import { initialInputs, additionalInputs, primaryQuoteAction, timingOptions, contactPreferenceOptions } from '../data/quote-actions';
+import { services } from '../data/services';
+import { loadScale } from '../data/pricing';
+import { accessChecklist } from '../data/access';
+import { BUSINESS } from '../config/site';
+
+interface Props {
+  /** Endpoint is live. Flip when /api/quote ships. */
+  endpointReady?: boolean;
+}
+
+const { endpointReady = false } = Astro.props;
+
+const action = primaryQuoteAction();
+const initial = initialInputs();
+const extra = additionalInputs();
+
+/** Prefill from the homepage quote starter. */
+const params = Astro.url.searchParams;
+const prefill = {
+  zip: params.get('zip') ?? '',
+  service: params.get('service') ?? '',
+};
+
+const optionsFor = (from?: string) => {
+  if (from === 'services') return services.map((s) => ({ value: s.slug, label: s.name }));
+  if (from === 'loadSizes')
+    return loadScale().map((l) => ({ value: l.slug, label: `${l.name} — ${l.summary}` }));
+  if (from === 'timing') return timingOptions;
+  if (from === 'contactPreference') return contactPreferenceOptions;
+  return [];
+};
+---
+
+<form
+  class="quote-form"
+  method="post"
+  action={action.endpoint}
+  enctype="multipart/form-data"
+  data-quote-form
+  data-endpoint-pending={endpointReady ? undefined : ''}
+  novalidate
+>
+  <div class="fields">
+    {
+      initial.map((input) => (
+        <div class:list={['field', { wide: input.kind === 'file' }]}>
+          <label class="label" for={input.name}>
+            {input.label}
+            {!input.required && <span class="optional">optional</span>}
+          </label>
+
+          {input.kind === 'select' ? (
+            <select id={input.name} name={input.name} required={input.required}>
+              <option value="">Choose one</option>
+              {optionsFor(input.optionsFrom).map((opt) => (
+                <option value={opt.value} selected={prefill.service === opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          ) : input.kind === 'file' ? (
+            <input
+              id={input.name}
+              name={input.name}
+              type="file"
+              accept={input.accept}
+              multiple
+              capture={undefined}
+            />
+          ) : (
+            <input
+              id={input.name}
+              name={input.name}
+              type={input.kind === 'postal' ? 'text' : input.kind}
+              required={input.required}
+              inputmode={input.kind === 'postal' ? 'numeric' : undefined}
+              maxlength={input.kind === 'postal' ? 5 : undefined}
+              autocomplete={
+                input.kind === 'tel'
+                  ? 'tel'
+                  : input.kind === 'email'
+                    ? 'email'
+                    : input.kind === 'postal'
+                      ? 'postal-code'
+                      : input.name === 'name'
+                        ? 'name'
+                        : undefined
+              }
+              value={input.name === 'zip' ? prefill.zip : undefined}
+            />
+          )}
+
+          <p class="reason">{input.reason}</p>
+          <p class="error" data-error-for={input.name} hidden></p>
+        </div>
+      ))
+    }
+  </div>
+
+  <details class="more">
+    <summary>
+      <span>Add more detail</span>
+      <span class="more-hint">Gets you a closer estimate. All optional.</span>
+    </summary>
+
+    <div class="fields">
+      {
+        extra.map((input) => (
+          <div class:list={['field', { wide: input.kind === 'textarea' || input.kind === 'radio' }]}>
+            <label class="label" for={input.name}>
+              {input.label}
+              <span class="optional">optional</span>
+            </label>
+
+            {input.kind === 'select' ? (
+              <select id={input.name} name={input.name}>
+                <option value="">Choose one</option>
+                {optionsFor(input.optionsFrom).map((opt) => (
+                  <option value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            ) : input.kind === 'radio' ? (
+              <div class="radios" role="group" aria-labelledby={input.name}>
+                {optionsFor(input.optionsFrom).map((opt) => (
+                  <label class="radio">
+                    <input type="radio" name={input.name} value={opt.value} />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            ) : input.kind === 'textarea' ? (
+              <textarea id={input.name} name={input.name} rows="4" />
+            ) : (
+              <input id={input.name} name={input.name} type={input.kind} />
+            )}
+
+            <p class="reason">{input.reason}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- The access checklist, drawn from access.ts, so the visitor knows what is
+         worth mentioning rather than guessing. -->
+    <div class="checklist">
+      <p class="label">Worth mentioning if any apply</p>
+      <ul>
+        {accessChecklist().map((item) => <li>{item.name}</li>)}
+      </ul>
+    </div>
+  </details>
+
+  <div class="submit">
+    <button type="submit">{action.label}</button>
+    <p class="fallback">
+      Prefer to talk? Call
+      <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
+      or text photos to the same number.
+    </p>
+  </div>
+
+  <div class="pending-notice" data-pending-notice hidden>
+    <p class="pending-title">Online submission is not switched on yet</p>
+    <p>
+      The form is built but the endpoint that receives it goes live with the next
+      release. Until then, call or text photos to
+      <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
+      and you will get the same estimate.
+    </p>
+    <p class="pending-actions">
+      <a class="pending-call" href={`tel:${BUSINESS.phone}`}>Call Now</a>
+      <a class="pending-sms" href={`sms:${BUSINESS.phone}`}>Text photos</a>
+    </p>
+  </div>
+</form>
+
+<script>
+  // Two jobs: inline validation with real messages, and an honest fallback while
+  // the endpoint is unbuilt. The form never posts into a void and never silently
+  // loses a lead.
+  const form = document.querySelector<HTMLFormElement>('[data-quote-form]');
+  if (form) {
+    const pending = form.hasAttribute('data-endpoint-pending');
+    const notice = form.querySelector<HTMLElement>('[data-pending-notice]');
+
+    const showError = (name: string, message: string) => {
+      const el = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      const input = form.querySelector<HTMLInputElement>(`[name="${name}"]`);
+      if (el) {
+        el.textContent = message;
+        el.hidden = false;
+      }
+      input?.setAttribute('aria-invalid', 'true');
+    };
+
+    const clearErrors = () => {
+      form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+        el.hidden = true;
+        el.textContent = '';
+      });
+      form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+    };
+
+    form.addEventListener('submit', (event) => {
+      clearErrors();
+      let valid = true;
+
+      const value = (name: string) =>
+        (form.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value ?? '').trim();
+
+      if (!value('name')) {
+        showError('name', 'We need a name to know who we are talking to.');
+        valid = false;
+      }
+      if (!/\d{7,}/.test(value('phone').replace(/\D/g, ''))) {
+        showError('phone', 'Enter a phone number we can reach you on.');
+        valid = false;
+      }
+      if (!/^\d{5}$/.test(value('zip'))) {
+        showError('zip', 'Enter the five digit ZIP for the property.');
+        valid = false;
+      }
+      if (!value('service')) {
+        showError('service', 'Pick the closest match. We will sort out the detail.');
+        valid = false;
+      }
+
+      if (!valid) {
+        event.preventDefault();
+        form.querySelector<HTMLElement>('[aria-invalid]')?.focus();
+        return;
+      }
+
+      if (pending) {
+        event.preventDefault();
+        if (notice) {
+          notice.hidden = false;
+          notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+  }
+</script>
+
+<style>
+  .quote-form {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  .fields {
+    display: grid;
+    gap: var(--s5);
+  }
+
+  .field {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s2);
+  }
+
+  .optional {
+    font-size: var(--lbl);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 52px;
+    padding: var(--s3) var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-size: var(--t2);
+  }
+
+  textarea {
+    min-height: 7rem;
+    resize: vertical;
+  }
+
+  input[type='file'] {
+    padding: var(--s3);
+    font-size: var(--t3);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    border-color: var(--ink);
+  }
+
+  input[aria-invalid],
+  select[aria-invalid] {
+    border-color: var(--rust);
+  }
+
+  .reason {
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 56ch;
+  }
+
+  .error {
+    font-size: var(--t3);
+    font-weight: 600;
+    color: var(--rust);
+  }
+
+  .radios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+
+  .radio {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    padding: var(--s2) var(--s4);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+  }
+
+  .radio input {
+    width: auto;
+    min-height: 0;
+  }
+
+  .radio:has(input:checked) {
+    border-color: var(--ink);
+    background: var(--surface);
+  }
+
+  /* ─── Progressive disclosure ─── */
+
+  .more {
+    border-block: 1px solid var(--rule);
+    padding-block: var(--s4);
+  }
+
+  .more > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s4);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t1);
+    list-style: none;
+  }
+
+  .more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .more > summary::after {
+    content: '+';
+    margin-inline-start: auto;
+    font-family: var(--font-data);
+    font-size: 1.5rem;
+    color: var(--ink-3);
+    line-height: 1;
+  }
+
+  .more[open] > summary::after {
+    content: '\2013';
+  }
+
+  .more-hint {
+    font-family: var(--font-text);
+    font-size: var(--t3);
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+
+  .more[open] .fields {
+    margin-top: var(--s5);
+  }
+
+  .checklist {
+    margin-top: var(--s5);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .checklist ul {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+
+  .checklist li {
+    padding: var(--s1) var(--s3);
+    background: var(--bone-2);
+    border-radius: var(--r-pill);
+    font-size: var(--t3);
+  }
+
+  /* ─── Submit ─── */
+
+  .submit {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  button[type='submit'] {
+    min-height: 56px;
+    padding-inline: var(--s7);
+    background: var(--hi-vis);
+    color: var(--ink);
+    border: 0;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t1);
+    cursor: pointer;
+    justify-self: start;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  button[type='submit']:hover {
+    background: var(--hi-vis-press);
+  }
+
+  button[type='submit']:active {
+    transform: translateY(1px);
+  }
+
+  .fallback {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .fallback a {
+    font-weight: 600;
+  }
+
+  /* ─── Honest pending state ─── */
+
+  .pending-notice {
+    padding: var(--s5);
+    border-inline-start: 3px solid var(--rust);
+    background: var(--rust-tint);
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .pending-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--t1);
+  }
+
+  .pending-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    margin-top: var(--s2);
+  }
+
+  .pending-call,
+  .pending-sms {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: var(--s5);
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .pending-call {
+    background: var(--spruce);
+    color: #fff;
+  }
+
+  .pending-sms {
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
+  }
+
+  @media (min-width: 700px) {
+    .fields {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s5) var(--s6);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

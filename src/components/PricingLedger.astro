@@ -1,0 +1,282 @@
+---
+/**
+ * PricingLedger.astro — how a job is priced, without inventing a price.
+ *
+ * Real amounts are not available yet, so every figure stays behind
+ * `published: false` in pricing.ts. That constraint is not a gap to apologise
+ * for: explaining the pricing MODEL honestly is more useful to someone deciding
+ * whether to call than a made-up "from $99" would be, and it is the difference
+ * between a quote that holds and one that changes on the day.
+ *
+ * AGENTIC REQUIREMENT. This states what pricing is based on, what makes a job
+ * bigger, what counts as a load, how heavy material differs, and how access
+ * changes the number. Each factor is a real entity from pricing.ts, and the
+ * access factors come from access.ts, so the same facts drive the quote form's
+ * questions.
+ *
+ * Rendered as a hairline ledger rather than cards. Rules and space carry the
+ * structure. A pricing explanation set in three rounded boxes reads as marketing;
+ * set as a ledger it reads as a specification.
+ */
+import {
+  primaryPricingFactors,
+  pricingFactors,
+  pricingTerms,
+  isPricingPublished,
+} from '../data/pricing';
+import { pricingRelevantAccess } from '../data/access';
+import { confirmedCapacityCubicYards, heavyMaterialVehicle, fleetLimits } from '../data/equipment';
+
+const primary = primaryPricingFactors();
+const secondary = pricingFactors.filter((f) => !f.primary);
+const access = pricingRelevantAccess();
+const capacity = confirmedCapacityCubicYards();
+const dump = heavyMaterialVehicle();
+const published = isPricingPublished();
+---
+
+<div class="ledger" data-reveal>
+  <!-- What the price is actually based on. Three inputs, weighted. -->
+  <section class="block">
+    <h3>What the price is based on</h3>
+    <dl class="rows primary-rows">
+      {
+        primary.map((factor) => (
+          <div class="row">
+            <dt>{factor.name}</dt>
+            <dd>{factor.explanation}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- What else moves the number. -->
+  <section class="block">
+    <h3>What else changes it</h3>
+    <dl class="rows">
+      {
+        secondary.map((factor) => (
+          <div class="row">
+            <dt>{factor.name}</dt>
+            <dd>{factor.explanation}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- Access, which is the most commonly missed input and the usual reason a
+       phone estimate turns out wrong. -->
+  <section class="block">
+    <h3>Access, and why we ask about it</h3>
+    <p class="lede">
+      Two identical sofas cost different amounts to remove if one is at the curb
+      and the other is up two flights at the back of a gated complex. Telling us
+      up front is what keeps a quote accurate.
+    </p>
+    <ul class="access">
+      {
+        access.map((factor) => (
+          <li>
+            <span class="access-name">{factor.name}</span>
+            <span class="access-tell">{factor.tellUs}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- Equipment facts that genuinely affect what a job costs and how it runs. -->
+  <section class="block">
+    <h3>What counts as a load</h3>
+    <dl class="rows">
+      <div class="row">
+        <dt>One full load</dt>
+        <dd>
+          Our open utility trailer filled to the rails{
+            capacity ? `, about ${capacity} cubic yards` : ''
+          }. The load size scale above shows what each fraction of that looks
+          like.
+        </dd>
+      </div>
+      {
+        dump && (
+          <div class="row">
+            <dt>Heavy material</dt>
+            <dd>
+              Dense debris like concrete, tile, brick and soil goes in the dump
+              trailer{dump.cubicYards ? `, about ${dump.cubicYards} cubic yards` : ''}. It
+              holds less volume but is built to carry the weight, and these loads
+              are quoted on weight rather than on the space they take.
+            </dd>
+          </div>
+        )
+      }
+      <div class="row">
+        <dt>Bigger than one load</dt>
+        <dd>{fleetLimits.consequence} {fleetLimits.reason}</dd>
+      </div>
+      <div class="row">
+        <dt>Minimum</dt>
+        <dd>{pricingTerms.minimum.description}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- The commitments. These are process promises, not numbers, so they are
+       safe to state and they are what the customer actually wants to hear. -->
+  <section class="block commitments">
+    <h3>How the number is agreed</h3>
+    <ul>
+      {pricingTerms.commitments.map((c) => <li>{c}</li>)}
+    </ul>
+    {
+      !published && (
+        <p class="pending">
+          We quote per job rather than publishing a fixed list, because volume,
+          weight and access vary too much for a list to be honest. Photos get you
+          a real number before anyone arrives.
+        </p>
+      )
+    }
+  </section>
+</div>
+
+<style>
+  .ledger {
+    display: grid;
+    gap: var(--s8);
+  }
+
+  h3 {
+    font-size: var(--d3);
+    padding-bottom: var(--s3);
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: var(--s2);
+  }
+
+  .lede {
+    margin-block: var(--s4);
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+
+  /* A hairline ledger: one rule under each row, never top and bottom both. */
+  .rows {
+    margin: 0;
+  }
+
+  .row {
+    display: grid;
+    gap: var(--s1);
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .row dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t2);
+  }
+
+  .row dd {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  /* The three primary inputs carry more weight than the rest. */
+  .primary-rows .row dt {
+    font-size: var(--t1);
+  }
+
+  .primary-rows .row dd {
+    color: var(--ink);
+  }
+
+  .access {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .access li {
+    display: grid;
+    gap: var(--s1);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .access-name {
+    font-weight: 600;
+  }
+
+  .access-tell {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .commitments ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s3);
+    margin-top: var(--s4);
+  }
+
+  .commitments li {
+    padding-inline-start: var(--s5);
+    position: relative;
+    max-width: 62ch;
+  }
+
+  /* A short hi-vis rule as the marker. No check glyphs, no icon per line. */
+  .commitments li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.7em;
+    width: 14px;
+    height: 2px;
+    background: var(--hi-vis);
+  }
+
+  .pending {
+    margin-top: var(--s5);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  @media (min-width: 768px) {
+    .row {
+      grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+      gap: var(--s6);
+      align-items: baseline;
+    }
+
+    .access li {
+      grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+      gap: var(--s6);
+      align-items: baseline;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .ledger {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s9) var(--s8);
+    }
+
+    /* The access block earns full width: it is the longest and the one most
+       likely to change a quote. */
+    .block:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

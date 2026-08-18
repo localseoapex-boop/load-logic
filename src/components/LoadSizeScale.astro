@@ -1,0 +1,220 @@
+---
+/**
+ * LoadSizeScale.astro — "How much junk do you have?"
+ *
+ * The site's signature component and the fastest route to a real price. Volume
+ * is the primary pricing input, so helping someone estimate their own volume
+ * answers the cost question before a form is involved.
+ *
+ * WHY DIAGRAMS, NOT PHOTOGRAPHS. Three photographic attempts failed: with the
+ * truck in frame the trailer was unreadable and swapped between frames, and
+ * trailer-only runs either returned an empty deck or, at higher strength, turned
+ * into a different vehicle. An instrument that changes between readings measures
+ * nothing. The SVGs are drawn from the fractions in pricing.ts so the drawing
+ * and the data cannot disagree, and each load's drawn AREA is proportional to
+ * its fraction. See docs/image-art-direction.md section 5.2.
+ *
+ * WRITTEN FOR SOMEONE WHO HAS NEVER THOUGHT IN CUBIC YARDS. The recognisable
+ * example leads, the fraction supports it, and the cubic yard figure comes last
+ * as a secondary detail for anyone who wants it.
+ *
+ * HONESTY. Every figure is an estimate and says so. Amounts stay hidden behind
+ * `published: false` until real pricing is supplied, so this shows how much junk
+ * you have, never what it will cost.
+ */
+import { loadScale, isPricingPublished, formatVolume } from '../data/pricing';
+import { confirmedCapacityCubicYards, fleetLimits } from '../data/equipment';
+
+const loads = loadScale();
+const capacity = confirmedCapacityCubicYards();
+const showPrices = isPricingPublished();
+
+/**
+ * Diagrams are imported explicitly rather than through import.meta.glob. The
+ * glob form needs a type generic, and a generic on a call expression is
+ * ambiguous with JSX once the Astro compiler hands the file to esbuild as TSX,
+ * which fails the build. Six explicit imports are also easier to follow.
+ */
+import dSingle from '../assets/diagrams/load-single-item.svg?url';
+import dSmall from '../assets/diagrams/load-small.svg?url';
+import dQuarter from '../assets/diagrams/load-quarter.svg?url';
+import dHalf from '../assets/diagrams/load-half.svg?url';
+import dThreeQuarter from '../assets/diagrams/load-three-quarter.svg?url';
+import dFull from '../assets/diagrams/load-full.svg?url';
+
+const diagrams: Record<string, string> = {
+  'load-single-item': dSingle,
+  'load-small': dSmall,
+  'load-quarter': dQuarter,
+  'load-half': dHalf,
+  'load-three-quarter': dThreeQuarter,
+  'load-full': dFull,
+};
+
+const diagramFor = (image: string): string | undefined => diagrams[image];
+---
+
+<div class="scale" data-reveal>
+  <ol class="steps">
+    {
+      loads.map((load) => {
+        const src = diagramFor(load.image);
+        return (
+          <li class="step">
+            {src && (
+              <img
+                class="diagram"
+                src={src}
+                alt={`Diagram: ${load.name}, about ${Math.round(load.fraction * 100)} percent of a full trailer`}
+                width="300"
+                height="180"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+
+            <div class="text">
+              <div class="heading-row">
+                <h3>{load.name}</h3>
+                <span class="pct data">{Math.round(load.fraction * 100)}%</span>
+              </div>
+
+              <p class="summary">{load.summary}</p>
+
+              <ul class="examples">
+                {load.exampleContents.map((ex) => (
+                  <li>{ex}</li>
+                ))}
+              </ul>
+
+              <p class="volume data">
+                {formatVolume(load) && <>about {formatVolume(load)}</>}
+                {showPrices && load.price.published && load.price.min && (
+                  <span class="price"> · from ${load.price.min}</span>
+                )}
+              </p>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+
+  <footer class="notes">
+    <p>
+      <strong>These are estimates.</strong> A full load means our
+      {capacity ? ` ${capacity} cubic yard ` : ' '}open utility trailer filled to
+      the rails. Sizes are judged on site before anything is loaded, and you
+      approve the price first.
+    </p>
+    <p>
+      {fleetLimits.consequence}
+    </p>
+    {
+      !showPrices && (
+        <p class="pending">
+          Prices are quoted per job rather than published as a fixed list. Send
+          photos and you get a real number back, not a range.
+        </p>
+      )
+    }
+  </footer>
+</div>
+
+<style>
+  .steps {
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+    border-top: 1px solid var(--rule);
+  }
+
+  .step {
+    display: grid;
+    gap: var(--s4);
+    align-items: center;
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .diagram {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+  }
+
+  .heading-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+  }
+
+  h3 {
+    font-size: var(--d3);
+  }
+
+  /* The percentage is the scale reading, so it gets the data register. */
+  .pct {
+    font-size: var(--t2);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  .summary {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  /* The recognisable examples lead, because "a packed two-car garage" is far
+     easier to judge yourself against than a number. */
+  .examples {
+    margin-top: var(--s3);
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s3);
+  }
+
+  .examples li {
+    font-size: var(--t3);
+    padding: var(--s1) var(--s3);
+    background: var(--bone-2);
+    border-radius: var(--r-pill);
+    color: var(--ink);
+  }
+
+  .volume {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .price {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .notes {
+    margin-top: var(--s6);
+    display: grid;
+    gap: var(--s3);
+    max-width: 62ch;
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .pending {
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule);
+  }
+
+  @media (min-width: 700px) {
+    .step {
+      grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+      gap: var(--s7);
+      padding-block: var(--s6);
+    }
+  }
+</style>

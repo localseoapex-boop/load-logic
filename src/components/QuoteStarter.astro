@@ -1,0 +1,138 @@
+---
+/**
+ * QuoteStarter.astro — the inline first step of the quote, directly under the hero.
+ *
+ * Two fields and a button. It does not submit a lead: it hands ZIP and service
+ * through to /quote as query parameters so the full form arrives prefilled. That
+ * keeps the commitment low at the top of the page while making the real form
+ * feel already started.
+ *
+ * It is a real <form> with method="get" pointed at /quote, so it works with
+ * JavaScript disabled: the browser does the query-string construction natively.
+ * There is no script in this component at all.
+ */
+import { services } from '../data/services';
+import { primaryQuoteAction } from '../data/quote-actions';
+import { BUSINESS } from '../config/site';
+
+const quote = primaryQuoteAction();
+---
+
+<div class="starter">
+  <form class="form" method="get" action={quote.href}>
+    <input type="hidden" name="from" value="starter" />
+
+    <div class="field zip">
+      <label class="label" for="starter-zip">ZIP code</label>
+      <input
+        id="starter-zip"
+        name="zip"
+        type="text"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="5"
+        placeholder="85201"
+        autocomplete="postal-code"
+      />
+    </div>
+
+    <div class="field service">
+      <label class="label" for="starter-service">What needs to go?</label>
+      <select id="starter-service" name="service">
+        <option value="">Choose one</option>
+        {services.map((s) => <option value={s.slug}>{s.name}</option>)}
+      </select>
+    </div>
+
+    <button type="submit">{quote.label}</button>
+  </form>
+
+  <p class="alt">
+    Or call <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
+    and talk it through. Photos are the fastest route to a real number, but a
+    call works too.
+  </p>
+</div>
+
+<style>
+  .starter {
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .form {
+    display: grid;
+    gap: var(--s4);
+    align-items: end;
+  }
+
+  .field {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 52px;
+    padding: var(--s3) var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-size: var(--t2);
+  }
+
+  input {
+    font-family: var(--font-data);
+    letter-spacing: 0.04em;
+  }
+
+  input::placeholder {
+    color: var(--ink-3);
+  }
+
+  input:focus-visible,
+  select:focus-visible {
+    border-color: var(--ink);
+  }
+
+  button {
+    min-height: 52px;
+    padding-inline: var(--s6);
+    background: var(--hi-vis);
+    color: var(--ink);
+    border: 0;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  button:hover {
+    background: var(--hi-vis-press);
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  .alt {
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 56ch;
+  }
+
+  .alt a {
+    font-weight: 600;
+  }
+
+  @media (min-width: 700px) {
+    .form {
+      grid-template-columns: 9rem minmax(0, 1fr) auto;
+      gap: var(--s3);
+    }
+  }
+</style>

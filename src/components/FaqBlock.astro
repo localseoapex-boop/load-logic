@@ -1,0 +1,154 @@
+---
+/**
+ * FaqBlock.astro — questions and answers, plus the FAQPage schema for them.
+ *
+ * SCHEMA RULE, preserved from the old site and worth restating: FAQPage JSON-LD
+ * is emitted ONLY for questions actually rendered on this page. Schema that
+ * describes content a visitor cannot see is exactly what Google penalises, so
+ * the same array drives both the markup and the structured data.
+ *
+ * Presentation is a two-column Q and A list rather than a stack of accordions.
+ * Accordion-everything is a tell, and it hides answers from scanning. Long
+ * banks still collapse on mobile where vertical space is genuinely scarce, via
+ * <details>, which needs no JavaScript.
+ */
+interface Faq {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  faqs: Faq[];
+  /** Emit FAQPage JSON-LD. Set false when another block on the page already does. */
+  schema?: boolean;
+}
+
+const { faqs, schema = true } = Astro.props;
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+---
+
+<div class="faqs" data-reveal>
+  <dl class="list">
+    {
+      faqs.map((faq) => (
+        <div class="qa">
+          <dt>{faq.question}</dt>
+          <dd>{faq.answer}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <!-- Below 768px the same content collapses, where vertical space is scarce. -->
+  <div class="collapsed">
+    {
+      faqs.map((faq) => (
+        <details>
+          <summary>{faq.question}</summary>
+          <p>{faq.answer}</p>
+        </details>
+      ))
+    }
+  </div>
+</div>
+
+{schema && faqs.length > 0 && (
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />
+)}
+
+<style>
+  .list {
+    display: none;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .qa {
+    display: grid;
+    gap: var(--s3);
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  dt {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 600;
+    max-width: 34ch;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  /* ─── Collapsed, below 768px ─── */
+
+  .collapsed {
+    border-top: 1px solid var(--rule);
+  }
+
+  details {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding-block: var(--s4);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '+';
+    font-family: var(--font-data);
+    font-size: 1.25rem;
+    color: var(--ink-3);
+    line-height: 1;
+  }
+
+  details[open] summary::after {
+    content: '\2013';
+  }
+
+  details p {
+    padding-bottom: var(--s4);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 768px) {
+    .list {
+      display: block;
+    }
+
+    .collapsed {
+      display: none;
+    }
+
+    .qa {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--s7);
+      align-items: baseline;
+      padding-block: var(--s6);
+    }
+  }
+</style>

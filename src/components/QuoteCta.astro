@@ -1,0 +1,109 @@
+---
+/**
+ * QuoteCta.astro — the site's two conversion actions, always together.
+ *
+ * DESIGN.md locks one label per intent, site-wide:
+ *   Get a Photo Quote   primary   -> /quote
+ *   Call Now            secondary -> tel:
+ *
+ * Both labels and both destinations are defined HERE and nowhere else, which is
+ * what stops the old site's problem recurring: it had "Get a free quote", "Free
+ * quote" and "See all services" all pointing at /services, so the primary action
+ * did not exist and the secondary one lied about where it went.
+ *
+ * Phone stays a first-class path. Junk removal buyers call, especially on mobile
+ * mid-task, and the form supplements that rather than replacing it.
+ */
+import Button from './Button.astro';
+import { BUSINESS } from '../config/site';
+import { primaryQuoteAction } from '../data/quote-actions';
+
+interface Props {
+  /** row: side by side. stack: full-width, one above the other. */
+  layout?: 'row' | 'stack';
+  size?: 'md' | 'lg';
+  onDark?: boolean;
+  /** Appends a source tag to the quote URL so entry points stay attributable. */
+  source?: string;
+  /** Show the phone number under the buttons for scannability. */
+  showNumber?: boolean;
+}
+
+const {
+  layout = 'row',
+  size = 'md',
+  onDark = false,
+  source,
+  showNumber = false,
+} = Astro.props;
+
+const quote = primaryQuoteAction();
+const quoteHref = source ? `${quote.href}?from=${source}` : quote.href;
+---
+
+<div class:list={['cta', layout]}>
+  <Button href={quoteHref} variant="primary" {size} full={layout === 'stack'}>
+    {quote.label}
+  </Button>
+  <Button
+    href={`tel:${BUSINESS.phone}`}
+    variant="solid"
+    {size}
+    {onDark}
+    full={layout === 'stack'}
+  >
+    Call Now
+  </Button>
+</div>
+
+{
+  showNumber && (
+    <p class:list={['number', 'data', { dark: onDark }]}>
+      <a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
+    </p>
+  )
+}
+
+<style>
+  .cta {
+    display: flex;
+    gap: var(--s3);
+  }
+
+  .row {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .number {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .number.dark {
+    color: var(--on-spruce-2);
+  }
+
+  .number a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .number a:hover {
+    text-decoration: underline;
+  }
+
+  /* Below 480px the two actions stack full width so both stay easy to hit. */
+  @media (max-width: 480px) {
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

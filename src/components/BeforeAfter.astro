@@ -1,0 +1,240 @@
+---
+/**
+ * BeforeAfter.astro — paired states of the same place.
+ *
+ * CSS-ONLY SLIDER. The wipe is driven by a native range input bound to a CSS
+ * custom property, so there is no JavaScript, no library, and no layout shift.
+ * With scripting or pointer precision unavailable the input is still a normal
+ * keyboard-operable slider, and below 768px it drops to a stacked pair with
+ * labels, which is easier to read on a phone than a slider you fight with while
+ * scrolling.
+ *
+ * The pairs are genuinely the same room: the empty frame was generated first and
+ * the packed frame derived from it, which is the only way to hold architecture,
+ * camera and light across both states. See docs/image-art-direction.md 5.1.
+ */
+import { Image } from 'astro:assets';
+
+interface Props {
+  before: ImageMetadata;
+  after: ImageMetadata;
+  beforeAlt: string;
+  afterAlt: string;
+  /** Real detail about the job, in the data register. Optional. */
+  caption?: string;
+  id: string;
+}
+
+const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
+---
+
+<figure class="ba" data-reveal>
+  <div class="compare" style="--pos: 50%">
+    <div class="layer after">
+      <Image
+        src={after}
+        alt={afterAlt}
+        widths={[600, 1000, 1400]}
+        sizes="(min-width: 900px) 60vw, 100vw"
+        loading="lazy"
+      />
+      <span class="tag tag-after">After</span>
+    </div>
+
+    <div class="layer before">
+      <Image
+        src={before}
+        alt={beforeAlt}
+        widths={[600, 1000, 1400]}
+        sizes="(min-width: 900px) 60vw, 100vw"
+        loading="lazy"
+      />
+      <span class="tag tag-before">Before</span>
+    </div>
+
+    <div class="handle" aria-hidden="true"></div>
+
+    <label class="slider-label visually-hidden" for={`ba-${id}`}>
+      Reveal the before and after states
+    </label>
+    <input
+      class="slider"
+      id={`ba-${id}`}
+      type="range"
+      min="0"
+      max="100"
+      value="50"
+      step="1"
+    />
+  </div>
+
+  <!-- Stacked pair for small screens. A wipe slider is awkward on a phone mid
+       scroll, and two labelled images communicate the same thing better. -->
+  <div class="stacked">
+    <div class="stack-item">
+      <Image src={before} alt={beforeAlt} widths={[480, 780]} sizes="100vw" loading="lazy" />
+      <span class="tag tag-before">Before</span>
+    </div>
+    <div class="stack-item">
+      <Image src={after} alt={afterAlt} widths={[480, 780]} sizes="100vw" loading="lazy" />
+      <span class="tag tag-after">After</span>
+    </div>
+  </div>
+
+  {caption && <figcaption class="data">{caption}</figcaption>}
+</figure>
+
+<script>
+  // Binds each slider to its own --pos custom property. This is the only script
+  // for this component and it is purely a value pipe: the clipping, the handle
+  // position and the layering are all CSS.
+  document.querySelectorAll<HTMLInputElement>('.ba .slider').forEach((input) => {
+    const compare = input.closest<HTMLElement>('.compare');
+    if (!compare) return;
+    const sync = () => compare.style.setProperty('--pos', `${input.value}%`);
+    input.addEventListener('input', sync);
+    sync();
+  });
+</script>
+
+<style>
+  .ba {
+    margin: 0;
+  }
+
+  /* ─── Slider, 768px and up ─── */
+
+  .compare {
+    display: none;
+    position: relative;
+    isolation: isolate;
+    background: var(--bone-2);
+  }
+
+  .layer {
+    position: relative;
+    inset: 0;
+  }
+
+  .layer :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+
+  /* The before layer sits on top and is clipped to the slider position. */
+  .before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .before :global(img) {
+    height: 100%;
+  }
+
+  .handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    background: var(--hi-vis);
+    transform: translateX(-1px);
+    pointer-events: none;
+  }
+
+  .handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    transform: translate(-50%, -50%);
+    background: var(--hi-vis);
+    border-radius: var(--r-pill);
+  }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+
+  /* Keyboard focus has to be visible even though the input itself is invisible. */
+  .slider:focus-visible + .slider,
+  .slider:focus-visible {
+    outline: 2px solid var(--hi-vis);
+    outline-offset: 4px;
+    opacity: 0.01;
+  }
+
+  /* ─── Labels ─── */
+
+  .tag {
+    position: absolute;
+    top: var(--s3);
+    padding: var(--s1) var(--s3);
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .tag-before {
+    left: var(--s3);
+    background: var(--ink);
+    color: var(--bone);
+  }
+
+  .tag-after {
+    right: var(--s3);
+    background: var(--hi-vis);
+    color: var(--ink);
+  }
+
+  /* ─── Stacked pair, below 768px ─── */
+
+  .stacked {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .stack-item {
+    position: relative;
+  }
+
+  .stack-item :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+
+  figcaption {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 768px) {
+    .compare {
+      display: block;
+    }
+
+    .stacked {
+      display: none;
+    }
+  }
+</style>

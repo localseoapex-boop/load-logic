@@ -1,0 +1,166 @@
+---
+/**
+ * DisposalFlow.astro — where the material actually goes.
+ *
+ * "Do you donate or recycle" is among the most-asked questions in junk removal
+ * and one of the least honestly answered. Routes are ordered best outcome first,
+ * and each states the CONDITIONS that decide whether material qualifies, because
+ * "we donate everything we can" is meaningless without knowing what "can" means.
+ *
+ * NO NAMED PARTNERS. disposal.ts ships an empty `partners` array for every
+ * route. Naming a charity or facility we have not confirmed a relationship with
+ * would be a fabricated claim, so the component renders partner names only when
+ * they exist and are verified.
+ */
+import { disposalFlow } from '../data/disposal';
+
+const routes = disposalFlow();
+---
+
+<div class="flow" data-reveal>
+  <ol>
+    {
+      routes.map((route, i) => (
+        <li>
+          <div class="rank">
+            <span class="num data">{String(i + 1).padStart(2, '0')}</span>
+          </div>
+
+          <div class="body">
+            <h3>{route.name}</h3>
+            <p class="summary">{route.summary}</p>
+            <p class="detail">{route.detail}</p>
+
+            {route.conditions.length > 0 && (
+              <div class="conditions">
+                <p class="cond-label">Qualifies when</p>
+                <ul>
+                  {route.conditions.map((condition) => (
+                    <li>{condition}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {route.partners.filter((p) => p.verified).length > 0 && (
+              <p class="partners">
+                {route.partners
+                  .filter((p) => p.verified)
+                  .map((p) => p.name)
+                  .join(', ')}
+              </p>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class="honest">
+    We do not name specific charities or facilities here, because we will not
+    claim a partnership we have not confirmed. What we can tell you is which
+    route your material takes and what decides it.
+  </p>
+</div>
+
+<style>
+  ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: route;
+    border-top: 1px solid var(--rule);
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s4);
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .num {
+    font-size: var(--t2);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  h3 {
+    font-size: var(--d3);
+  }
+
+  .summary {
+    margin-top: var(--s2);
+    font-size: var(--t1);
+    max-width: 54ch;
+  }
+
+  .detail {
+    margin-top: var(--s3);
+    color: var(--ink-2);
+    max-width: 66ch;
+  }
+
+  .conditions {
+    margin-top: var(--s4);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .cond-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: var(--s2);
+  }
+
+  .conditions ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .conditions li {
+    display: block;
+    padding: 0;
+    border: 0;
+    position: relative;
+    padding-inline-start: var(--s5);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+
+  .conditions li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 2px;
+    background: var(--rule-strong);
+  }
+
+  .partners {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    font-weight: 600;
+  }
+
+  .honest {
+    margin-top: var(--s6);
+    max-width: 62ch;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 768px) {
+    li {
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: var(--s6);
+      padding-block: var(--s6);
+    }
+  }
+</style>

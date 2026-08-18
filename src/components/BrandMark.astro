@@ -1,0 +1,42 @@
+---
+/**
+ * BrandMark.astro — the Load Logic mark as inline SVG.
+ *
+ * Inline rather than an <img> so it inherits colour from context: spruce blocks
+ * on light surfaces, bone on dark ones, with the hi-vis block constant in both.
+ * The mark is the one place the accent appears outside an action, which is a
+ * deliberate brand exception documented in DESIGN.md.
+ *
+ * Concept: a load being packed, with space still open at the top left. It states
+ * the volume-based pricing model in one glyph and rhymes with the load size
+ * scale. Kept in sync with src/assets/brand/mark.svg and public/favicon.svg.
+ */
+interface Props {
+  size?: number;
+  /** Renders on a spruce block, so the solid blocks flip to bone. */
+  onDark?: boolean;
+}
+
+const { size = 32, onDark = false } = Astro.props;
+const solid = onDark ? 'var(--on-spruce)' : 'var(--spruce)';
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  focusable="false"
+>
+  <rect x="4" y="14" width="13" height="14" fill={solid} />
+  <rect x="19" y="19" width="9" height="9" fill={solid} />
+  <rect x="19" y="8" width="9" height="9" fill="var(--hi-vis)" />
+</svg>
+
+<style>
+  svg {
+    flex-shrink: 0;
+  }
+</style>

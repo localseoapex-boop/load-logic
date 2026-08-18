@@ -1,0 +1,282 @@
+---
+/**
+ * ItemLookup.astro — "Can you take this?"
+ *
+ * The whole material catalogue rendered as a filterable list. A visitor types
+ * "couch" or "fridge" or "paint" and gets the actual answer: taken, taken with a
+ * condition, or not taken with somewhere else to go.
+ *
+ * PROGRESSIVE ENHANCEMENT. Every one of the 88 items is in the HTML. The script
+ * only hides non-matching rows. With JavaScript off, or before it runs, the
+ * visitor gets a complete browsable list rather than an empty box, and search
+ * engines and AI crawlers see every item and every answer without executing
+ * anything.
+ *
+ * MATCHING USES ALIASES, which is the point of that field in materials.ts.
+ * Someone types "couch", not "sofa"; "fridge", not "refrigerator". The alias
+ * list rides along in a data attribute so the filter matches what people
+ * actually type.
+ */
+import { materials, getMaterialCategory } from '../data/materials';
+import { coverageFor } from '../lib/knowledge';
+import { serviceUrl } from '../lib/urls';
+
+/** Prohibited last: the answer people most need is "yes, and here is how". */
+const order = { accepted: 0, restricted: 1, prohibited: 2 } as const;
+const rows = materials
+  .map((m) => coverageFor(m.slug))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c))
+  .sort((a, b) => {
+    const s = order[a.material.status] - order[b.material.status];
+    return s !== 0 ? s : a.material.name.localeCompare(b.material.name);
+  });
+
+const statusLabel = {
+  accepted: 'We take it',
+  restricted: 'Yes, with a condition',
+  prohibited: 'We cannot take it',
+} as const;
+---
+
+<div class="lookup" data-reveal>
+  <div class="search">
+    <label class="label" for="item-search">Search an item</label>
+    <input
+      id="item-search"
+      type="search"
+      placeholder="Try couch, fridge, mattress, paint"
+      autocomplete="off"
+      data-item-search
+    />
+    <p class="hint" data-search-hint>
+      {rows.length} items listed. Type to narrow the list.
+    </p>
+  </div>
+
+  <ul class="results" data-item-list>
+    {
+      rows.map(({ material, category, accepted, condition, alternative, services, disposal, heavy }) => (
+        <li
+          class:list={['item', material.status]}
+          data-terms={[material.name, ...material.aliases, category?.name ?? '']
+            .join(' ')
+            .toLowerCase()}
+        >
+          <div class="top">
+            <h3>{material.name}</h3>
+            <p class:list={['status', material.status]}>{statusLabel[material.status]}</p>
+          </div>
+
+          {condition && <p class="condition">{condition}</p>}
+          {alternative && (
+            <p class="alternative">
+              <span class="alt-label">Instead</span>
+              {alternative}
+            </p>
+          )}
+
+          <dl class="facts">
+            {category && (
+              <div>
+                <dt>Category</dt>
+                <dd>{category.name}</dd>
+              </div>
+            )}
+            {accepted && services.length > 0 && (
+              <div>
+                <dt>Service</dt>
+                <dd>
+                  <a href={serviceUrl(services[0].slug)}>{services[0].name}</a>
+                </dd>
+              </div>
+            )}
+            {accepted && disposal.length > 0 && (
+              <div>
+                <dt>Usually goes to</dt>
+                <dd>{disposal[0].name}</dd>
+              </div>
+            )}
+            {heavy && (
+              <div>
+                <dt>Note</dt>
+                <dd>Needs extra hands. Mention it when you send photos.</dd>
+              </div>
+            )}
+          </dl>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="empty" data-empty hidden>
+    Nothing matched that. It may still be something we take, so send a photo and
+    we will tell you either way.
+  </p>
+</div>
+
+<script>
+  // Filter only. The full list is already in the document, so this degrades to a
+  // complete browsable catalogue if the script never runs.
+  const input = document.querySelector<HTMLInputElement>('[data-item-search]');
+  const list = document.querySelector<HTMLElement>('[data-item-list]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  const hint = document.querySelector<HTMLElement>('[data-search-hint]');
+
+  if (input && list && empty && hint) {
+    const items = Array.from(list.querySelectorAll<HTMLElement>('.item'));
+    const total = items.length;
+
+    const apply = () => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+
+      items.forEach((item) => {
+        const match = q === '' || (item.dataset.terms ?? '').includes(q);
+        item.hidden = !match;
+        if (match) shown += 1;
+      });
+
+      empty.hidden = shown > 0;
+      hint.textContent =
+        q === ''
+          ? `${total} items listed. Type to narrow the list.`
+          : `${shown} of ${total} items match "${input.value.trim()}".`;
+    };
+
+    input.addEventListener('input', apply);
+  }
+</script>
+
+<style>
+  .search {
+    max-width: 34rem;
+    margin-bottom: var(--s6);
+  }
+
+  label {
+    display: block;
+    margin-bottom: var(--s2);
+  }
+
+  input {
+    width: 100%;
+    min-height: 48px;
+    padding: var(--s3) var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-size: var(--t2);
+  }
+
+  input::placeholder {
+    /* Contrast checked: passes AA against --surface. */
+    color: var(--ink-3);
+  }
+
+  input:focus-visible {
+    border-color: var(--ink);
+  }
+
+  .hint {
+    margin-top: var(--s2);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .results {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    /* A long list stays scannable in its own scroll region rather than pushing
+       the rest of the page down by 88 rows. */
+    max-height: 34rem;
+    overflow-y: auto;
+  }
+
+  .item {
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .item[hidden] {
+    display: none;
+  }
+
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2) var(--s4);
+  }
+
+  h3 {
+    font-size: var(--t1);
+    letter-spacing: 0;
+  }
+
+  .status {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .status.accepted {
+    color: var(--spruce-2);
+  }
+
+  .status.restricted {
+    color: var(--ink-2);
+  }
+
+  .status.prohibited {
+    color: var(--rust);
+  }
+
+  .condition,
+  .alternative {
+    margin-top: var(--s2);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  .alt-label {
+    display: inline-block;
+    margin-inline-end: var(--s2);
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--rust);
+  }
+
+  .facts {
+    margin-top: var(--s3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s6);
+    font-size: var(--t3);
+  }
+
+  .facts dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .facts dd {
+    margin: 0;
+  }
+
+  .empty {
+    margin-top: var(--s5);
+    max-width: 52ch;
+    color: var(--ink-2);
+  }
+</style>

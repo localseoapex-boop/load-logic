@@ -1,0 +1,116 @@
+---
+/**
+ * HowItWorks.astro — the process, as a numbered ledger.
+ *
+ * Extends the four-step process in service-content.ts to the full eight steps
+ * the brief asked for, covering what happens after the crew leaves. The last
+ * three steps are the ones competitors omit, and they are the ones that answer
+ * "what happens to my stuff".
+ *
+ * FIXES A REAL DISCONNECT. The old copy said "Call or send the form" on the
+ * homepage and all 14 service pages while no form existed anywhere on the site.
+ * Step one now points at a quote path that is actually built.
+ *
+ * Rendered as a ruled ledger rather than four cards in a row, which is the
+ * layout family this content kept getting shoved into.
+ */
+const steps = [
+  {
+    title: 'Send photos or call',
+    text: 'A few photos of the pile and the path to it is enough to start. Calling works too if it is easier to explain than to photograph.',
+  },
+  {
+    title: 'Tell us the details that matter',
+    text: 'Your ZIP, roughly what is going, and anything about access: stairs, gates, a long carry from the door. These are what keep an estimate accurate.',
+  },
+  {
+    title: 'We confirm the area and come back with a number',
+    text: 'We check the property is in the service area, then send an estimate and the soonest windows we have.',
+  },
+  {
+    title: 'Pick a window',
+    text: 'Same-day is often possible when you get in touch early and the job fits an existing route. Otherwise we book the next one that works for you.',
+  },
+  {
+    title: 'The crew arrives and confirms the price',
+    text: 'They see the job, confirm the number, and nothing is loaded until you agree to it. If there is more than expected, you decide before it goes on the trailer.',
+  },
+  {
+    title: 'We load it',
+    text: 'From wherever it sits: inside the house, the garage, the patio, the yard. You do not move anything to the curb first unless you want to.',
+  },
+  {
+    title: 'We sweep up',
+    text: 'The area is left clean. That is part of the job, not an extra.',
+  },
+  {
+    title: 'The load gets sorted',
+    text: 'Usable items are separated for reuse, metal and electronics go to recovery, green waste goes to a green waste facility, and only what is left goes to disposal.',
+  },
+];
+---
+
+<ol class="steps" data-reveal>
+  {
+    steps.map((step) => (
+      <li>
+        <div class="marker">
+          <span class="num data" />
+        </div>
+        <div class="body">
+          <h3>{step.title}</h3>
+          <p>{step.text}</p>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .steps {
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+    border-top: 1px solid var(--rule);
+  }
+
+  li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s4);
+    align-items: start;
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .num::before {
+    content: counter(step, decimal-leading-zero);
+    font-size: var(--t2);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  h3 {
+    font-size: var(--t1);
+    letter-spacing: -0.005em;
+  }
+
+  p {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 64ch;
+  }
+
+  @media (min-width: 768px) {
+    li {
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: var(--s6);
+      padding-block: var(--s6);
+    }
+
+    h3 {
+      font-size: var(--d3);
+    }
+  }
+</style>

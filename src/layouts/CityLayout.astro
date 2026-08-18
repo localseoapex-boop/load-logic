@@ -15,6 +15,9 @@ import type { Location } from '../data/locations';
 import { getOffice, primaryOffice } from '../data/offices';
 import { servicesForLocation, nearbyCities } from '../lib/links';
 import { cityUrl, locationServiceUrl } from '../lib/urls';
+// Loads the pre-redesign stylesheet. This template still uses the old class
+// names and is rebuilt in a later phase; see src/styles/legacy.css.
+import '../styles/legacy.css';
 
 interface Props {
   location: Location;

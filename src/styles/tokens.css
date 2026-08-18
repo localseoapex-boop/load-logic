@@ -1,0 +1,113 @@
+/*
+ * tokens.css — the design system as CSS custom properties.
+ *
+ * The single source of truth for every colour, space, size, radius and duration
+ * on the site. Implements DESIGN.md. If a value is not here, a component should
+ * not be inventing it: add it here first.
+ *
+ * Loaded globally by BaseLayout. Component styling lives in scoped <style>
+ * blocks inside each component and reads these tokens, which is what keeps the
+ * global stylesheet tiny and makes collisions impossible.
+ */
+
+:root {
+  /* ─────────────────────────── Colour ───────────────────────────
+     One accent. Warm neutral base. Spruce is a block colour, not a tint. */
+
+  --bone: #f4f2ed;
+  --bone-2: #eae7df;
+  --surface: #ffffff;
+
+  --ink: #171a17;
+  --ink-2: #565c57;
+  --ink-3: #878d87;
+
+  --rule: #d8d3c8;
+  --rule-strong: #b9b3a5;
+
+  --spruce: #123329;
+  --spruce-2: #1d5443;
+  --spruce-3: #2e6e58;
+  /* Hairline and secondary text for use ON spruce blocks. */
+  --on-spruce: #dfe4df;
+  --on-spruce-2: #a9b5ad;
+  --rule-on-spruce: #2b4a3e;
+
+  /* The only accent. Actions and focus, nothing else. */
+  --hi-vis: #cfe034;
+  --hi-vis-press: #bacc28;
+
+  /* Semantic only: restrictions and warnings. Never decorative. */
+  --rust: #a8462a;
+  --rust-tint: #f6ece8;
+
+  /* ─────────────────────────── Type ─────────────────────────── */
+
+  --font-display: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-text: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-data: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --d1: clamp(2.75rem, 6vw, 5rem);
+  --d2: clamp(2rem, 4vw, 3.25rem);
+  --d3: clamp(1.375rem, 2vw, 1.75rem);
+  --t1: 1.1875rem;
+  --t2: 1.0625rem;
+  --t3: 0.9375rem;
+  --lbl: 0.75rem;
+
+  /* ────────────────────────── Spacing ────────────────────────── */
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+  --s10: 128px;
+  --s11: 160px;
+
+  /* Section rhythm. Varying these by section weight is what stops the page
+     reading as one templated stack. Bottom runs slightly heavier than top. */
+  --sec-tight-t: clamp(var(--s6), 5vw, var(--s7));
+  --sec-tight-b: clamp(var(--s6), 6vw, var(--s7));
+  --sec-std-t: clamp(var(--s7), 8vw, var(--s9));
+  --sec-std-b: clamp(var(--s7), 9vw, var(--s10));
+  --sec-feature-t: clamp(var(--s8), 11vw, var(--s11));
+  --sec-feature-b: clamp(var(--s8), 12vw, var(--s11));
+
+  /* ─────────────────────────── Widths ─────────────────────────── */
+
+  --w-prose: 68ch;
+  --w-narrow: 860px;
+  --w-content: 1180px;
+  --w-wide: 1440px;
+  --gutter: clamp(var(--s4), 4vw, var(--s7));
+
+  /* ──────────────────── Radius, rules, elevation ────────────────────
+     One documented system. Photography is square. Interactive chips are the
+     only pill shape. Elevation is reserved for genuinely floating elements. */
+
+  --r-flat: 0;
+  --r: 4px;
+  --r-pill: 999px;
+
+  --shadow-float: 0 1px 2px rgb(23 26 23 / 0.06), 0 8px 24px rgb(18 51 41 / 0.1);
+  --shadow-lift: 0 12px 40px rgb(18 51 41 / 0.16);
+
+  /* ─────────────────────────── Motion ───────────────────────────
+     MOTION_INTENSITY 3. Functional feedback only. */
+
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur: 180ms;
+
+  /* ───────────────────────── Z-index scale ─────────────────────────
+     A documented scale, so nobody reaches for z-index: 9999. */
+
+  --z-base: 1;
+  --z-sticky-bar: 30;
+  --z-header: 40;
+  --z-overlay: 50;
+}

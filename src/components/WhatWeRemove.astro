@@ -1,0 +1,271 @@
+---
+/**
+ * WhatWeRemove.astro — the accepted material catalogue as a typographic index.
+ *
+ * Explicitly NOT a card grid. The old site rendered every list as identical
+ * bordered rectangles, and a wall of same-shaped boxes is the fastest way to
+ * make real information look like filler. This is a two-column index: category
+ * name, one line of what it covers, then the items as inline text separated by
+ * hairlines.
+ *
+ * AGENTIC REQUIREMENT. Each category exposes the structured answer, not just a
+ * label: which services handle it, how many items it covers, which of them carry
+ * a condition, where the material typically goes, and which services handle it.
+ *
+ * Items that carry a condition are MARKED here and their condition is stated in
+ * full in ItemLookup below. Printing every condition inline made each category
+ * roughly 700px tall on a phone for no gain, since the reader is scanning
+ * categories at this point rather than researching one item.
+ *
+ * SAMPLES, NOT THE FULL CATALOGUE. This section shows each category with a
+ * representative handful of items. The exhaustive, searchable list of all 88
+ * items lives in ItemLookup directly below, so repeating every item here was
+ * both redundant and expensive: it made this one section 8,000px tall on a
+ * phone, which is ten screens of scrolling before anything else happens.
+ *
+ * Nothing is lost. Categories overview here, complete list one section down.
+ *
+ * All relationships come from src/lib/knowledge.ts. No business logic here.
+ */
+import { acceptedCategories, materialsInCategory } from '../data/materials';
+import { disposalRoutesForMaterial } from '../lib/knowledge';
+import { getService } from '../data/services';
+import { serviceUrl } from '../lib/urls';
+
+interface Props {
+  /** Limit to the categories one service handles. Omit for the full catalogue. */
+  categories?: string[];
+  /** Items shown per category before linking to the full searchable list. */
+  sample?: number;
+  /** Anchor of the section holding the complete list. */
+  fullListHref?: string;
+}
+
+const { categories, sample = 5, fullListHref = '#can-we-take' } = Astro.props;
+
+const shown = categories
+  ? acceptedCategories().filter((c) => categories.includes(c.slug))
+  : acceptedCategories();
+
+/** Precompute the display rows so the template stays declarative. */
+const rows = shown.map((category) => {
+  const all = materialsInCategory(category.slug);
+  const items = all.slice(0, sample);
+  return {
+    category,
+    items,
+    remaining: all.length - items.length,
+    total: all.length,
+    conditional: all.filter((m) => m.status === 'restricted').length,
+    // The primary disposal route for the category, for the "where it goes" line.
+    route: disposalRoutesForMaterial(all[0]?.slug ?? '')[0],
+    services: category.services
+      .map(getService)
+      .filter((s): s is NonNullable<typeof s> => Boolean(s))
+      .slice(0, 3),
+  };
+});
+---
+
+<div class="index">
+  {
+    rows.map(({ category, items, remaining, total, conditional, route, services }) => (
+      <article class="row" data-reveal>
+        <div class="head">
+          <h3>{category.name}</h3>
+          <p class="summary">{category.summary}</p>
+          <p class="count data">
+            {total} items
+            {conditional > 0 && <span class="cond-count">{conditional} with a condition</span>}
+          </p>
+          {category.weightDriven && (
+            <p class="flag data">Priced by weight, not by space</p>
+          )}
+        </div>
+
+        <div class="body">
+          <ul class="items">
+            {items.map((item) => (
+              <li>
+                <span class="name">{item.name}</span>
+                {item.status === 'restricted' && (
+                  <span class="mark" title="Condition applies. See the full list below.">
+                    *
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {remaining > 0 && (
+            <p class="more">
+              <a href={fullListHref}>{remaining} more in this category</a>
+            </p>
+          )}
+
+          <dl class="meta">
+            {route && (
+              <div>
+                <dt>Usually goes to</dt>
+                <dd>{route.name}</dd>
+              </div>
+            )}
+            {services.length > 0 && (
+              <div>
+                <dt>Handled by</dt>
+                {/* Separators come from CSS rather than from a text node
+                    between elements, which would render as " , " once JSX
+                    whitespace is added around it. */}
+                <dd>
+                  <ul class="svc-list">
+                    {services.map((service) => (
+                      <li>
+                        <a href={serviceUrl(service.slug)}>{service.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  .index {
+    border-top: 1px solid var(--rule);
+  }
+
+  .row {
+    display: grid;
+    gap: var(--s4);
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .count {
+    margin-top: var(--s2);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .more {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+  }
+
+  h3 {
+    font-size: var(--d3);
+  }
+
+  .summary {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 34ch;
+  }
+
+  .flag {
+    margin-top: var(--s3);
+    font-size: var(--lbl);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rust);
+    font-weight: 600;
+  }
+
+  /* Items flow inline on small screens. As a vertical list they turned each
+     category into five extra lines, which is what made this section ten screens
+     tall on a phone. They become a two column grid at desktop widths where the
+     space exists. */
+  .items {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+  }
+
+  .items li {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+
+  .name {
+    font-weight: 500;
+  }
+
+  /* Marks an item whose full condition is stated in the searchable list below.
+     Not hidden, just not repeated in an overview. */
+  .mark {
+    color: var(--rust);
+    font-weight: 700;
+  }
+
+  .cond-count {
+    margin-inline-start: var(--s3);
+    color: var(--rust);
+  }
+
+  .meta {
+    margin-top: var(--s4);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1) var(--s5);
+    font-size: var(--t3);
+  }
+
+  /* Key and value share a line rather than stacking, which saves a line per
+     fact across eleven categories. */
+  .meta > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2);
+  }
+
+  .meta dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .meta dd {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .svc-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 var(--s1);
+    list-style: none;
+    padding: 0;
+  }
+
+  .svc-list li:not(:last-child)::after {
+    content: ',';
+  }
+
+  @media (min-width: 900px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+      gap: var(--s8);
+      padding-block: var(--s6);
+    }
+
+    .items {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s2) var(--s6);
+    }
+
+  }
+</style>

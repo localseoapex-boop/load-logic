@@ -1,0 +1,154 @@
+---
+/**
+ * Button.astro — the one button. Every action on the site renders through it.
+ *
+ * Variants map to intent, not to decoration:
+ *   primary  hi-vis fill   the single most important action on the view
+ *   solid    spruce fill   the phone action, paired with primary
+ *   outline  hairline      secondary navigation
+ *   quiet    text only     tertiary, inline
+ *
+ * DESIGN.md locks one label per conversion intent site-wide: "Get a Photo Quote"
+ * and "Call Now". Those live in QuoteCta so they cannot drift.
+ */
+interface Props {
+  href: string;
+  variant?: 'primary' | 'solid' | 'outline' | 'quiet';
+  size?: 'md' | 'lg';
+  /** Renders on a spruce block, so the outline variant flips to light. */
+  onDark?: boolean;
+  full?: boolean;
+  class?: string;
+  'data-analytics'?: string;
+  rel?: string;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  onDark = false,
+  full = false,
+  class: className = '',
+  ...rest
+} = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={['btn', variant, size, { full, dark: onDark }, className]}
+  {...rest}
+>
+  <slot />
+</a>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s2);
+    min-height: 48px;
+    padding: var(--s3) var(--s5);
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t2);
+    line-height: 1.1;
+    text-align: center;
+    text-decoration: none;
+    /* Labels are 1 to 3 words and must never wrap at desktop. */
+    white-space: nowrap;
+    transition:
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
+  }
+
+  .lg {
+    min-height: 56px;
+    padding: var(--s4) var(--s6);
+    font-size: var(--t1);
+  }
+
+  .full {
+    width: 100%;
+  }
+
+  /* Tactile press. The only transform on the site outside scroll reveal. */
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .primary {
+    background: var(--hi-vis);
+    /* Ink on hi-vis, never white. 12.4:1. */
+    color: var(--ink);
+  }
+  .primary:hover {
+    background: var(--hi-vis-press);
+    color: var(--ink);
+  }
+
+  .solid {
+    background: var(--spruce);
+    color: #fff;
+  }
+  .solid:hover {
+    background: var(--spruce-2);
+    color: #fff;
+  }
+
+  .outline {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--rule-strong);
+  }
+  .outline:hover {
+    background: var(--surface);
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .quiet {
+    background: transparent;
+    color: var(--spruce-2);
+    min-height: 0;
+    padding: var(--s1) 0;
+  }
+  .quiet:hover {
+    color: var(--spruce-3);
+    text-decoration: underline;
+  }
+
+  /* On a spruce block the outline and solid variants need to invert to keep
+     contrast. Primary is unchanged: hi-vis reads on spruce. */
+  .dark.outline {
+    color: var(--on-spruce);
+    border-color: var(--rule-on-spruce);
+  }
+  .dark.outline:hover {
+    background: rgb(255 255 255 / 0.06);
+    border-color: var(--on-spruce);
+    color: #fff;
+  }
+
+  .dark.solid {
+    background: transparent;
+    border-color: var(--on-spruce-2);
+    color: var(--on-spruce);
+  }
+  .dark.solid:hover {
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      /* Allow wrapping only where the viewport genuinely cannot fit a label. */
+      white-space: normal;
+    }
+  }
+</style>

@@ -1,0 +1,141 @@
+---
+/**
+ * Section.astro — the page's structural unit.
+ *
+ * Carries the two things that stop a long page reading as one templated stack:
+ *
+ *   WEIGHT   vertical padding varies by importance. The old site used identical
+ *            padding on every section, which is a large part of why it felt
+ *            generated. Feature sections breathe, tool strips are tight.
+ *
+ *   TONE     bone (default), sunk (recessed band), or spruce (brand block).
+ *            DESIGN.md caps spruce blocks at three per page so they stay
+ *            punctuation rather than rhythm.
+ *
+ * The heading block is optional and deliberately plain. `label` is the uppercase
+ * micro-label, rationed to one per three sections site-wide, so most sections
+ * pass no label at all and let their position on the page do that work.
+ */
+interface Props {
+  weight?: 'tight' | 'standard' | 'feature';
+  tone?: 'bone' | 'sunk' | 'spruce';
+  width?: 'content' | 'wide' | 'narrow';
+  /** Uppercase micro-label. Use sparingly: max one per three sections. */
+  label?: string;
+  heading?: string;
+  /** Sub-heading paragraph. Stacked under the heading, never floated right. */
+  intro?: string;
+  /** Anchor target, e.g. for the quote starter or the ZIP checker. */
+  id?: string;
+  /** Opt out of the scroll reveal for above-the-fold content. */
+  reveal?: boolean;
+  headingLevel?: 'h2' | 'h3';
+  class?: string;
+}
+
+const {
+  weight = 'standard',
+  tone = 'bone',
+  width = 'content',
+  label,
+  heading,
+  intro,
+  id,
+  reveal = true,
+  headingLevel: Heading = 'h2',
+  class: className = '',
+} = Astro.props;
+
+const hasHeader = Boolean(label || heading || intro);
+---
+
+<section
+  class:list={['section', weight, tone, className, { 'on-spruce': tone === 'spruce' }]}
+  {id}
+>
+  <div
+    class:list={[
+      'container',
+      { 'container-wide': width === 'wide', 'container-narrow': width === 'narrow' },
+    ]}
+  >
+    {
+      hasHeader && (
+        <header class="head" data-reveal={reveal ? '' : undefined}>
+          {label && <p class="label">{label}</p>}
+          {heading && <Heading>{heading}</Heading>}
+          {intro && <p class="intro">{intro}</p>}
+        </header>
+      )
+    }
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    position: relative;
+  }
+
+  /* ─── Weight ─── */
+
+  .tight {
+    padding-block: var(--sec-tight-t) var(--sec-tight-b);
+  }
+
+  .standard {
+    padding-block: var(--sec-std-t) var(--sec-std-b);
+  }
+
+  .feature {
+    padding-block: var(--sec-feature-t) var(--sec-feature-b);
+  }
+
+  /* ─── Tone ─── */
+
+  .bone {
+    background: var(--bone);
+  }
+
+  .sunk {
+    background: var(--bone-2);
+  }
+
+  .spruce {
+    background: var(--spruce);
+    color: var(--on-spruce);
+  }
+
+  .spruce :global(h2),
+  .spruce :global(h3) {
+    color: #fff;
+  }
+
+  /* ─── Header block ─── */
+
+  .head {
+    /* Wide enough that a display heading does not wrap into a narrow column and
+       leave most of the row empty. The intro keeps its own tighter measure. */
+    max-width: 68ch;
+    margin-bottom: var(--s6);
+  }
+
+  .label {
+    margin-bottom: var(--s3);
+  }
+
+  .spruce .label {
+    color: var(--hi-vis);
+  }
+
+  .intro {
+    margin-top: var(--s4);
+    font-size: var(--t1);
+    color: var(--ink-2);
+    max-width: 54ch;
+  }
+
+  .spruce .intro {
+    color: var(--on-spruce-2);
+  }
+</style>

@@ -1,0 +1,111 @@
+---
+/**
+ * TrustFacts.astro — verified credentials, or nothing.
+ *
+ * The VERIFIED block in src/config/site.ts is empty, so this component renders
+ * NOTHING. No insurance claim, no licence, no years in business, no award, no
+ * review count appears anywhere on the site.
+ *
+ * That is deliberate and it is the whole design. For a trade where a customer
+ * lets strangers into their home, a fabricated insurance claim is not a
+ * marketing exaggeration, it is something they may rely on. An empty trust
+ * section is honest. A populated fake one is not.
+ *
+ * The structure is ready: fill in VERIFIED with facts that can be checked and
+ * this appears automatically, including `sameAs` profiles for schema.
+ */
+import { VERIFIED, hasVerifiedFacts } from '../config/site';
+
+const show = hasVerifiedFacts();
+const currentYear = new Date().getFullYear();
+---
+
+{
+  show && (
+    <dl class="trust" data-reveal>
+      {VERIFIED.operatingSince && (
+        <div>
+          <dt>Operating since</dt>
+          <dd class="data">
+            {VERIFIED.operatingSince}
+            <span class="years">
+              {currentYear - VERIFIED.operatingSince} years
+            </span>
+          </dd>
+        </div>
+      )}
+      {VERIFIED.insured && (
+        <div>
+          <dt>Insurance</dt>
+          <dd>{VERIFIED.insured.detail}</dd>
+        </div>
+      )}
+      {VERIFIED.registered && (
+        <div>
+          <dt>Registered</dt>
+          <dd>{VERIFIED.registered.detail}</dd>
+        </div>
+      )}
+      {VERIFIED.licensed && (
+        <div>
+          <dt>Licensed</dt>
+          <dd>{VERIFIED.licensed.detail}</dd>
+        </div>
+      )}
+      {(VERIFIED.claims ?? []).map((claim) => (
+        <div>
+          <dt>{claim.label}</dt>
+          <dd>
+            {claim.detail}
+            {claim.source && (
+              <a class="src" href={claim.source} rel="nofollow noopener">
+                Source
+              </a>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+<style>
+  .trust {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--s5) var(--s6);
+    margin: 0;
+    padding-block: var(--s5);
+    border-block: 1px solid var(--rule);
+  }
+
+  dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: var(--s2);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--t2);
+    font-weight: 600;
+  }
+
+  .years {
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+
+  .src {
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    font-weight: 400;
+  }
+</style>
