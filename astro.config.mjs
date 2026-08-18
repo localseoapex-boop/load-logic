@@ -11,15 +11,24 @@ export default defineConfig({
   site: 'https://load-logic.vercel.app',
 
   integrations: [
-    // Generates /sitemap-index.xml + /sitemap-0.xml at build time, listing every
+    // Generates /sitemap-index.xml + /sitemap-0.xml at build time from every
     // statically-rendered page. Referenced from robots.txt so crawlers find it.
-    // Generated at build time from every statically-rendered page.
     //
-    // `/knowledge.json` is excluded: it is a machine-readable description of the
-    // business for AI and agentic consumers, not a page for search engines to
-    // index. Its contents are all visible elsewhere on the site.
+    // Two kinds of exclusion, and both matter:
+    //
+    //   /knowledge.json  a machine-readable description of the business for AI
+    //                    and agentic consumers, not a page to index. Everything
+    //                    in it is visible elsewhere on the site.
+    //
+    //   /quote, /quote/thanks  both carry `noindex`. A URL that is listed in the
+    //                    sitemap while telling crawlers not to index it is a
+    //                    contradictory signal, so they are excluded here too.
+    //                    Keep this list in step with any page that sets noindex.
     sitemap({
-      filter: (page) => !page.endsWith('/knowledge.json'),
+      filter: (page) =>
+        !page.endsWith('/knowledge.json') &&
+        !/\/quote\/?$/.test(page) &&
+        !/\/quote\/thanks\/?$/.test(page),
     }),
   ],
 });

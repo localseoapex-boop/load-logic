@@ -1,0 +1,156 @@
+---
+/**
+ * /quote/thanks — the confirmation state.
+ *
+ * The old site had no thank-you page at all, which meant no confirmation for the
+ * visitor and nowhere to fire a conversion event when analytics arrives. The
+ * unused `noindex` prop on BaseHead was clearly reserved for exactly this.
+ *
+ * It tells the visitor what actually happens next and when, rather than just
+ * saying "thanks". Someone who has just handed over their phone number wants to
+ * know whether to expect a call in ten minutes or tomorrow.
+ *
+ * The conversion event fires from here once analytics is added, which is phase 9.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { primaryQuoteAction } from '../../data/quote-actions';
+import { BUSINESS } from '../../config/site';
+import Button from '../../components/Button.astro';
+
+const action = primaryQuoteAction();
+---
+
+<BaseLayout
+  title="Request received"
+  description="Your photo quote request has been received."
+  noindex
+  hideActionBar
+>
+  <div class="thanks">
+    <div class="container container-narrow">
+      <p class="mark" aria-hidden="true"></p>
+      <h1>Request received</h1>
+      <p class="lede">
+        We have your details. Someone will look at your photos and come back with
+        an estimate and the soonest windows we have.
+      </p>
+
+      <ol class="steps">
+        {action.nextSteps.map((step) => <li>{step}</li>)}
+      </ol>
+
+      <div class="urgent">
+        <h2>Need it sorted today?</h2>
+        <p>
+          Same-day pickup depends on how the day is already routed, and calling
+          gets you an answer faster than waiting on a reply.
+        </p>
+        <a class="call" href={`tel:${BUSINESS.phone}`}>
+          <span class="call-label">Call Now</span>
+          <span class="call-number data">{BUSINESS.phoneDisplay}</span>
+        </a>
+      </div>
+
+      <div class="onward">
+        <Button href="/services" variant="outline">Browse services</Button>
+        <Button href="/" variant="quiet">Back to home</Button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .thanks {
+    padding-block: var(--s9) var(--s10);
+  }
+
+  /* The brand mark's accent block, used as a confirmation glyph. */
+  .mark {
+    width: 40px;
+    height: 40px;
+    background: var(--hi-vis);
+    margin-bottom: var(--s5);
+  }
+
+  .lede {
+    margin-top: var(--s4);
+    font-size: var(--t1);
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  .steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s7);
+    border-top: 1px solid var(--rule);
+  }
+
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: var(--s4) 0 var(--s4) var(--s7);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    top: var(--s4);
+    font-family: var(--font-data);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  .urgent {
+    margin-top: var(--s8);
+    padding: var(--s6);
+    background: var(--spruce);
+    color: var(--on-spruce-2);
+  }
+
+  .urgent h2 {
+    color: #fff;
+    font-size: var(--d3);
+  }
+
+  .urgent p {
+    margin-top: var(--s3);
+    max-width: 46ch;
+  }
+
+  .call {
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--s1);
+    margin-top: var(--s5);
+    padding: var(--s4) var(--s6);
+    background: var(--hi-vis);
+    border-radius: var(--r);
+    text-decoration: none;
+  }
+
+  .call-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .call-number {
+    font-size: var(--t1);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .onward {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s4);
+    margin-top: var(--s8);
+  }
+</style>

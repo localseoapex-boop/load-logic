@@ -1,0 +1,206 @@
+---
+/**
+ * /quote — the destination for the site's primary CTA.
+ *
+ * On the old site "Get a free quote" and the mobile "Free quote" button both
+ * pointed at /services, so the primary conversion action did not exist. This is
+ * the page it should always have gone to.
+ *
+ * A NEW URL, not a changed one. Nothing existing moves, so the 175 baseline URLs
+ * are untouched and no redirect is required.
+ *
+ * `noindex` is deliberate: a bare form page competes with nothing in search and
+ * has no content worth ranking. The conversion value is in getting people here
+ * from pages that do rank.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import { primaryQuoteAction } from '../data/quote-actions';
+import { accessChecklist } from '../data/access';
+import { BUSINESS } from '../config/site';
+
+const action = primaryQuoteAction();
+---
+
+<BaseLayout
+  title="Get a Photo Quote"
+  description="Send photos of what needs to go and get an estimate back, usually the same day. Junk removal across Mesa and the East Valley."
+  noindex
+  hideActionBar
+>
+  <div class="quote-page">
+    <div class="container">
+      <header class="head">
+        <h1>Get a photo quote</h1>
+        <p class="lede">{action.description}</p>
+      </header>
+
+      <div class="layout">
+        <div class="form-col">
+          <QuoteForm />
+        </div>
+
+        <aside class="rail">
+          <section>
+            <h2>What happens next</h2>
+            <ol>
+              {action.nextSteps.map((step) => <li>{step}</li>)}
+            </ol>
+          </section>
+
+          <section>
+            <h2>Taking useful photos</h2>
+            <ul class="tips">
+              <li>Stand back far enough to get the whole pile in one shot.</li>
+              <li>Take one of the path from the items to where a truck can park.</li>
+              <li>Include anything unusually heavy, close up.</li>
+              <li>Three or four photos is plenty.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Rather not fill in a form?</h2>
+            <p class="call-copy">
+              Call or text photos to the same number and you get the same
+              estimate.
+            </p>
+            <a class="call" href={`tel:${BUSINESS.phone}`}>
+              <span class="call-label">Call Now</span>
+              <span class="call-number data">{BUSINESS.phoneDisplay}</span>
+            </a>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .quote-page {
+    padding-block: var(--s8) var(--s10);
+  }
+
+  .head {
+    max-width: 40ch;
+    margin-bottom: var(--s8);
+  }
+
+  .lede {
+    margin-top: var(--s4);
+    font-size: var(--t1);
+    color: var(--ink-2);
+  }
+
+  .layout {
+    display: grid;
+    gap: var(--s8);
+    align-items: start;
+  }
+
+  .rail {
+    display: grid;
+    gap: var(--s6);
+    padding: var(--s6);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+
+  .rail h2 {
+    font-size: var(--t1);
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: var(--s3);
+  }
+
+  .rail ol {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .rail ol li {
+    counter-increment: step;
+    position: relative;
+    padding-inline-start: var(--s6);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .rail ol li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    font-family: var(--font-data);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  .tips {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .tips li {
+    position: relative;
+    padding-inline-start: var(--s5);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .tips li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 2px;
+    background: var(--hi-vis);
+  }
+
+  .call-copy {
+    font-size: var(--t3);
+    color: var(--ink-2);
+    margin-bottom: var(--s4);
+  }
+
+  .call {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s4);
+    background: var(--spruce);
+    border-radius: var(--r);
+    text-decoration: none;
+  }
+
+  .call-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--hi-vis);
+    font-weight: 700;
+  }
+
+  .call-number {
+    font-size: var(--t1);
+    font-weight: 700;
+    color: #fff;
+  }
+
+  @media (min-width: 1000px) {
+    .layout {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: var(--s9);
+    }
+
+    .rail {
+      position: sticky;
+      top: calc(64px + var(--s5));
+    }
+  }
+</style>
