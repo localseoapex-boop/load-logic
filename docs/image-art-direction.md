@@ -39,21 +39,41 @@ Every prompt is assembled as:
 
 ## 2. Continuity Locks
 
-These details must be identical in every image so the site reads as one crew with
-one truck.
+These details must be identical in every image so the site reads as one operation
+rather than a stock library.
 
 | Element | Locked description |
 |---|---|
-| Crew | Two working adults, dark green work polo shirts, jeans, work gloves, work boots. Mixed build and appearance. Always mid-task, never facing the camera. |
-| Vehicle | White pickup truck towing a large open black utility trailer with mesh side rails. **Unbranded.** No decals, no lettering. |
+| Workers | Two working adults, dark green work polo shirts, jeans, work gloves, work boots. Mixed build and appearance. Always mid-task. **Faces turned away, obscured by the load, or cropped by the frame.** Never facing or acknowledging the camera. |
+| Vehicle | **Pending confirmation of the real equipment.** See section 2.1. Whatever is confirmed becomes the single locked vehicle across every image. |
 | Light | Overcast bright, or low early-morning sun. Never midday harsh, never golden-hour glamour. |
 | Palette | Muted. Desert tan, concrete gray, dusty green. Nothing neon except the work gloves. |
 | Camera | Eye level, 35mm. Occasionally 50mm for detail shots. Never drone, never worm's-eye, never wide-angle distortion. |
 | Framing | Slightly loose and candid. Subject occasionally cropped by the frame edge. Never centered and symmetrical. |
 
+### 2.1 Equipment must match the real operation
+
+Generated equipment represents the actual type of vehicle and gear the business
+runs. Inventing a fleet that does not exist is a fabricated business fact and
+misleads a customer trying to judge whether their job fits.
+
+The vehicle type must be confirmed before the image set is generated, because it
+is the one detail visible in nearly every frame and it also determines the load
+volumes in `pricing.ts`. Until confirmed, no vehicle-visible image is generated.
+
 **Vehicles stay unbranded.** Generated text is unreliable and a fabricated decal
-would be an invented business fact. Real branded photography replaces these images
-as it becomes available.
+would invent a business fact. Real branded photography replaces these images as it
+becomes available.
+
+### 2.2 Generated people are never the team
+
+Anonymous working figures only. No generated person is presented, captioned or
+described as a Load Logic employee, owner or crew member anywhere on the site.
+
+- No team, owner or staff-portrait imagery is generated at all.
+- Alt text describes the work, never the company. "Two workers lifting a sofa into
+  a trailer", never "the Load Logic crew".
+- `src/assets/photos/team/` stays empty and is reserved for real photography.
 
 ---
 
@@ -129,7 +149,9 @@ Mapped across all 14 services; related services share an image.
 
 ### Equipment and capability (3)
 
-`equip-trailer` (21:9, trailer detail with ramp down) ·
+Generated only after the real vehicle type is confirmed (section 2.1).
+
+`equip-vehicle` (21:9, the confirmed vehicle with its loading surface open) ·
 `equip-tools` (3:2, straps, dollies, gloves staged on a tailgate) ·
 `equip-sorting` (3:2, items separated into donation and disposal groups)
 
@@ -198,8 +220,9 @@ Before an image is committed, it must pass all of the following:
 - [ ] Hands, arms and posture are anatomically correct
 - [ ] The load is physically plausible and nothing floats
 - [ ] No text, signage, watermark or logo is legible anywhere in the frame
-- [ ] Nobody is looking at or posing for the camera
-- [ ] Crew wardrobe and vehicle match the continuity locks
+- [ ] Nobody is looking at or posing for the camera, and no face is a focal point
+- [ ] Worker wardrobe matches the continuity locks
+- [ ] The vehicle matches the confirmed real equipment type
 - [ ] Light and color match the rest of the set
 - [ ] The image carries information the copy alone does not
 - [ ] Real descriptive alt text has been written for it

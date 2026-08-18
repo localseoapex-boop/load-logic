@@ -63,6 +63,46 @@ export const BUSINESS = {
   ],
 } as const;
 
+/**
+ * VERIFIED — checkable claims about the business.
+ *
+ * Every field is optional and every one starts absent. `TrustFacts` renders ONLY
+ * the fields that are present, and renders nothing at all when none are. This is
+ * the mechanism that keeps the site from claiming credentials it does not have.
+ *
+ * Do not populate a field to "fill out the section". Populate it when the fact is
+ * true and checkable, and add `since` or a reference where one exists. An empty
+ * trust section is honest. A fabricated one is not, and for a licensed trade it
+ * is the kind of claim a customer may rely on.
+ */
+export const VERIFIED: {
+  /** Year the business began operating. */
+  operatingSince?: number;
+  /** General liability insurance, once confirmed. */
+  insured?: { confirmed: true; detail: string };
+  /** Business registration, e.g. an Arizona LLC filing. */
+  registered?: { confirmed: true; detail: string };
+  /** Any license the trade requires in this jurisdiction. */
+  licensed?: { confirmed: true; detail: string };
+  /** Profiles that corroborate the business, used for schema `sameAs`. */
+  profiles?: { platform: string; url: string }[];
+  /** Free-form verified differentiators, each with something backing it. */
+  claims?: { label: string; detail: string; source?: string }[];
+} = {
+  // Intentionally empty. Populate only with facts that can be checked.
+};
+
+/** True when there is at least one verified fact worth showing. */
+export const hasVerifiedFacts = (): boolean =>
+  Boolean(
+    VERIFIED.operatingSince ||
+      VERIFIED.insured ||
+      VERIFIED.registered ||
+      VERIFIED.licensed ||
+      (VERIFIED.profiles && VERIFIED.profiles.length > 0) ||
+      (VERIFIED.claims && VERIFIED.claims.length > 0),
+  );
+
 /** Primary navigation links rendered in the header. */
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },

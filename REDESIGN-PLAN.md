@@ -307,10 +307,27 @@ prerendered. Two environment variables required before the endpoint goes live:
 | `TrustFacts` | Renders nothing. No insurance, licensing, registration or years-in-business claim appears anywhere on the site. |
 | `jobs.ts` | Entries carry `representative: true` and every rendered job record is visibly labeled a representative example, never presented as documented customer work. |
 
-**Punctuation cleanup: proceeding.** Existing copy contains em dashes throughout,
-which both `docs/copywriting-standards.md` and the anti-slop standard prohibit. A
-mechanical rewrite preserving meaning is applied in phase 2. No wording changes
-beyond the punctuation itself.
+**Punctuation cleanup: cancelled.** Existing copy is preserved as written. The
+em dash ban in `docs/copywriting-standards.md` and in the anti-slop standard does
+not govern this redesign. Copy changes only where there is a real content or user
+experience reason, never for house-style conformance.
+
+**CTA pairing.** Two conversion intents, each owning one label: **Get a Photo
+Quote** (primary) and **Call Now** (secondary). Phone stays a first-class path,
+especially on mobile, where both sit at equal width in the sticky action bar.
+
+**Generated people are never presented as the team.** Anonymous working figures
+only, faces turned away or cropped, alt text describing the work rather than the
+company. No team or owner imagery is generated. `src/assets/photos/team/` is
+reserved for real photography.
+
+**Generated equipment matches the real operation.** The vehicle type must be
+confirmed before any vehicle-visible image is generated, because it appears in
+nearly every frame and determines the load volumes in `pricing.ts`.
+
+**Homepage ships complete.** All sixteen sections are built, each independently
+removable, so the full experience can be reviewed before anything is cut or
+relocated.
 
 ---
 

@@ -206,6 +206,20 @@ brief.
 - No image is decorative filler. If a photograph does not carry information the
   copy cannot, cut it.
 
+**People in generated imagery**
+
+Generated figures are anonymous working hands, never the Load Logic team. This is
+a content-integrity rule, not a style preference.
+
+- No "meet the team", owner portrait, or staff-headshot section exists until real
+  photography is supplied.
+- No caption, alt text or surrounding copy identifies a generated figure as a
+  Load Logic employee, owner or crew member. Alt text describes the *work*
+  ("two workers carrying a sofa down a driveway"), never the *company*.
+- Prefer framing where faces are turned away, obscured by the load, or cropped by
+  the frame. The subject of every photograph is the job, not the person.
+- `src/assets/photos/team/` stays empty and reserved for real photography.
+
 ---
 
 ## 7. Iconography
@@ -237,9 +251,17 @@ brief.
 - `:focus-visible` gets a `2px` `--hi-vis` ring with a `2px` offset, on every
   interactive element without exception.
 - Labels are 1-3 words and must never wrap at desktop.
-- One CTA label per intent across the whole site. The quote action is always
-  worded **"Get a photo quote"**. Never also "Free quote", "Request estimate", or
-  "Get started".
+- One CTA label per intent across the whole site. There are exactly two
+  conversion intents and each owns one label:
+
+  | Intent | Label | Variant | Placement |
+  |---|---|---|---|
+  | Quote | **Get a Photo Quote** | Primary (`--hi-vis`) | The primary action on every page. Never also worded "Free quote", "Request estimate" or "Get started". |
+  | Phone | **Call Now** | Solid (`--spruce`) | Secondary action, paired with the quote CTA in the header, the sticky mobile bar and every closing CTA block. Never worded "Call us", "Contact us" or "Talk to us". |
+
+- On mobile the two sit side by side in the sticky action bar at equal width.
+  Phone remains a first-class conversion path; the quote form supplements it
+  rather than replacing it.
 
 **Panels**
 
