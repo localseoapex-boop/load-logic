@@ -52,6 +52,11 @@ const diagrams: Record<string, string> = {
 };
 
 const diagramFor = (image: string): string | undefined => diagrams[image];
+
+/** Assembled here so the optional capacity does not pick up template whitespace. */
+const fullLoadNote = `A full load means our ${
+  capacity ? `${capacity} cubic yard ` : ''
+}open utility trailer filled to the rails. Sizes are judged on site before anything is loaded, and you approve the price first.`;
 ---
 
 <div class="scale" data-reveal>
@@ -73,6 +78,9 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
               />
             )}
 
+            {/* The text block and the examples are separate grid children so the
+                chips can span the full row width on a phone, where the text
+                column is too narrow for them to sit side by side. */}
             <div class="text">
               <div class="heading-row">
                 <h3>{load.name}</h3>
@@ -81,12 +89,6 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
 
               <p class="summary">{load.summary}</p>
 
-              <ul class="examples">
-                {load.exampleContents.map((ex) => (
-                  <li>{ex}</li>
-                ))}
-              </ul>
-
               <p class="volume data">
                 {formatVolume(load) && <>about {formatVolume(load)}</>}
                 {showPrices && load.price.published && load.price.min && (
@@ -94,6 +96,12 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
                 )}
               </p>
             </div>
+
+            <ul class="examples">
+              {load.exampleContents.map((ex) => (
+                <li>{ex}</li>
+              ))}
+            </ul>
           </li>
         );
       })
@@ -102,10 +110,7 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
 
   <footer class="notes">
     <p>
-      <strong>These are estimates.</strong> A full load means our
-      {capacity ? ` ${capacity} cubic yard ` : ' '}open utility trailer filled to
-      the rails. Sizes are judged on site before anything is loaded, and you
-      approve the price first.
+      <strong>These are estimates.</strong> {fullLoadNote}
     </p>
     <p>
       {fleetLimits.consequence}
@@ -129,11 +134,16 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
     border-top: 1px solid var(--rule);
   }
 
+  /* Diagram beside the text even on a phone. Stacked, six steps ran to nearly
+     four screens, and putting them side by side also lets someone compare fill
+     levels while reading rather than scrolling between them. The fill is a solid
+     block, so it stays readable at this size. */
   .step {
     display: grid;
-    gap: var(--s4);
-    align-items: center;
-    padding-block: var(--s5);
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: var(--s3) var(--s4);
+    align-items: start;
+    padding-block: var(--s4);
     border-bottom: 1px solid var(--rule);
   }
 
@@ -141,6 +151,11 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
     width: 100%;
     max-width: 300px;
     height: auto;
+  }
+
+  /* The example chips get the full width under both columns. */
+  .examples {
+    grid-column: 1 / -1;
   }
 
   .heading-row {
@@ -164,17 +179,17 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
     margin-top: var(--s2);
     color: var(--ink-2);
     max-width: 46ch;
+    font-size: var(--t3);
   }
 
-  /* The recognisable examples lead, because "a packed two-car garage" is far
-     easier to judge yourself against than a number. */
+  /* The recognisable examples carry most of the meaning here, because "a packed
+     two-car garage" is far easier to judge yourself against than a number. */
   .examples {
-    margin-top: var(--s3);
     padding: 0;
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--s2) var(--s3);
+    gap: var(--s2);
   }
 
   .examples li {
@@ -186,7 +201,7 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
   }
 
   .volume {
-    margin-top: var(--s3);
+    margin-top: var(--s2);
     font-size: var(--t3);
     color: var(--ink-3);
   }
@@ -215,6 +230,16 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
       grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
       gap: var(--s7);
       padding-block: var(--s6);
+      align-items: center;
+    }
+
+    .summary {
+      font-size: var(--t2);
+    }
+
+    .examples {
+      grid-column: 2;
+      margin-top: var(--s3);
     }
   }
 </style>

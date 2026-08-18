@@ -10,14 +10,36 @@
  * verified vehicles. Nothing about capacity is inferred or rounded up, and the
  * two trailer capacities are NEVER added together, because only one can be towed
  * at a time.
+ *
+ * TWO VARIANTS.
+ *
+ *   `compact`  the two trailers, their capacity, what each is for, and the one
+ *              truck constraint. Enough to establish capability and set correct
+ *              expectations without becoming a marketing section.
+ *
+ *   `full`     photography plus what each vehicle enables and where it stops.
+ *              For service pages where equipment answers a specific question,
+ *              such as whether a hot tub or a concrete load is feasible.
  */
 import { Image } from 'astro:assets';
 import { vehicles, tools, fleetLimits, hasConfirmedEquipment } from '../data/equipment';
 import equipVehicle from '../assets/photos/equipment/equip-vehicle.jpg';
 import equipDump from '../assets/photos/equipment/equip-dump-trailer.jpg';
 
+interface Props {
+  variant?: 'compact' | 'full';
+}
+
+const { variant = 'full' } = Astro.props;
+
 const confirmed = vehicles.filter((v) => v.verified);
 const show = hasConfirmedEquipment();
+
+/** One line per trailer for the compact variant, taken from its first `enables`. */
+const shortUse: Record<string, string> = {
+  'utility-trailer': 'Bulky household loads, where volume matters more than weight.',
+  'dump-trailer': 'Dense debris like concrete, tile, brick and soil, charged on weight.',
+};
 
 const photoFor: Record<string, ImageMetadata> = {
   'utility-trailer': equipVehicle,
@@ -32,7 +54,31 @@ const altFor: Record<string, string> = {
 ---
 
 {
-  show && (
+  show && variant === 'compact' && (
+    <div class="compact" data-reveal>
+      <ul class="rigs">
+        {confirmed.map((vehicle) => (
+          <li>
+            <div class="rig-head">
+              <h3>{vehicle.name}</h3>
+              {vehicle.cubicYards && <span class="rig-cap data">{vehicle.cubicYards} cu yd</span>}
+            </div>
+            <p class="rig-use">{shortUse[vehicle.slug] ?? vehicle.enables[0]}</p>
+          </li>
+        ))}
+      </ul>
+
+      {/* The constraint is the most useful thing here and the easiest to get
+          wrong, so it is stated rather than implied. */}
+      <p class="rig-limit">
+        <strong>One truck, so one trailer at a time.</strong> {fleetLimits.consequence}
+      </p>
+    </div>
+  )
+}
+
+{
+  show && variant === 'full' && (
     <div class="equip">
       <div class="vehicles">
         {confirmed.map((vehicle) => (
@@ -87,6 +133,57 @@ const altFor: Record<string, string> = {
 }
 
 <style>
+  /* ─── compact ─── */
+
+  .rigs {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .rigs li {
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .rig-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+  }
+
+  .rig-head h3 {
+    font-size: var(--t1);
+  }
+
+  .rig-cap {
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .rig-use {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 56ch;
+  }
+
+  .rig-limit {
+    margin-top: var(--s5);
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+    max-width: 62ch;
+    color: var(--ink-2);
+  }
+
+  .rig-limit strong {
+    color: var(--ink);
+  }
+
+  /* ─── full ─── */
+
   .equip {
     display: grid;
     gap: var(--s8);
@@ -133,21 +230,26 @@ const altFor: Record<string, string> = {
     color: var(--rust);
   }
 
-  ul {
+  /* Scoped to the full variant's lists. A bare `li` selector here would also
+     style the compact variant's rig rows, which are a different thing. */
+  .enables,
+  .limits {
     list-style: none;
     padding: 0;
     display: grid;
     gap: var(--s2);
   }
 
-  li {
+  .enables li,
+  .limits li {
     position: relative;
     padding-inline-start: var(--s5);
     color: var(--ink-2);
     max-width: 54ch;
   }
 
-  li::before {
+  .enables li::before,
+  .limits li::before {
     content: '';
     position: absolute;
     inset-inline-start: 0;
@@ -181,6 +283,13 @@ const altFor: Record<string, string> = {
     padding-top: var(--s4);
     border-top: 1px solid var(--rule-on-spruce);
     font-size: var(--t3);
+  }
+
+  @media (min-width: 700px) {
+    .rigs {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s7);
+    }
   }
 
   @media (min-width: 900px) {

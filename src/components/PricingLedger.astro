@@ -17,6 +17,18 @@
  * Rendered as a hairline ledger rather than cards. Rules and space carry the
  * structure. A pricing explanation set in three rounded boxes reads as marketing;
  * set as a ledger it reads as a specification.
+ *
+ * TWO VARIANTS.
+ *
+ *   `summary`  the five things a visitor needs before they can judge whether to
+ *              enquire: volume drives it, heavy material is different, access and
+ *              labour matter, big jobs run as several loads, and the price is
+ *              agreed before anything moves. Roughly a screen and a half.
+ *
+ *   `full`     every factor at depth, plus the access checklist and the load
+ *              definitions. For service pages and a future pricing page.
+ *
+ * Both keep the same honesty contract: no amounts until real figures exist.
  */
 import {
   primaryPricingFactors,
@@ -27,15 +39,84 @@ import {
 import { pricingRelevantAccess } from '../data/access';
 import { confirmedCapacityCubicYards, heavyMaterialVehicle, fleetLimits } from '../data/equipment';
 
+interface Props {
+  variant?: 'summary' | 'full';
+}
+
+const { variant = 'full' } = Astro.props;
+
 const primary = primaryPricingFactors();
 const secondary = pricingFactors.filter((f) => !f.primary);
 const access = pricingRelevantAccess();
 const capacity = confirmedCapacityCubicYards();
 const dump = heavyMaterialVehicle();
 const published = isPricingPublished();
+
+/**
+ * Sentences that interpolate an optional value are assembled here rather than in
+ * the template. A JSX expression on its own line contributes the surrounding
+ * whitespace, which renders as "the trailer filled , about 9 cubic yards".
+ */
+const fullLoadSentence = `One full load is the utility trailer filled${
+  capacity ? `, about ${capacity} cubic yards` : ''
+}. ${fleetLimits.consequence}`;
+
+const heavySentence = `Concrete, tile, brick and soil are charged on weight rather than space, and they travel in the dump trailer${
+  dump?.cubicYards ? ` (about ${dump.cubicYards} cubic yards)` : ''
+}.`;
 ---
 
-<div class="ledger" data-reveal>
+{
+  variant === 'summary' && (
+    <div class="summary-ledger" data-reveal>
+      <dl class="points">
+        <div class="point">
+          <dt>Volume first</dt>
+          <dd>
+            Most of the price is the share of the trailer your items fill. The
+            scale above is the fastest way to judge it yourself.
+          </dd>
+        </div>
+        <div class="point">
+          <dt>Heavy material is different</dt>
+          <dd>{heavySentence}</dd>
+        </div>
+        <div class="point">
+          <dt>Access and labour matter</dt>
+          <dd>
+            Stairs, long carries from the door to the truck, tight gates and
+            elevator buildings all add time. Mentioning them up front is what
+            keeps a quote accurate.
+          </dd>
+        </div>
+        <div class="point">
+          <dt>Big jobs are several loads</dt>
+          <dd>{fullLoadSentence}</dd>
+        </div>
+        <div class="point emphasis">
+          <dt>You approve the price first</dt>
+          <dd>
+            The crew confirms the number on site and nothing is loaded until you
+            agree to it. If there is more than expected, you decide before it
+            goes on the trailer.
+          </dd>
+        </div>
+      </dl>
+
+      {!published && (
+        <p class="no-list">
+          We quote per job rather than publishing a fixed list, because volume,
+          weight and access vary too much for a list to be honest. Photos get you
+          a real number before anyone arrives.
+        </p>
+      )}
+    </div>
+  )
+}
+
+{
+  variant === 'full' && (
+    <div class="ledger" data-reveal>
   <!-- What the price is actually based on. Three inputs, weighted. -->
   <section class="block">
     <h3>What the price is based on</h3>
@@ -94,10 +175,9 @@ const published = isPricingPublished();
       <div class="row">
         <dt>One full load</dt>
         <dd>
-          Our open utility trailer filled to the rails{
+          {`Our open utility trailer filled to the rails${
             capacity ? `, about ${capacity} cubic yards` : ''
-          }. The load size scale above shows what each fraction of that looks
-          like.
+          }. The load size scale above shows what each fraction of that looks like.`}
         </dd>
       </div>
       {
@@ -105,10 +185,9 @@ const published = isPricingPublished();
           <div class="row">
             <dt>Heavy material</dt>
             <dd>
-              Dense debris like concrete, tile, brick and soil goes in the dump
-              trailer{dump.cubicYards ? `, about ${dump.cubicYards} cubic yards` : ''}. It
-              holds less volume but is built to carry the weight, and these loads
-              are quoted on weight rather than on the space they take.
+              {`Dense debris like concrete, tile, brick and soil goes in the dump trailer${
+                dump.cubicYards ? `, about ${dump.cubicYards} cubic yards` : ''
+              }. It holds less volume but is built to carry the weight, and these loads are quoted on weight rather than on the space they take.`}
             </dd>
           </div>
         )
@@ -141,9 +220,57 @@ const published = isPricingPublished();
       )
     }
   </section>
-</div>
+    </div>
+  )
+}
 
 <style>
+  /* ─── summary variant ─── */
+
+  .points {
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .point {
+    display: grid;
+    gap: var(--s2);
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .point dt {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--t1);
+  }
+
+  .point dd {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  /* The commitment is the one point that changes a decision, so it carries a
+     hi-vis rule rather than another heading weight. */
+  .emphasis {
+    border-inline-start: 3px solid var(--hi-vis);
+    padding-inline-start: var(--s4);
+  }
+
+  .emphasis dd {
+    color: var(--ink);
+  }
+
+  .no-list {
+    margin-top: var(--s5);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  /* ─── full variant ─── */
+
   .ledger {
     display: grid;
     gap: var(--s8);
@@ -254,6 +381,12 @@ const published = isPricingPublished();
   }
 
   @media (min-width: 768px) {
+    .point {
+      grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+      gap: var(--s6);
+      align-items: baseline;
+    }
+
     .row {
       grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
       gap: var(--s6);

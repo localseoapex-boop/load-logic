@@ -45,7 +45,11 @@ const quote = primaryQuoteAction();
   .final {
     background: var(--spruce);
     color: var(--on-spruce-2);
-    padding-block: var(--sec-feature-t) var(--sec-feature-b);
+    /* Lighter bottom padding than a feature section would normally take: the
+       footer is also spruce and sits directly below, so a full feature gap here
+       reads as dead space inside one very large dark region rather than as
+       breathing room. */
+    padding-block: var(--sec-feature-t) var(--sec-std-t);
   }
 
   .inner {

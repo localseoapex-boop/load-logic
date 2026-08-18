@@ -17,13 +17,18 @@
  * roughly 700px tall on a phone for no gain, since the reader is scanning
  * categories at this point rather than researching one item.
  *
- * SAMPLES, NOT THE FULL CATALOGUE. This section shows each category with a
- * representative handful of items. The exhaustive, searchable list of all 88
- * items lives in ItemLookup directly below, so repeating every item here was
- * both redundant and expensive: it made this one section 8,000px tall on a
- * phone, which is ten screens of scrolling before anything else happens.
+ * TWO VARIANTS.
  *
- * Nothing is lost. Categories overview here, complete list one section down.
+ *   `overview`  category, count and one line each. Communicates breadth in about
+ *               a screen and a half. This is what the homepage uses, because the
+ *               searchable list of all 88 items sits directly below it and
+ *               showing the same information twice is the actual problem.
+ *
+ *   `index`     categories plus sampled item names, disposal route and handling
+ *               services. For service pages, where the reader has already chosen
+ *               a category and wants the detail.
+ *
+ * The full item detail, including every condition, always lives in ItemLookup.
  *
  * All relationships come from src/lib/knowledge.ts. No business logic here.
  */
@@ -35,13 +40,20 @@ import { serviceUrl } from '../lib/urls';
 interface Props {
   /** Limit to the categories one service handles. Omit for the full catalogue. */
   categories?: string[];
-  /** Items shown per category before linking to the full searchable list. */
+  /** `overview` for breadth only, `index` for sampled items and metadata. */
+  variant?: 'overview' | 'index';
+  /** Items shown per category in the index variant. */
   sample?: number;
   /** Anchor of the section holding the complete list. */
   fullListHref?: string;
 }
 
-const { categories, sample = 5, fullListHref = '#can-we-take' } = Astro.props;
+const {
+  categories,
+  variant = 'index',
+  sample = 5,
+  fullListHref = '#can-we-take',
+} = Astro.props;
 
 const shown = categories
   ? acceptedCategories().filter((c) => categories.includes(c.slug))
@@ -67,7 +79,29 @@ const rows = shown.map((category) => {
 });
 ---
 
-<div class="index">
+{
+  variant === 'overview' && (
+    <ul class="overview">
+      {rows.map(({ category, total, conditional, route }) => (
+        <li>
+          <div class="ov-main">
+            <h3>{category.name}</h3>
+            <p class="ov-summary">{category.summary}</p>
+          </div>
+          <p class="ov-meta data">
+            <span class="ov-count">{total} items</span>
+            {conditional > 0 && <span class="ov-cond">{conditional} conditional</span>}
+            {route && <span class="ov-route">{route.name}</span>}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+{
+  variant === 'index' && (
+    <div class="index">
   {
     rows.map(({ category, items, remaining, total, conditional, route, services }) => (
       <article class="row" data-reveal>
@@ -132,9 +166,52 @@ const rows = shown.map((category) => {
       </article>
     ))
   }
-</div>
+    </div>
+  )
+}
 
 <style>
+  /* ─── overview: breadth in about a screen and a half ─── */
+
+  .overview {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .overview li {
+    display: grid;
+    gap: var(--s2);
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .overview h3 {
+    font-size: var(--t1);
+    letter-spacing: -0.005em;
+  }
+
+  .ov-summary {
+    margin-top: var(--s1);
+    color: var(--ink-2);
+    font-size: var(--t3);
+    max-width: 54ch;
+  }
+
+  .ov-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .ov-cond {
+    color: var(--rust);
+  }
+
+  /* ─── index: sampled items and metadata ─── */
+
   .index {
     border-top: 1px solid var(--rule);
   }
@@ -252,6 +329,18 @@ const rows = shown.map((category) => {
 
   .svc-list li:not(:last-child)::after {
     content: ',';
+  }
+
+  @media (min-width: 700px) {
+    .overview li {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      align-items: baseline;
+      gap: var(--s6);
+    }
+
+    .ov-meta {
+      justify-content: flex-end;
+    }
   }
 
   @media (min-width: 900px) {

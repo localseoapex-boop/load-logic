@@ -11,14 +11,77 @@
  * route. Naming a charity or facility we have not confirmed a relationship with
  * would be a fabricated claim, so the component renders partner names only when
  * they exist and are verified.
+ *
+ * TWO VARIANTS.
+ *
+ *   `flow`   picked up, sorted, then the routes as a compact ranked strip. States
+ *            the philosophy and the order of preference in about a screen. The
+ *            homepage version.
+ *
+ *   `detail` every route with its full explanation and the conditions that decide
+ *            whether material qualifies. For service pages and content pages,
+ *            where "do you actually donate" is the question being researched.
  */
 import { disposalFlow } from '../data/disposal';
 
+interface Props {
+  variant?: 'flow' | 'detail';
+}
+
+const { variant = 'detail' } = Astro.props;
+
 const routes = disposalFlow();
+
+/** The three stages every load passes through, before the routes diverge. */
+const stages = [
+  { name: 'Picked up', text: 'Loaded from wherever it sits, inside or out.' },
+  { name: 'Sorted', text: 'Usable items separated at the property while the load goes on.' },
+  { name: 'Routed', text: 'Each material type goes where it can actually be taken.' },
+];
+
+/** Best outcome first. The order IS the philosophy. */
+const preferred = routes.filter((r) => r.slug !== 'specialty');
 ---
 
-<div class="flow" data-reveal>
-  <ol>
+{
+  variant === 'flow' && (
+    <div class="compact" data-reveal>
+      <ol class="stages">
+        {stages.map((stage) => (
+          <li>
+            <span class="stage-name">{stage.name}</span>
+            <span class="stage-text">{stage.text}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="routes">
+        <p class="routes-label label">Then, in this order of preference</p>
+        <ol class="route-strip">
+          {preferred.map((route) => (
+            <li>
+              <span class="route-name">{route.name}</span>
+              <span class="route-sum">{route.summary}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <p class="philosophy">
+        The order is the point. Everything that can be reused or recovered is
+        taken out before the rest is disposed of, and what decides where something
+        goes is its condition rather than our marketing. We do not name partner
+        charities or facilities, because we will not claim a relationship we have
+        not confirmed.
+      </p>
+    </div>
+  )
+}
+
+{
+  variant === 'detail' && (
+    <div class="flow" data-reveal>
+  <ol class="detail-list">
     {
       routes.map((route, i) => (
         <li>
@@ -61,17 +124,119 @@ const routes = disposalFlow();
     claim a partnership we have not confirmed. What we can tell you is which
     route your material takes and what decides it.
   </p>
-</div>
+    </div>
+  )
+}
 
 <style>
-  ol {
+  /* ─── compact flow: the homepage version ─── */
+
+  .compact {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  .stages {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s4);
+    counter-reset: stage;
+  }
+
+  .stages li {
+    counter-increment: stage;
+    display: grid;
+    gap: var(--s1);
+    padding-inline-start: var(--s6);
+    position: relative;
+  }
+
+  .stages li::before {
+    content: counter(stage, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.15em;
+    font-family: var(--font-data);
+    font-weight: 600;
+    color: var(--hi-vis-press);
+  }
+
+  /* A connecting rule between stages, so it reads as a sequence rather than a
+     list of three unrelated things. */
+  .stages li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 7px;
+    top: 1.8em;
+    bottom: calc(var(--s4) * -1);
+    width: 1px;
+    background: var(--rule-strong);
+  }
+
+  .stage-name {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 700;
+  }
+
+  .stage-text {
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  .routes-label {
+    margin-bottom: var(--s3);
+  }
+
+  .route-strip {
+    list-style: none;
+    padding: 0;
+    counter-reset: r;
+    border-top: 1px solid var(--rule);
+  }
+
+  .route-strip li {
+    counter-increment: r;
+    display: grid;
+    gap: var(--s1);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .route-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .route-name::before {
+    content: counter(r) '. ';
+    font-family: var(--font-data);
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  .route-sum {
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  .philosophy {
+    max-width: 66ch;
+    color: var(--ink-2);
+  }
+
+  /* ─── detail variant ─── */
+
+  .detail-list {
     list-style: none;
     padding: 0;
     counter-reset: route;
     border-top: 1px solid var(--rule);
   }
 
-  li {
+  .detail-list > li {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--s4);
@@ -156,8 +321,16 @@ const routes = disposalFlow();
     color: var(--ink-2);
   }
 
+  @media (min-width: 700px) {
+    .route-strip li {
+      grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+      gap: var(--s5);
+      align-items: baseline;
+    }
+  }
+
   @media (min-width: 768px) {
-    li {
+    .detail-list > li {
       grid-template-columns: 3rem minmax(0, 1fr);
       gap: var(--s6);
       padding-block: var(--s6);

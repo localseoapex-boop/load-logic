@@ -22,6 +22,21 @@
  * LAYOUT DISCIPLINE. Nine distinct layout families across sixteen sections, no
  * family repeated, never three consecutive image-and-text splits, and three
  * micro-labels total against a budget of five.
+ *
+ * DEPTH LIVES DEEPER. Six sections render a compact variant here and keep their
+ * full version for service and location pages:
+ *
+ *   WhatWeRemove      overview  categories and counts, not sampled items
+ *   Situations        navigator a ruled index, not four photo splits
+ *   PricingLedger     summary   five points, not every factor at depth
+ *   DisposalFlow      flow      three stages plus ranked routes, not eight essays
+ *   EquipmentCapability compact two trailers and the constraint, no photography
+ *   ComparisonLedger  rows=5    the dimensions that change a decision
+ *
+ * Nothing was deleted. The homepage answers what Load Logic does, what it takes,
+ * whether a job qualifies, how much junk there is, how pricing works, where it
+ * operates, what happens next and how to ask. Everything below that belongs on a
+ * URL that matches the intent.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Section from '../components/Section.astro';
@@ -97,18 +112,26 @@ const showTrust = hasVerifiedFacts();
   <Section
     label="What we take"
     heading="80 things we take. And 8 we won't."
-    intro="Grouped by what they are, with the conditions that apply. The full searchable list is right below."
+    intro="Eleven categories, with the conditions that apply. Search the full list below for anything specific."
   >
-    <WhatWeRemove />
+    <WhatWeRemove variant="overview" />
   </Section>
 
-  <!-- 3b. The exclusions, and the item lookup. Same topic, different families. -->
-  <Section weight="standard" tone="sunk" heading="What we cannot take">
-    <WhatWeDontRemove />
-  </Section>
-
-  <Section heading="Can we take yours?" width="wide" id="can-we-take">
+  <!-- 3b. The searchable catalogue. One place holds all 88 items and every
+       condition, so nothing above needs to repeat them. -->
+  <Section
+    tone="sunk"
+    heading="Can we take yours?"
+    intro="Every item we handle, with the answer attached. Type what you have."
+    width="wide"
+    id="can-we-take"
+  >
     <ItemLookup />
+  </Section>
+
+  <!-- 3c. The exclusions, stated plainly with somewhere else to go. -->
+  <Section heading="What we cannot take">
+    <WhatWeDontRemove />
   </Section>
 
   <!-- 4. Load size. The signature component, given feature weight. -->
@@ -126,18 +149,18 @@ const showTrust = hasVerifiedFacts();
   <Section
     tone="sunk"
     heading="How pricing works"
-    intro="No published price list, because volume, weight and access vary too much for one to be honest. Here is exactly what the number is built from."
-    width="wide"
+    intro="No published price list, because volume, weight and access vary too much for one to be honest. Five things decide the number."
   >
-    <PricingLedger />
+    <PricingLedger variant="summary" />
   </Section>
 
-  <!-- 6. Situations. Alternating editorial splits, capped at four. -->
+  <!-- 6. Situations, as a navigator. The reader is orienting here, so their own
+       words lead and each row routes to the service that solves it. -->
   <Section
     heading="Why people call"
     intro="Nobody wakes up wanting junk removal. They want a garage back, a house listed, or an estate settled."
   >
-    <Situations />
+    <Situations variant="navigator" />
   </Section>
 
   <!-- 7. Before and after. Feature weight, full width. -->
@@ -168,10 +191,9 @@ const showTrust = hasVerifiedFacts();
   <!-- 9. Equipment. Asymmetric, with the honest capacity constraint. -->
   <Section
     heading="What we haul with"
-    intro="Two trailers for two different problems, and one truck, which is why a big job is planned as several trips rather than discovered halfway through the day."
-    width="wide"
+    intro="Two trailers for two different problems, and one truck."
   >
-    <EquipmentCapability />
+    <EquipmentCapability variant="compact" />
   </Section>
 
   <!-- 10. Process. Numbered ledger. -->
@@ -215,19 +237,19 @@ const showTrust = hasVerifiedFacts();
   <!-- 13. DIY comparison, including when to not call us. -->
   <Section
     heading="Should you just rent a truck?"
-    intro="Sometimes, genuinely. Here is how the two actually compare."
+    intro="Sometimes, genuinely. Here is how the two compare on the points that decide it."
     width="wide"
   >
-    <ComparisonLedger slug="diy-vs-full-service" />
+    <ComparisonLedger slug="diy-vs-full-service" rows={5} />
   </Section>
 
   <!-- 14. Disposal. -->
   <Section
     tone="sunk"
     heading="Where it goes after it leaves"
-    intro="Sorted in this order, every load. What decides where something ends up is its condition, not our marketing."
+    intro="Every load follows the same three stages, then splits by what the material actually is."
   >
-    <DisposalFlow />
+    <DisposalFlow variant="flow" />
   </Section>
 
   <!-- 15. FAQs. Two-column list above 768px, collapsed below. -->

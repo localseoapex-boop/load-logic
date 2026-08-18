@@ -15,15 +15,24 @@
  *
  * Set as a ruled ledger. Comparison tables rendered as two tall cards with
  * filled progress bars are dashboard chrome; rules and type do this better.
+ *
+ * `rows` caps how many dimensions are compared. The homepage shows the five that
+ * actually change a decision; service pages show all nine. The verdict lists are
+ * never truncated, because "when to choose the other option" is the part that
+ * makes the comparison trustworthy.
  */
 import { getComparison } from '../data/comparisons';
 
 interface Props {
   slug: string;
+  /** Maximum dimensions to compare. Omit for all of them. */
+  rows?: number;
 }
 
-const { slug } = Astro.props;
+const { slug, rows } = Astro.props;
 const comparison = getComparison(slug);
+const shownRows = comparison ? (rows ? comparison.rows.slice(0, rows) : comparison.rows) : [];
+const hiddenRows = comparison ? comparison.rows.length - shownRows.length : 0;
 ---
 
 {
@@ -42,7 +51,7 @@ const comparison = getComparison(slug);
           </span>
         </div>
 
-        {comparison.rows.map((row) => (
+        {shownRows.map((row) => (
           <div class="tr" role="row">
             <span class="dim" role="rowheader">
               {row.dimension}
@@ -58,6 +67,13 @@ const comparison = getComparison(slug);
           </div>
         ))}
       </div>
+
+      {hiddenRows > 0 && (
+        <p class="truncated">
+          {hiddenRows} more points of comparison, including dump fees, sorting and
+          cleanup, come up on the service pages.
+        </p>
+      )}
 
       <div class="verdicts">
         <section>
@@ -191,6 +207,12 @@ const comparison = getComparison(slug);
 
   .ours li {
     color: var(--ink);
+  }
+
+  .truncated {
+    font-size: var(--t3);
+    color: var(--ink-3);
+    max-width: 62ch;
   }
 
   .unavailable {

@@ -7,10 +7,18 @@
  * cannot park in. Leading with the situation rather than the service name meets
  * them where they actually are, and routes them into the right page.
  *
- * The layout alternates the photograph side, and the section is capped at four
- * entries here so the alternation never runs long enough to read as a zigzag
- * template. Remaining situations are offered as a compact text list underneath,
- * which is a different layout family rather than more of the same one.
+ * TWO VARIANTS.
+ *
+ *   `navigator`  a compact index of the situations that matter most, each with
+ *                the question in the visitor's own words, its typical load size
+ *                and the service that solves it. No photography. This is the
+ *                homepage version: at this point the reader is orienting, not
+ *                reading a case study, and four alternating photo splits cost
+ *                four screens to say what a list says in one.
+ *
+ *   `featured`   alternating editorial splits with photography, capped at four
+ *                so the alternation never reads as a zigzag template. For
+ *                service and location pages where the situation IS the subject.
  *
  * Each entry exposes the structured relationship: what it typically produces as
  * a load size, and which services solve it.
@@ -22,12 +30,27 @@ import { getLoadSize } from '../data/pricing';
 import { serviceUrl } from '../lib/urls';
 
 interface Props {
+  variant?: 'navigator' | 'featured';
   /** Situation slugs to feature with imagery. The rest render as a list. */
   featured?: string[];
+  /** Navigator only: which situations to surface, in order. */
+  show?: string[];
 }
 
-const { featured = ['garage-reset', 'moving-out', 'estate-settlement', 'renovation-cleanup'] } =
-  Astro.props;
+const {
+  variant = 'featured',
+  featured = ['garage-reset', 'moving-out', 'estate-settlement', 'renovation-cleanup'],
+  show = [
+    'garage-reset',
+    'moving-out',
+    'estate-settlement',
+    'rental-turnover',
+    'yard-cleanup',
+    'replacing-furniture',
+    'replacing-appliance',
+    'pre-sale-prep',
+  ],
+} = Astro.props;
 
 /**
  * Service imagery, reused across situations. Imported explicitly rather than
@@ -90,9 +113,52 @@ const entries = featuredSituations.map((situation) => ({
 const rest = situations
   .filter((s) => !featured.includes(s.slug))
   .map((situation) => ({ situation, primary: getService(situation.services[0]) }));
+
+/** Navigator rows: the situations worth surfacing, resolved to their answer. */
+const navRows = show
+  .map((slug) => situations.find((s) => s.slug === slug))
+  .filter((s): s is NonNullable<typeof s> => Boolean(s))
+  .map((situation) => ({
+    situation,
+    load: getLoadSize(situation.typicalLoad),
+    service: getService(situation.services[0]),
+  }));
+
+/** Everything not surfaced, for the trailing "also" line. */
+const navRest = situations.filter((s) => !show.includes(s.slug));
 ---
 
-<div class="situations">
+{
+  variant === 'navigator' && (
+    <div class="navigator" data-reveal>
+      <ul class="nav-list">
+        {navRows.map(({ situation, load, service }) => (
+          <li>
+            <a href={service ? serviceUrl(service.slug) : '/services'}>
+              <span class="nav-q">{situation.question}</span>
+              <span class="nav-name">{situation.name}</span>
+              <span class="nav-meta data">
+                {load && <span>{load.name.toLowerCase()}</span>}
+                {service && <span class="nav-svc">{service.name}</span>}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      {navRest.length > 0 && (
+        <p class="nav-more">
+          Also: {navRest.map((s) => s.name.toLowerCase()).join(', ')}.{' '}
+          <a href="/services">See every service</a>
+        </p>
+      )}
+    </div>
+  )
+}
+
+{
+  variant === 'featured' && (
+    <div class="situations">
   {
     entries.map(({ situation, image, load, services }, i) => (
       <article class:list={['split', { flip: i % 2 === 1 }]} data-reveal>
@@ -154,9 +220,70 @@ const rest = situations
       }
     </ul>
   </div>
-</div>
+    </div>
+  )
+}
 
 <style>
+  /* ─── navigator: the homepage version ─── */
+
+  .nav-list {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .nav-list li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .nav-list a {
+    display: grid;
+    gap: var(--s1);
+    padding-block: var(--s4);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  /* The visitor's own words lead. The catalogue name is the supporting label,
+     not the headline, because nobody searches for "estate settlement". */
+  .nav-q {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 600;
+    max-width: 40ch;
+  }
+
+  .nav-list a:hover .nav-q {
+    color: var(--spruce-2);
+  }
+
+  .nav-name {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .nav-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .nav-svc {
+    color: var(--spruce-2);
+  }
+
+  .nav-more {
+    margin-top: var(--s5);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  /* ─── featured: editorial splits ─── */
+
   .situations {
     display: grid;
     gap: var(--s8);
@@ -290,6 +417,26 @@ const rest = situations
   .more-q {
     font-size: var(--t3);
     color: var(--ink-2);
+  }
+
+  @media (min-width: 700px) {
+    .nav-list a {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: baseline;
+      gap: var(--s2) var(--s6);
+    }
+
+    .nav-name {
+      grid-row: 2;
+      grid-column: 1;
+    }
+
+    .nav-meta {
+      grid-row: 1 / span 2;
+      grid-column: 2;
+      justify-content: flex-end;
+      align-items: baseline;
+    }
   }
 
   @media (min-width: 900px) {

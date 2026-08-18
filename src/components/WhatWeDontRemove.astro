@@ -27,16 +27,11 @@ const items = prohibitedMaterials();
         <li>
           <div class="what">
             <h3>{item.name}</h3>
-            <p class="aliases">{item.aliases.slice(0, 4).join(', ')}</p>
+            <p class="aliases">{item.aliases.slice(0, 3).join(', ')}</p>
           </div>
           <div class="why">
             <p class="reason">{item.note}</p>
-            {item.alternative && (
-              <p class="alt">
-                <span class="alt-label">Instead</span>
-                {item.alternative}
-              </p>
-            )}
+            {item.alternative && <p class="alt">{item.alternative}</p>}
           </div>
         </li>
       ))
@@ -58,13 +53,14 @@ const items = prohibitedMaterials();
 
   li {
     display: grid;
-    gap: var(--s3);
-    padding-block: var(--s5);
+    gap: var(--s2);
+    padding-block: var(--s4);
     border-bottom: 1px solid var(--rule);
   }
 
   h3 {
-    font-size: var(--t1);
+    font-size: var(--t2);
+    font-weight: 700;
     /* The rule marker is the semantic warning colour, used only here and on
        other genuine restrictions. */
     border-inline-start: 3px solid var(--rust);
@@ -72,30 +68,23 @@ const items = prohibitedMaterials();
   }
 
   .aliases {
-    margin-top: var(--s2);
+    margin-top: var(--s1);
     padding-inline-start: calc(var(--s3) + 3px);
     font-size: var(--t3);
     color: var(--ink-3);
   }
 
   .reason {
+    font-size: var(--t3);
     color: var(--ink-2);
   }
 
+  /* The alternative is the useful half of a refusal, so it stays in ink while
+     the reason recedes. */
   .alt {
-    margin-top: var(--s3);
+    margin-top: var(--s1);
     font-size: var(--t3);
     color: var(--ink);
-  }
-
-  .alt-label {
-    display: inline-block;
-    margin-inline-end: var(--s2);
-    font-size: var(--lbl);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: var(--rust);
   }
 
   .ask {

@@ -87,13 +87,16 @@ const areas = serviceAreaLocations;
     background: var(--spruce);
     color: var(--on-spruce-2);
     font-size: var(--t3);
+    /* The closing CTA is also spruce. Without this rule the two merge into one
+       thousand-pixel dark region with no legible boundary. */
+    border-top: 1px solid var(--rule-on-spruce);
   }
 
   .inner {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: var(--s7) var(--s6);
-    padding-block: var(--s9) var(--s7);
+    padding-block: var(--s8) var(--s7);
   }
 
   .brand-col {
