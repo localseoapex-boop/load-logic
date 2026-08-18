@@ -30,3 +30,6 @@ rebuild-kit/
 # Local reference material
 reference/
 .env*
+
+# local visual QA artifacts
+.playwright-mcp/
