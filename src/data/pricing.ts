@@ -58,6 +58,15 @@ export interface PriceRange {
   currency: 'USD';
   min?: number;
   max?: number;
+  /**
+   * What the figure means. `starting` is a FLOOR: the job begins here and rises
+   * with volume, material, access and labour. It is not a ceiling, not a range
+   * and not a guaranteed fixed price, and anything rendering it must say so.
+   * Modelled explicitly rather than inferred from a missing `max`, because a
+   * range whose upper bound simply had not been supplied would otherwise be
+   * indistinguishable from a deliberate starting price.
+   */
+  basis?: 'starting' | 'range' | 'fixed';
   /** Shown instead of an amount while unpublished. */
   note?: string;
 }
@@ -73,6 +82,16 @@ const usd = (min: number, max: number, note?: string): PriceRange => ({
   currency: 'USD',
   min,
   max,
+  basis: 'range',
+  note,
+});
+
+/** A published floor. See PriceRange.basis. */
+const startingAt = (min: number, note?: string): PriceRange => ({
+  published: true,
+  currency: 'USD',
+  min,
+  basis: 'starting',
   note,
 });
 
@@ -85,8 +104,17 @@ const usd = (min: number, max: number, note?: string): PriceRange => ({
  */
 export const PRICING_BASIS = {
   derivedOn: '2026-08-19',
+  revisedOn: '2026-08-19',
   confirmedByOwner: false,
   referenceCubicYards: 9,
+  /**
+   * The published model is STARTING prices, not ranges: 110 / 175 / 250 / 350 /
+   * 450 / 550 against the 9 cubic yard trailer. Each figure is a floor that
+   * rises with volume, material, access and labour. The competitor benchmarks
+   * below still describe where the range model came from and remain the basis
+   * for sanity-checking the floors.
+   */
+  model: 'starting',
   method:
     'Competitor prices converted to a price per cubic yard, then applied to Load Logic\'s real 9 cubic yard trailer. Positioned just above the local trailer operators, because Load Logic removes items from inside the property and sorts for donation rather than loading from the curb, and clearly below the national franchise rate.',
   benchmarks: [
@@ -159,7 +187,7 @@ export const loadSizes: LoadSize[] = [
     services: ['furniture-removal', 'mattress-removal', 'appliance-removal', 'same-day-junk-removal'],
     image: 'load-single-item',
     cubicYards: 0.75,
-    price: usd(85, 125, 'Covers the trip, the crew and disposal. Send a photo for a firm number.'),
+    price: startingAt(110),
     order: 1,
   },
   {
@@ -177,7 +205,7 @@ export const loadSizes: LoadSize[] = [
     services: ['junk-removal', 'furniture-removal', 'yard-waste-removal'],
     image: 'load-small',
     cubicYards: 1.5,
-    price: usd(95, 145),
+    price: startingAt(175),
     order: 2,
   },
   {
@@ -195,7 +223,7 @@ export const loadSizes: LoadSize[] = [
     services: ['junk-removal', 'yard-waste-removal', 'garage-cleanouts', 'shed-removal'],
     image: 'load-quarter',
     cubicYards: 2.25,
-    price: usd(125, 175),
+    price: startingAt(250),
     order: 3,
   },
   {
@@ -213,7 +241,7 @@ export const loadSizes: LoadSize[] = [
     services: ['garage-cleanouts', 'junk-removal', 'construction-debris-removal', 'foreclosure-cleanouts'],
     image: 'load-half',
     cubicYards: 4.5,
-    price: usd(185, 255),
+    price: startingAt(350),
     order: 4,
   },
   {
@@ -231,7 +259,7 @@ export const loadSizes: LoadSize[] = [
     services: ['garage-cleanouts', 'estate-cleanouts', 'office-cleanouts', 'hot-tub-removal'],
     image: 'load-three-quarter',
     cubicYards: 6.75,
-    price: usd(255, 340),
+    price: startingAt(450),
     order: 5,
   },
   {
@@ -250,7 +278,7 @@ export const loadSizes: LoadSize[] = [
     services: ['estate-cleanouts', 'foreclosure-cleanouts', 'hoarder-cleanouts', 'junk-removal'],
     image: 'load-full',
     cubicYards: 9,
-    price: usd(325, 435, 'Larger than this is quoted as multiple loads, priced together.'),
+    price: startingAt(550, 'Larger than this is planned as multiple trips and quoted together.'),
     order: 6,
   },
 ];
@@ -376,9 +404,17 @@ export interface PricingTerms {
 
 export const pricingTerms: PricingTerms = {
   minimum: {
-    ...usd(85, 85),
+    /**
+     * SUPERSEDED. The $85 minimum belonged to the range model. Under starting
+     * prices the single-item figure IS the floor ($110), so publishing a
+     * separate, lower minimum alongside it stated two different smallest
+     * numbers for the same job. Left unpublished rather than deleted: the
+     * concept is still real, and the figure comes back the moment the owner
+     * confirms a production model.
+     */
+    ...unpublished('The smallest job starts at the single-item price.'),
     description:
-      'Every job has a minimum that covers getting a crew and trailer to the property, even for a single item. If you only have one thing to move, it is worth checking whether anything else can go at the same time.',
+      'Every job has a floor that covers getting a crew and trailer to the property, even for a single item. If you only have one thing to move, it is worth checking whether anything else can go at the same time.',
   },
 
   surcharges: [
@@ -439,6 +475,20 @@ export const formatPrice = (price: PriceRange): string => {
   if (price.max === undefined || price.max === price.min) return `$${price.min}`;
   return `$${price.min} to $${price.max}`;
 };
+
+/**
+ * "Starting at $110" for a floor, the plain amount for anything else. The label
+ * is part of the string rather than the component's markup so that a starting
+ * price cannot be rendered anywhere as a bare number that reads like a fixed one.
+ */
+export const formatStartingPrice = (price: PriceRange): string => {
+  if (!price.published || price.min === undefined) return '';
+  return price.basis === 'starting' ? `Starting at $${price.min}` : formatPrice(price);
+};
+
+/** Just the amount, for places that supply their own "starting at" label. */
+export const formatAmount = (price: PriceRange): string =>
+  !price.published || price.min === undefined ? '' : `$${price.min}`;
 
 /**
  * Compact range for the load scale, where six prices stack into a column and

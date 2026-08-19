@@ -7,10 +7,13 @@
  * describes content a visitor cannot see is exactly what Google penalises, so
  * the same array drives both the markup and the structured data.
  *
- * Presentation is a two-column Q and A list rather than a stack of accordions.
- * Accordion-everything is a tell, and it hides answers from scanning. Long
- * banks still collapse on mobile where vertical space is genuinely scarce, via
- * <details>, which needs no JavaScript.
+ * Presentation is a native <details>/<summary> accordion. Native, deliberately:
+ * the answers are in the DOM whether the panel is open or shut, so they stay
+ * crawlable and stay matched to the JSON-LD above; keyboard support, the
+ * expanded/collapsed state and the ARIA semantics come from the browser rather
+ * than from script; and it costs zero JavaScript. A scripted accordion would
+ * have had to reimplement all of that and would have risked answers that exist
+ * in the schema but not in the served HTML.
  */
 interface Faq {
   question: string;
@@ -37,118 +40,127 @@ const faqSchema = {
 ---
 
 <div class="faqs" data-reveal>
-  <dl class="list">
-    {
-      faqs.map((faq) => (
-        <div class="qa">
-          <dt>{faq.question}</dt>
-          <dd>{faq.answer}</dd>
-        </div>
-      ))
-    }
-  </dl>
-
-  <!-- Below 768px the same content collapses, where vertical space is scarce. -->
-  <div class="collapsed">
-    {
-      faqs.map((faq) => (
-        <details>
-          <summary>{faq.question}</summary>
+  {
+    faqs.map((faq) => (
+      <details class="qa" name="home-faq">
+        <summary>
+          <span class="q">{faq.question}</span>
+          <span class="sign" aria-hidden="true" />
+        </summary>
+        <div class="a">
           <p>{faq.answer}</p>
-        </details>
-      ))
-    }
-  </div>
+        </div>
+      </details>
+    ))
+  }
 </div>
 
-{schema && faqs.length > 0 && (
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />
-)}
+{
+  schema && (
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(faqSchema)}
+    />
+  )
+}
 
 <style>
-  .list {
-    display: none;
-    margin: 0;
-    border-top: 1px solid var(--rule);
+  /* ─────────────────── Native accordion ───────────────────
+     <details name="..."> makes the group exclusive: opening one closes the
+     others, which is the behaviour a scripted accordion is usually written to
+     provide. Browsers without support simply allow several open at once, which
+     is a perfectly good fallback rather than a broken one. */
+
+  .faqs {
+    border-top: 2px solid var(--ink);
   }
 
   .qa {
-    display: grid;
-    gap: var(--s3);
-    padding-block: var(--s5);
-    border-bottom: 1px solid var(--rule);
-  }
-
-  dt {
-    font-family: var(--font-display);
-    font-size: var(--t1);
-    font-weight: 600;
-    max-width: 34ch;
-  }
-
-  dd {
-    margin: 0;
-    color: var(--ink-2);
-    max-width: 62ch;
-  }
-
-  /* ─── Collapsed, below 768px ─── */
-
-  .collapsed {
-    border-top: 1px solid var(--rule);
-  }
-
-  details {
     border-bottom: 1px solid var(--rule);
   }
 
   summary {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    gap: var(--s4);
+    gap: var(--s5);
+    /* A comfortable tap target: this row is the whole control. */
     padding-block: var(--s4);
     cursor: pointer;
-    font-family: var(--font-display);
-    font-weight: 600;
     list-style: none;
   }
 
+  /* Safari draws its own triangle unless this is removed. */
   summary::-webkit-details-marker {
     display: none;
   }
 
-  summary::after {
-    content: '+';
-    font-family: var(--font-data);
-    font-size: 1.25rem;
-    color: var(--ink-3);
-    line-height: 1;
+  .q {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    max-width: 46ch;
   }
 
-  details[open] summary::after {
-    content: '\2013';
+  /* A plus that becomes a minus. Two bars, one rotated, so the state change is
+     a transform rather than a glyph swap. */
+  .sign {
+    position: relative;
+    flex: none;
+    width: 16px;
+    height: 16px;
   }
 
-  details p {
-    padding-bottom: var(--s4);
+  .sign::before,
+  .sign::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 7px;
+    width: 16px;
+    height: 2px;
+    background: var(--ink);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .sign::after {
+    transform: rotate(90deg);
+  }
+
+  .qa[open] .sign::after {
+    transform: rotate(0deg);
+  }
+
+  .a {
+    padding-bottom: var(--s5);
+  }
+
+  .a p {
     color: var(--ink-2);
+    max-width: 68ch;
   }
 
-  @media (min-width: 768px) {
-    .list {
-      display: block;
+  @media (hover: hover) {
+    summary:hover .q {
+      color: var(--spruce-2);
+    }
+  }
+
+  /* The focus ring goes on the summary, which is the focusable element. */
+  summary:focus-visible {
+    outline: 2px solid var(--spruce-2);
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 700px) {
+    summary {
+      padding-block: var(--s5);
     }
 
-    .collapsed {
-      display: none;
-    }
-
-    .qa {
-      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-      gap: var(--s7);
-      align-items: baseline;
-      padding-block: var(--s6);
+    .q {
+      font-size: var(--d3);
     }
   }
 </style>

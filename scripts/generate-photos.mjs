@@ -103,6 +103,8 @@ const RATIO = {
   '21:9': 'landscape_16_9',
   '1:1': 'square_hd',
   '4:5': 'portrait_4_3',
+  '3:4': 'portrait_4_3',
+  '9:16': 'portrait_16_9',
 };
 
 /* ───────────────────────────── Shot list ───────────────────────────── */
@@ -462,6 +464,116 @@ const SHOTS = [
     env: true,
   },
 ];
+
+/*
+ * ─────────────────── 2026 homepage set ───────────────────
+ *
+ * HERO, ART DIRECTED IN TWO CROPS. One wide file letterboxed into a phone gives
+ * a hero where the subject is a strip of driveway, so the desktop and mobile
+ * heroes are generated as two compositions of ONE scene rather than two crops of
+ * one file: the wide frame carries the environment, the tall frame moves in on
+ * the staged load with the trailer behind it. Both keep the left third quiet,
+ * because that is where the headline sits.
+ *
+ * BEFORE/AFTER runs the derivation in the documented direction: the clean frame
+ * is generated first and the cluttered frame is derived from it, so the house,
+ * the camera position and the light are the same picture in both states.
+ */
+/**
+ * The first run of the 2026 heroes came back with an enclosed box truck and an
+ * enclosed cargo trailer. "Open utility trailer with mesh side rails" was not
+ * enough: the model reads "trailer at a house with furniture" as a moving
+ * company and supplies the vehicle that scene usually contains. Load Logic tows
+ * an OPEN trailer, so the openness has to be stated as the subject, repeated,
+ * and defended in the negatives, or the image makes a false claim about the
+ * equipment the business owns.
+ */
+const OPEN_TRAILER =
+  'a white pickup truck towing a completely open flatbed utility trailer, the trailer has a flat deck with low mesh side rails ' +
+  'about waist height and absolutely no roof and no walls, fully open to the sky so the furniture loaded on it is visible from above, ' +
+  'plain and unbranded with no lettering or decals';
+
+const NO_FACE =
+  'no visible face, no facial features, no eyes, no portrait, nobody looking toward the camera, nobody facing the camera';
+
+const NOT_A_BOX_TRUCK =
+  'the trailer must not be enclosed, no box truck, no moving van, no cargo trailer, no enclosed trailer, ' +
+  'no roof over the trailer, no solid trailer walls, no roll up door, no shipping container';
+
+const HOMEPAGE_2026 = [
+  {
+    id: 'hero-drive-wide',
+    dir: 'home',
+    ratio: '16:9',
+    scene:
+      'a modest single storey suburban home on an ordinary residential street, a household cleanout in progress on the driveway: ' +
+      'a worn three seat sofa, a chest of drawers, several stacked cardboard boxes and two storage totes set out in a loose group on the concrete, ' +
+      OPEN_TRAILER +
+      ' parked side on in the driveway with a partial load of furniture stacked on the open deck, ' +
+      'the black mesh side rails of the trailer are clearly visible along its whole length, ' +
+      NOT_A_BOX_TRUCK + ', ' + NO_FACE + ', ' +
+      'one working adult in a dark green work polo, jeans and work gloves photographed strictly from behind, ' +
+      'their back is fully to the camera and only the back of their head and shoulders is visible, walking away from the camera carrying a box, ' +
+      'the face is completely hidden and no facial features are visible at all, ' +
+      'the trailer and the load sit in the right two thirds of the frame, the left third is empty open driveway and gravel yard with nothing in it, ' +
+      'ordinary weekday, nothing staged for a photograph',
+    env: true,
+  },
+  {
+    id: 'hero-drive-tall',
+    dir: 'home',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph looking along a suburban driveway, ' +
+      'in the foreground a household cleanout staged on the concrete: a worn three seat sofa, a chest of drawers, ' +
+      'stacked cardboard boxes and two storage totes grouped together, ' +
+      'behind them and further away ' +
+      OPEN_TRAILER +
+      ' parked side on to the camera so the flat open deck and its low mesh rails are seen from the side against the sky with furniture stacked on top, ' +
+      NOT_A_BOX_TRUCK +
+      ', the camera is outside on the driveway looking at the side of the trailer, never looking into the back of any vehicle, ' +
+      'a stucco house with a tile roof behind, ' +
+      'the staged furniture fills the lower half of the frame and the roofline and open sky fill the upper part, ' +
+      'ordinary weekday, nothing staged for a photograph',
+    env: true,
+    empty: true,
+  },
+
+  {
+    id: 'cleanout-after',
+    dir: 'before-after',
+    ratio: '3:2',
+    scene:
+      'a completely clear and empty suburban driveway in front of an open two car garage, ' +
+      'the concrete swept clean with nothing on it at all, the garage interior visible and completely bare, ' +
+      'bare painted drywall and a bare swept concrete garage floor with absolutely nothing in the garage, ' +
+      'no shelving, no storage, no tools, no bicycles, no boxes, no furniture, no appliances, no vehicles, no trailer, ' +
+      'an entirely emptied garage immediately after a professional cleanout, ' +
+      'photographed square on from the street at eye level',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'cleanout-before',
+    dir: 'before-after',
+    ratio: '3:2',
+    derivedFrom: 'cleanout-after',
+    strength: 0.82,
+    scene:
+      'the identical suburban driveway and open two car garage, same house, same camera position, same light, ' +
+      'now completely full: the garage packed wall to wall and floor to ceiling with stacked cardboard boxes, storage totes, ' +
+      'a broken dresser, an old bicycle, paint cans and bagged household clutter with no floor space visible, ' +
+      'and more of the same overflowing out onto the driveway in front of it, a worn sofa and a stack of boxes standing on the concrete, ' +
+      'years of accumulated household junk, identical house, identical camera position, identical light',
+    env: true,
+    empty: true,
+  },
+];
+
+/* The 2026 set is appended rather than spread into the SHOTS literal above: it
+   is declared after it, so referencing it inside the literal would hit the
+   temporal dead zone at module evaluation. */
+SHOTS.push(...HOMEPAGE_2026);
 
 /* ───────────────────────────── Generation ───────────────────────────── */
 

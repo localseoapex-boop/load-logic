@@ -63,12 +63,14 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
 
 <style>
   /* ─────────────────── An index, not a list of links ───────────────────
-     Fourteen equal cards was the most templated thing on the old homepage, and
-     the two-column ruled version that replaced it was tidier but still read as
-     UI. This is a contents page: a mono numeral, the service name at display
-     weight, and its own line of description in a facing column. The numbering
-     is what does the work, because it turns fourteen separate links into one
-     enumerated body of work. */
+     Fourteen equal cards was the most templated thing on the old homepage. This
+     is a contents page: a mono numeral, the service name at display weight, and
+     its own line of description. The numbering is what does the work, because it
+     turns fourteen separate links into one enumerated body of work.
+
+     TWO COLUMNS above 900px. Fourteen full-width rows was legible but cost most
+     of a screen; paired columns halve that without touching the content, and at
+     roughly 600px per column the name and its description still both fit. */
 
   .directory {
     list-style: none;
@@ -85,11 +87,11 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
      difference between a comfortable tap and a fiddly one. */
   .directory a {
     display: grid;
-    grid-template-columns: 2.75rem minmax(0, 1fr) 1.25rem;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 1.25rem;
     grid-template-areas:
       'num name mark'
       'num blurb blurb';
-    column-gap: var(--s4);
+    column-gap: var(--s3);
     align-items: baseline;
     padding-block: var(--s4);
     text-decoration: none;
@@ -121,11 +123,11 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
     margin-top: var(--s1);
     font-size: var(--t3);
     color: var(--ink-2);
-    max-width: 52ch;
+    max-width: 46ch;
   }
 
-  /* A single directional mark per row, held at low contrast until the row is
-     the one being pointed at. */
+  /* One directional mark per row, held at low contrast until the row is the one
+     being pointed at. */
   .mark {
     grid-area: mark;
     justify-self: end;
@@ -141,12 +143,12 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
       background: var(--bone-2);
     }
 
-    .directory a:hover .num {
+    .directory a:hover .num,
+    .directory a:hover .mark {
       color: var(--ink);
     }
 
     .directory a:hover .mark {
-      color: var(--ink);
       transform: translateX(3px);
     }
   }
@@ -156,15 +158,22 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
     outline-offset: -2px;
   }
 
-  @media (min-width: 820px) {
-    /* Name and description move into facing columns, which is what makes it
-       scan as an index rather than as stacked rows. The names can then carry
-       real display size without the descriptions pushing the rows apart. */
+  @media (min-width: 900px) {
+    .directory {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    /* Each column carries its own top rule so the two read as parallel indexes
+       rather than as one list that happens to wrap. */
+    .directory li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+
     .directory a {
-      grid-template-columns: 3.5rem minmax(0, 19rem) minmax(0, 1fr) 1.5rem;
-      grid-template-areas: 'num name blurb mark';
-      align-items: center;
-      column-gap: var(--s6);
+      grid-template-columns: 3rem minmax(0, 1fr) 1.5rem;
+      column-gap: var(--s4);
       padding-block: var(--s4);
       padding-inline: var(--s3);
       margin-inline: calc(var(--s3) * -1);
@@ -172,14 +181,6 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
 
     .name {
       font-size: var(--d3);
-    }
-
-    .blurb {
-      margin-top: 0;
-    }
-
-    .num {
-      font-size: var(--t2);
     }
   }
 </style>
