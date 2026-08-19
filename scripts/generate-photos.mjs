@@ -429,6 +429,38 @@ const SHOTS = [
     env: false,
     empty: true,
   })),
+
+  /* ─── Homepage imagery pass ───
+     Three genuine gaps. Everything else the homepage needs was already
+     generated and vetted in phase 3 and is reused rather than regenerated. */
+  {
+    id: 'load-side',
+    dir: 'loads',
+    ratio: '16:9',
+    scene:
+      'an open utility trailer with mesh side rails hitched to a white pickup truck, loaded with mixed household junk, ' +
+      'old furniture, cardboard boxes and a mattress stacked to the top of the rails, photographed square on from the side ' +
+      'in a residential driveway',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'quote-photo',
+    dir: 'home',
+    ratio: '16:9',
+    scene:
+      'over the shoulder view of one person holding up a smartphone to photograph a pile of old furniture, boxes and ' +
+      'household clutter in an open garage, the phone seen from behind at an angle so no screen content is visible, ' +
+      'only a hand and forearm in frame, no face',
+    env: false,
+  },
+  {
+    id: 'proof-loaded',
+    dir: 'home',
+    ratio: '16:9',
+    scene: `${WORKERS}, lifting the rear gate closed on a fully loaded open utility trailer heaped with old furniture and boxes, work finished, empty swept driveway behind them`,
+    env: true,
+  },
 ];
 
 /* ───────────────────────────── Generation ───────────────────────────── */
