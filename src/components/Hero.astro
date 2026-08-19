@@ -28,9 +28,17 @@ interface Props {
   subhead: string;
   /** Describes the work, never the company. See docs/image-art-direction.md. */
   alt: string;
+  /**
+   * Alt for the small-screen crop. It needs its own, not an empty string: the
+   * desktop image is display:none below 768px, which removes it from the
+   * accessibility tree, so this is the only hero image a mobile screen reader
+   * ever sees. Leaving it decorative meant mobile users got no description at
+   * all.
+   */
+  mobileAlt: string;
 }
 
-const { eyebrow, heading, subhead, alt } = Astro.props;
+const { eyebrow, heading, subhead, alt, mobileAlt } = Astro.props;
 ---
 
 <section class="hero">
@@ -47,7 +55,7 @@ const { eyebrow, heading, subhead, alt } = Astro.props;
     <Image
       class="img mobile"
       src={heroMobile}
-      alt=""
+      alt={mobileAlt}
       widths={[480, 780]}
       sizes="100vw"
       loading="eager"

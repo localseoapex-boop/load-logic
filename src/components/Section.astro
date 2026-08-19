@@ -15,6 +15,12 @@
  * The heading block is optional and deliberately plain. `label` is the uppercase
  * micro-label, rationed to one per three sections site-wide, so most sections
  * pass no label at all and let their position on the page do that work.
+ *
+ * MEDIA SLOT. A section header at desktop leaves most of the row empty, because
+ * the heading and intro are measured to a readable width. Filling the `media`
+ * slot puts a photograph in that space instead of adding a separate image
+ * section, which is how this page gets visually richer without getting longer.
+ * On mobile the image stacks under the header at full width.
  */
 interface Props {
   weight?: 'tight' | 'standard' | 'feature';
@@ -47,6 +53,7 @@ const {
 } = Astro.props;
 
 const hasHeader = Boolean(label || heading || intro);
+const hasMedia = Astro.slots.has('media');
 ---
 
 <section
@@ -61,11 +68,18 @@ const hasHeader = Boolean(label || heading || intro);
   >
     {
       hasHeader && (
-        <header class="head" data-reveal={reveal ? '' : undefined}>
-          {label && <p class="label">{label}</p>}
-          {heading && <Heading>{heading}</Heading>}
-          {intro && <p class="intro">{intro}</p>}
-        </header>
+        <div class:list={['head-row', { 'with-media': hasMedia }]}>
+          <header class="head" data-reveal={reveal ? '' : undefined}>
+            {label && <p class="label">{label}</p>}
+            {heading && <Heading>{heading}</Heading>}
+            {intro && <p class="intro">{intro}</p>}
+          </header>
+          {hasMedia && (
+            <div class="head-media" data-reveal={reveal ? '' : undefined}>
+              <slot name="media" />
+            </div>
+          )}
+        </div>
       )
     }
     <slot />
@@ -113,11 +127,51 @@ const hasHeader = Boolean(label || heading || intro);
 
   /* ─── Header block ─── */
 
+  .head-row {
+    margin-bottom: var(--s6);
+  }
+
   .head {
     /* Wide enough that a display heading does not wrap into a narrow column and
        leave most of the row empty. The intro keeps its own tighter measure. */
     max-width: 68ch;
-    margin-bottom: var(--s6);
+  }
+
+  /* Photography is square-cornered, per DESIGN.md. */
+  .head-media :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: var(--r-flat);
+  }
+
+  /* Beside a heading, the image is a companion to the text, not the subject. Left
+     uncapped it sets the row height and pushes the heading off its own baseline. */
+  @media (min-width: 900px) {
+    .head-media :global(img) {
+      max-height: 320px;
+      object-fit: cover;
+    }
+  }
+
+  .with-media .head-media {
+    margin-top: var(--s5);
+  }
+
+  @media (min-width: 900px) {
+    .with-media {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+      gap: var(--s8);
+      align-items: center;
+    }
+
+    .with-media .head {
+      max-width: 46ch;
+    }
+
+    .with-media .head-media {
+      margin-top: 0;
+    }
   }
 
   .label {

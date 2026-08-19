@@ -67,8 +67,23 @@ import { getJob } from '../data/jobs';
 import { hasVerifiedReviews } from '../data/reviews';
 import { getFaq } from '../data/faqs';
 
+import { Image } from 'astro:assets';
 import baGarageBefore from '../assets/photos/before-after/ba-garage-before.jpg';
 import baGarageAfter from '../assets/photos/before-after/ba-garage-after.jpg';
+
+/*
+ * Homepage photography. Three of these were generated for this pass; the rest
+ * already existed from phase 3 and were sitting unused, so they are reused
+ * rather than regenerated. Every one is documentary service imagery: no
+ * generated person is presented as the Load Logic team, and no frame shows more
+ * than the one truck and one trailer the business actually runs.
+ */
+import imgStaged from '../assets/photos/equipment/equip-sorting.jpg';
+import imgLoadSide from '../assets/photos/loads/load-side.jpg';
+import imgServiceGarage from '../assets/photos/services/svc-garage.jpg';
+import imgProofLoaded from '../assets/photos/home/proof-loaded.jpg';
+import imgQuotePhoto from '../assets/photos/home/quote-photo.jpg';
+import imgSuburb from '../assets/photos/cities/ctx-suburb.jpg';
 
 /**
  * Six questions, chosen for decision value rather than coverage: price, what is
@@ -114,6 +129,7 @@ const showTrust = hasVerifiedFacts();
     heading="Point at it. We carry it out."
     subhead="Furniture, appliances, garages and full property cleanouts. Send photos and get a price before anything is loaded."
     alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
+    mobileAlt="A gloved hand gripping the wooden frame under a worn sofa as it is lifted"
   />
 
   <!-- 1b. The four facts the original homepage led with. They answer "why you"
@@ -139,6 +155,14 @@ const showTrust = hasVerifiedFacts();
     intro="If it fits on the trailer and it is legal to haul, it goes. Here is the shape of it."
     id="what-we-take"
   >
+    <Image
+      slot="media"
+      src={imgStaged}
+      alt="Household furniture and belongings staged on a driveway ready to be loaded"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
     <MaterialOverview />
   </Section>
 
@@ -152,6 +176,14 @@ const showTrust = hasVerifiedFacts();
     intro="Price follows volume, so find the closest match and you already have a range. The minimum is $85."
     width="wide"
   >
+    <Image
+      slot="media"
+      src={imgLoadSide}
+      alt="An open utility trailer with mesh side rails loaded with boxes and household junk, hitched to a pickup truck on a driveway"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
     <LoadSizeScale />
 
     <div class="pricing-note">
@@ -178,6 +210,15 @@ const showTrust = hasVerifiedFacts();
     intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
     id="services"
   >
+    <figure class="band">
+      <Image
+        src={imgServiceGarage}
+        alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
+        widths={[600, 1000, 1440]}
+        sizes="(min-width: 1100px) 1100px, 100vw"
+        loading="lazy"
+      />
+    </figure>
     <ServiceDirectory />
   </Section>
 
@@ -199,6 +240,17 @@ const showTrust = hasVerifiedFacts();
       caption="Drag to compare. Representative of a three-quarter load garage cleanout."
     />
     {featureJob && <div class="job"><ExampleJob job={featureJob} /></div>}
+    <figure class="band proof-band">
+      <Image
+        src={imgProofLoaded}
+        alt="Two workers closing the gate on a loaded trailer of old furniture, with a swept empty driveway behind"
+        widths={[600, 1000, 1440]}
+        sizes="(min-width: 1200px) 1200px, 100vw"
+        loading="lazy"
+      />
+      <figcaption class="data">The same job, loaded and away. One trailer, one trip.</figcaption>
+    </figure>
+
     <div class="rigs">
       <EquipmentCapability variant="compact" />
     </div>
@@ -208,6 +260,14 @@ const showTrust = hasVerifiedFacts();
        a homepage is for conversion clarity, not documentation: four steps can be
        taken in at a glance, where six read as a procedure. -->
   <Section heading="How it works">
+    <Image
+      slot="media"
+      src={imgQuotePhoto}
+      alt="A hand holding a phone up to photograph a pile of furniture and boxes in a garage"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
     <HowItWorks variant="booking" />
   </Section>
 
@@ -220,6 +280,15 @@ const showTrust = hasVerifiedFacts();
     width="wide"
     id="areas"
   >
+    <figure class="band wide-band">
+      <Image
+        src={imgSuburb}
+        alt="A quiet East Valley residential street of single storey stucco homes with tile roofs and gravel front yards"
+        widths={[600, 1000, 1440]}
+        sizes="(min-width: 1200px) 1200px, 100vw"
+        loading="lazy"
+      />
+    </figure>
     <ServiceAreaChecker />
   </Section>
 
@@ -299,6 +368,56 @@ const showTrust = hasVerifiedFacts();
       grid-template-columns: repeat(4, 1fr);
       gap: var(--s5);
     }
+  }
+
+  /*
+   * Image bands. A wide photograph carrying its own aspect ratio, used where a
+   * section benefits from one visual anchor rather than an image beside every
+   * block. Ratios vary deliberately so the page does not settle into one rhythm:
+   * 16:9 for the proof band, 21:9 for the location band.
+   */
+  .band {
+    margin: 0 0 var(--s6);
+  }
+
+  .band :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--r-flat);
+  }
+
+  .wide-band :global(img) {
+    aspect-ratio: 21 / 9;
+  }
+
+  /* Full-bleed bands are ratio-driven, which is right on a phone and wrong on a
+     desktop: 16/9 across a 1345px content width renders 756px tall, taller than
+     the laptop viewport it is being viewed in, so the band stops reading as an
+     image in a page and starts reading as an interstitial. Capping the height
+     keeps the ratio on narrow screens and turns the band into a wider crop on
+     large ones, which is the shape it wanted anyway. */
+  @media (min-width: 1000px) {
+    .band :global(img) {
+      max-height: 420px;
+      object-fit: cover;
+    }
+
+    .wide-band :global(img) {
+      max-height: 380px;
+    }
+  }
+
+  .proof-band {
+    margin-top: var(--s7);
+    margin-bottom: 0;
+  }
+
+  .proof-band figcaption {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+    color: var(--ink-2);
   }
 
   /* The pricing model, attached to the scale that produced the numbers. */
