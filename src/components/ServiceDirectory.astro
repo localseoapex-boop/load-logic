@@ -42,24 +42,39 @@ const { only, headingLevel: Heading = 'h3' } = Astro.props;
 const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
 ---
 
-<ul class="directory" data-reveal>
+<ol class="directory" data-reveal>
   {
-    shown.map((service) => (
+    shown.map((service, i) => (
       <li>
         <a href={serviceUrl(service.slug)}>
+          <span class="num data" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
           <Heading class="name">{service.name}</Heading>
           <span class="blurb">{service.tagline}</span>
+          <span class="mark" aria-hidden="true">
+            &#8594;
+          </span>
         </a>
       </li>
     ))
   }
-</ul>
+</ol>
 
 <style>
+  /* ─────────────────── An index, not a list of links ───────────────────
+     Fourteen equal cards was the most templated thing on the old homepage, and
+     the two-column ruled version that replaced it was tidier but still read as
+     UI. This is a contents page: a mono numeral, the service name at display
+     weight, and its own line of description in a facing column. The numbering
+     is what does the work, because it turns fourteen separate links into one
+     enumerated body of work. */
+
   .directory {
     list-style: none;
     padding: 0;
-    border-top: 1px solid var(--rule);
+    margin: 0;
+    border-top: 2px solid var(--ink);
   }
 
   .directory li {
@@ -69,44 +84,102 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
   /* The whole row is the target, not just the name. On a phone that is the
      difference between a comfortable tap and a fiddly one. */
   .directory a {
-    display: block;
-    padding-block: var(--s3);
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 1.25rem;
+    grid-template-areas:
+      'num name mark'
+      'num blurb blurb';
+    column-gap: var(--s4);
+    align-items: baseline;
+    padding-block: var(--s4);
     text-decoration: none;
     color: var(--ink);
+    transition: background var(--dur) var(--ease);
   }
 
-  .name {
-    font-family: var(--font-display);
-    font-size: var(--t2);
+  .num {
+    grid-area: num;
+    font-size: var(--t3);
     font-weight: 700;
-    letter-spacing: -0.005em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
     transition: color var(--dur) var(--ease);
   }
 
-  .directory a:hover .name {
-    color: var(--spruce-2);
-  }
-
-  /* A small directional mark on hover only, so fourteen rows do not carry
-     fourteen permanent arrows. */
-  .directory a:hover .name::after {
-    content: ' \2192';
-    color: var(--spruce-2);
+  .name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
   }
 
   .blurb {
+    grid-area: blurb;
     display: block;
     margin-top: var(--s1);
     font-size: var(--t3);
     color: var(--ink-2);
-    max-width: 46ch;
+    max-width: 52ch;
   }
 
-  @media (min-width: 700px) {
-    .directory {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      column-gap: var(--s8);
+  /* A single directional mark per row, held at low contrast until the row is
+     the one being pointed at. */
+  .mark {
+    grid-area: mark;
+    justify-self: end;
+    color: var(--rule-strong);
+    font-size: var(--t2);
+    transition:
+      transform var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  @media (hover: hover) {
+    .directory a:hover {
+      background: var(--bone-2);
+    }
+
+    .directory a:hover .num {
+      color: var(--ink);
+    }
+
+    .directory a:hover .mark {
+      color: var(--ink);
+      transform: translateX(3px);
+    }
+  }
+
+  .directory a:focus-visible {
+    outline: 2px solid var(--spruce-2);
+    outline-offset: -2px;
+  }
+
+  @media (min-width: 820px) {
+    /* Name and description move into facing columns, which is what makes it
+       scan as an index rather than as stacked rows. The names can then carry
+       real display size without the descriptions pushing the rows apart. */
+    .directory a {
+      grid-template-columns: 3.5rem minmax(0, 19rem) minmax(0, 1fr) 1.5rem;
+      grid-template-areas: 'num name blurb mark';
+      align-items: center;
+      column-gap: var(--s6);
+      padding-block: var(--s4);
+      padding-inline: var(--s3);
+      margin-inline: calc(var(--s3) * -1);
+    }
+
+    .name {
+      font-size: var(--d3);
+    }
+
+    .blurb {
+      margin-top: 0;
+    }
+
+    .num {
+      font-size: var(--t2);
     }
   }
 </style>

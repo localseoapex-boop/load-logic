@@ -113,9 +113,8 @@ const steps =
   {
     steps.map((step) => (
       <li>
-        <div class="marker">
-          <span class="num data" />
-        </div>
+        <span class="num data" aria-hidden="true" />
+        <span class="lead" aria-hidden="true" />
         <div class="body">
           <h3>{step.title}</h3>
           <p>{step.text}</p>
@@ -126,28 +125,54 @@ const steps =
 </ol>
 
 <style>
+  /* ──────────────────────── A ledger, not cards ────────────────────────
+     The content here is the original four steps, kept verbatim because their
+     simplicity was the point. What changed is the reading: a numeral, a ticked
+     lead line, then the step. The lead lines make the four numbers scan as one
+     sequence going somewhere rather than as four separate items. */
+
   .steps {
     list-style: none;
     padding: 0;
     counter-reset: step;
-    border-top: 1px solid var(--rule);
+    border-top: 2px solid var(--ink);
   }
 
   li {
     counter-increment: step;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--s4);
+    grid-template-columns: 3rem minmax(0, 1fr);
+    grid-template-areas:
+      'num body'
+      'num body';
+    column-gap: var(--s4);
     align-items: start;
     padding-block: var(--s5);
     border-bottom: 1px solid var(--rule);
   }
 
+  .num {
+    grid-area: num;
+  }
+
   .num::before {
     content: counter(step, decimal-leading-zero);
-    font-size: var(--t2);
-    font-weight: 600;
+    font-size: var(--num-md);
+    font-weight: 700;
+    line-height: 1;
     color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* The lead line is a supporting detail, so it is the thing that disappears on
+     a phone rather than something that has to be squeezed in. */
+  .lead {
+    display: none;
+  }
+
+  .body {
+    grid-area: body;
   }
 
   h3 {
@@ -163,9 +188,33 @@ const steps =
 
   @media (min-width: 768px) {
     li {
-      grid-template-columns: 3rem minmax(0, 1fr);
-      gap: var(--s6);
+      grid-template-columns: 4rem 5rem minmax(0, 1fr);
+      grid-template-areas: 'num lead body';
+      column-gap: var(--s5);
       padding-block: var(--s6);
+      align-items: start;
+    }
+
+    .num::before {
+      font-size: var(--num-lg);
+      color: var(--ink);
+    }
+
+    .lead {
+      grid-area: lead;
+      display: block;
+      /* Sits on the optical centre line of the step title. */
+      margin-top: 0.85em;
+      height: 7px;
+      border-bottom: 1px solid var(--rule-strong);
+      background-image: repeating-linear-gradient(
+        to right,
+        var(--rule-strong) 0 1px,
+        transparent 1px 14px
+      );
+      background-repeat: repeat-x;
+      background-position: left bottom;
+      background-size: 100% 4px;
     }
 
     h3 {

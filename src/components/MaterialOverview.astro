@@ -124,23 +124,32 @@ const prohibitedCount = prohibitedMaterials().length;
   .categories {
     list-style: none;
     padding: 0;
-    border-top: 1px solid var(--rule);
+    border-top: 2px solid var(--ink);
   }
 
   .categories li {
-    padding-block: var(--s3);
+    padding-block: var(--s4);
     border-bottom: 1px solid var(--rule);
   }
 
+  /* The category is the thing being scanned, so it takes display weight, and the
+     examples drop into the data register beneath it. The contrast between the
+     two is what stops eight rows of similar-length text reading as a wall: you
+     see eight names first and only read the examples for the one you want.
+     Deliberately NOT numbered — the service index owns that device, and running
+     the same numbering here would turn a recurring detail into a tic. */
   .categories h3 {
-    font-size: var(--t2);
-    letter-spacing: 0;
+    font-size: var(--d3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .examples {
-    margin-top: var(--s1);
+    margin-top: var(--s2);
     color: var(--ink-2);
+    font-family: var(--font-data);
     font-size: var(--t3);
+    letter-spacing: -0.01em;
   }
 
   .notes {

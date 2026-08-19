@@ -2,31 +2,48 @@
 /**
  * Section.astro — the page's structural unit.
  *
- * Carries the two things that stop a long page reading as one templated stack:
+ * ────────────────────────── Why this was rebuilt ──────────────────────────
  *
- *   WEIGHT   vertical padding varies by importance. The old site used identical
- *            padding on every section, which is a large part of why it felt
- *            generated. Feature sections breathe, tool strips are tight.
+ * The previous version had two levers, `weight` (padding) and `tone`
+ * (background), and neither carried enough signal to be felt. Measured on the
+ * rendered page, every section heading came out at exactly 52px/700, padding
+ * took one of two values, and the bone/sunk alternation was a ten-point
+ * difference in RGB. So the page had eight sections that announced themselves
+ * at identical volume against a background that never actually changed. That is
+ * the whole of why it read as "content, section, content, section" — not the
+ * content, which is good, but the total absence of hierarchy between sections.
  *
- *   TONE     bone (default), sunk (recessed band), or spruce (brand block).
- *            DESIGN.md caps spruce blocks at three per page so they stay
- *            punctuation rather than rhythm.
+ * Three levers now, and they are meant to be obvious:
  *
- * The heading block is optional and deliberately plain. `label` is the uppercase
- * micro-label, rationed to one per three sections site-wide, so most sections
- * pass no label at all and let their position on the page do that work.
+ *   SCALE    display / standard / utility. The load scale and the FAQ are not
+ *            equally important and must not be set at the same size. The steps
+ *            are far apart on purpose.
+ *
+ *   TONE     bone, sunk, white or spruce. `white` is a genuine surface change
+ *            rather than a tint, and spruce is now allowed to appear mid-page as
+ *            a major transition instead of only bookending it.
+ *
+ *   INDEX    an optional section numeral. Beyond wayfinding, this is the page's
+ *            recurring field-documentation detail: a mono index, a ticked rule,
+ *            and an operational label, sitting above the heading like the header
+ *            on a job sheet. It gives every section a hard horizontal anchor at
+ *            its top edge, which is what makes the sections distinguishable when
+ *            you scroll past them quickly without reading.
  *
  * MEDIA SLOT. A section header at desktop leaves most of the row empty, because
  * the heading and intro are measured to a readable width. Filling the `media`
  * slot puts a photograph in that space instead of adding a separate image
- * section, which is how this page gets visually richer without getting longer.
- * On mobile the image stacks under the header at full width.
+ * section. On mobile the image stacks under the header at full width.
  */
 interface Props {
   weight?: 'tight' | 'standard' | 'feature';
-  tone?: 'bone' | 'sunk' | 'spruce';
+  tone?: 'bone' | 'sunk' | 'white' | 'spruce';
   width?: 'content' | 'wide' | 'narrow';
-  /** Uppercase micro-label. Use sparingly: max one per three sections. */
+  /** Heading size. Ration `display` to the two or three signature sections. */
+  scale?: 'display' | 'standard' | 'utility';
+  /** Section numeral, e.g. "02". Rendered mono beside a ticked rule. */
+  index?: string;
+  /** Uppercase operational label, sits at the far end of the index rule. */
   label?: string;
   heading?: string;
   /** Sub-heading paragraph. Stacked under the heading, never floated right. */
@@ -43,6 +60,8 @@ const {
   weight = 'standard',
   tone = 'bone',
   width = 'content',
+  scale = 'standard',
+  index,
   label,
   heading,
   intro,
@@ -52,7 +71,8 @@ const {
   class: className = '',
 } = Astro.props;
 
-const hasHeader = Boolean(label || heading || intro);
+const hasMasthead = Boolean(index || label);
+const hasHeader = Boolean(heading || intro || hasMasthead);
 const hasMedia = Astro.slots.has('media');
 ---
 
@@ -67,10 +87,18 @@ const hasMedia = Astro.slots.has('media');
     ]}
   >
     {
-      hasHeader && (
-        <div class:list={['head-row', { 'with-media': hasMedia }]}>
-          <header class="head" data-reveal={reveal ? '' : undefined}>
-            {label && <p class="label">{label}</p>}
+      hasMasthead && (
+        <div class="masthead" data-reveal={reveal ? '' : undefined}>
+          {index && <span class="idx">{index}</span>}
+          <span class="tickrule" aria-hidden="true" />
+          {label && <span class="lbl">{label}</span>}
+        </div>
+      )
+    }
+    {
+      hasHeader && (heading || intro) && (
+        <div class:list={['head-row', `row-${scale}`, { 'with-media': hasMedia }]}>
+          <header class:list={['head', `scale-${scale}`]} data-reveal={reveal ? '' : undefined}>
             {heading && <Heading>{heading}</Heading>}
             {intro && <p class="intro">{intro}</p>}
           </header>
@@ -115,7 +143,33 @@ const hasMedia = Astro.slots.has('media');
     background: var(--bone-2);
   }
 
+  /* A real surface change rather than a tint. Used for the measuring sections,
+     where white reads as instrument paper against the warm page. */
+  .white {
+    background: var(--surface);
+  }
+
+  /* Rather than override every child component's colours one by one, the spruce
+     section REMAPS the tokens its children already read. A component written for
+     the light page (rules, muted text, a white panel) then renders correctly on
+     dark without knowing it is on dark, and anything added later inherits the
+     same behaviour for free. This is why the proof section can host the job
+     record, the equipment table and the before/after slider unmodified. */
   .spruce {
+    --ink: #ffffff;
+    --ink-2: var(--on-spruce);
+    --ink-3: var(--on-spruce-2);
+    --rule: var(--rule-on-spruce);
+    --rule-strong: #3d6155;
+    /* Anything expecting a raised panel gets a lifted spruce, not white. */
+    --surface: #17402f;
+    --bone: var(--spruce);
+    --bone-2: #17402f;
+    /* Links read as var(--spruce-2), which is invisible against spruce. On dark
+       the accent takes over as the link colour. */
+    --spruce-2: var(--hi-vis);
+    --spruce-3: var(--hi-vis);
+
     background: var(--spruce);
     color: var(--on-spruce);
   }
@@ -123,6 +177,66 @@ const hasMedia = Astro.slots.has('media');
   .spruce :global(h2),
   .spruce :global(h3) {
     color: #fff;
+  }
+
+  /* ─── Masthead: index, ticked rule, operational label ─── */
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    margin-bottom: var(--s7);
+  }
+
+  .idx {
+    font-family: var(--font-data);
+    font-size: var(--t2);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    flex: none;
+  }
+
+  /* The recurring measurement detail. A baseline with ticks rising off it, at a
+     pitch loose enough to read as a ruler edge rather than as a pattern. */
+  .tickrule {
+    flex: 1;
+    height: 7px;
+    border-bottom: 1px solid var(--rule-strong);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--rule-strong) 0 1px,
+      transparent 1px 14px
+    );
+    background-repeat: repeat-x;
+    background-position: left bottom;
+    background-size: 100% 4px;
+  }
+
+  .lbl {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    flex: none;
+  }
+
+  .spruce .idx {
+    color: var(--hi-vis);
+  }
+
+  .spruce .tickrule {
+    border-bottom-color: var(--rule-on-spruce);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--rule-on-spruce) 0 1px,
+      transparent 1px 14px
+    );
+  }
+
+  .spruce .lbl {
+    color: var(--on-spruce-2);
   }
 
   /* ─── Header block ─── */
@@ -135,6 +249,27 @@ const hasMedia = Astro.slots.has('media');
     /* Wide enough that a display heading does not wrap into a narrow column and
        leave most of the row empty. The intro keeps its own tighter measure. */
     max-width: 68ch;
+  }
+
+  /* ─── Heading scale ───
+     Set on the header so the size travels with the section, not with the tag.
+     The classes are namespaced `scale-*` deliberately: an unprefixed `standard`
+     on the header collided with the section's own `standard` WEIGHT class and
+     silently inherited its 96/128px section padding, adding 224px of dead space
+     under every standard-scale heading on the page. */
+
+  .head.scale-display :global(h2) {
+    font-size: var(--d1);
+    letter-spacing: -0.03em;
+    line-height: 0.96;
+  }
+
+  .head.scale-display {
+    max-width: 22ch;
+  }
+
+  .head.scale-utility :global(h2) {
+    font-size: var(--d3);
   }
 
   /* Photography is square-cornered, per DESIGN.md. */
@@ -157,6 +292,30 @@ const hasMedia = Astro.slots.has('media');
     margin-top: var(--s5);
   }
 
+  /* A display heading set to a short measure leaves the right half of the row
+     empty, which is what made the big headings read as merely large rather than
+     as composed. Where there is no photograph in the row, the intro moves into
+     that space and the two sit on a shared baseline. */
+  @media (min-width: 900px) {
+    .head-row:not(.with-media) .head.scale-display {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--s8);
+      align-items: end;
+      max-width: none;
+    }
+
+    .head-row:not(.with-media) .head.scale-display :global(h2) {
+      max-width: 13ch;
+    }
+
+    .head-row:not(.with-media) .head.scale-display .intro {
+      margin-top: 0;
+      max-width: 38ch;
+      padding-bottom: 0.35em;
+    }
+  }
+
   @media (min-width: 900px) {
     .with-media {
       display: grid;
@@ -165,8 +324,19 @@ const hasMedia = Astro.slots.has('media');
       align-items: center;
     }
 
-    .with-media .head {
+    .with-media .head:not(.scale-display) {
       max-width: 46ch;
+    }
+
+    /* A display heading needs a much wider column than a standard one. At the
+       default split it was being squeezed to about 590px and breaking a
+       six-word heading across five lines. */
+    .with-media.row-display {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+    }
+
+    .with-media.row-display .head {
+      max-width: none;
     }
 
     .with-media .head-media {
@@ -174,19 +344,15 @@ const hasMedia = Astro.slots.has('media');
     }
   }
 
-  .label {
-    margin-bottom: var(--s3);
-  }
-
-  .spruce .label {
-    color: var(--hi-vis);
-  }
-
   .intro {
     margin-top: var(--s4);
     font-size: var(--t1);
     color: var(--ink-2);
     max-width: 54ch;
+  }
+
+  .scale-display .intro {
+    margin-top: var(--s5);
   }
 
   .spruce .intro {

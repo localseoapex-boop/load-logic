@@ -45,6 +45,10 @@ const quote = primaryQuoteAction();
   .final {
     background: var(--spruce);
     color: var(--on-spruce-2);
+    /* The closing edge. The hero panel opens the page with a hi-vis rule along
+       its top; this closes it with the same mark at full viewport width, so the
+       document is bracketed rather than just ending. */
+    border-top: 4px solid var(--hi-vis);
     /* Lighter bottom padding than a feature section would normally take: the
        footer is also spruce and sits directly below, so a full feature gap here
        reads as dead space inside one very large dark region rather than as
@@ -58,9 +62,15 @@ const quote = primaryQuoteAction();
     align-items: start;
   }
 
+  /* The last thing on the page should be one of the largest. Previously it was
+     set at the same size as every section heading above it, which made the
+     ending read as one more section rather than as the close. */
   h2 {
     color: #fff;
-    max-width: 18ch;
+    font-size: var(--d1);
+    letter-spacing: -0.03em;
+    line-height: 0.96;
+    max-width: 15ch;
   }
 
   .body {

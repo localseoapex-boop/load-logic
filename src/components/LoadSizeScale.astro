@@ -22,7 +22,14 @@
  * `published: false` until real pricing is supplied, so this shows how much junk
  * you have, never what it will cost.
  */
-import { loadScale, isPricingPublished, formatVolume, formatPrice, pricingTerms } from '../data/pricing';
+import {
+  loadScale,
+  isPricingPublished,
+  formatVolume,
+  formatPrice,
+  formatPriceCompact,
+  pricingTerms,
+} from '../data/pricing';
 import { confirmedCapacityCubicYards, fleetLimits } from '../data/equipment';
 
 const loads = loadScale();
@@ -78,21 +85,16 @@ const fullLoadNote = `A full load means our ${
               />
             )}
 
-            {/* The text block and the examples are separate grid children so the
-                chips can span the full row width on a phone, where the text
-                column is too narrow for them to sit side by side. */}
+            {/* The scale reading, set as the largest thing in the row. Six of
+                these stacked form a column that climbs 8, 15, 25, 50, 75, 100,
+                which is what turns a list of options into a gauge you read. */}
+            <p class="frac data" aria-hidden="true">
+              {Math.round(load.fraction * 100)}<span class="pct">%</span>
+            </p>
+
             <div class="text">
-              <div class="heading-row">
-                <h3>{load.name}</h3>
-                <span class="pct data">{Math.round(load.fraction * 100)}%</span>
-              </div>
-
+              <h3>{load.name}</h3>
               <p class="summary">{load.summary}</p>
-
-              {showPrices && formatPrice(load.price) && (
-                <p class="price data">{formatPrice(load.price)}</p>
-              )}
-              <p class="volume data">{formatVolume(load) && `about ${formatVolume(load)}`}</p>
             </div>
 
             <ul class="examples">
@@ -100,6 +102,13 @@ const fullLoadNote = `A full load means our ${
                 <li>{ex}</li>
               ))}
             </ul>
+
+            <div class="readings">
+              {showPrices && formatPriceCompact(load.price) && (
+                <p class="price data">{formatPriceCompact(load.price)}</p>
+              )}
+              <p class="volume data">{formatVolume(load)}</p>
+            </div>
           </li>
         );
       })
@@ -133,52 +142,70 @@ const fullLoadNote = `A full load means our ${
 </div>
 
 <style>
+  /* ─────────────────────── The instrument ───────────────────────
+     Read as a gauge, not as a list of six options. The percentage climbs down
+     the left edge in a fixed-width mono column, the drawn trailer fills beside
+     it, and the price and volume sit in a right-hand readings column so all six
+     numbers align vertically and can be compared without moving your eye. */
+
   .steps {
     list-style: none;
     padding: 0;
-    counter-reset: step;
-    border-top: 1px solid var(--rule);
+    border-top: 2px solid var(--ink);
   }
 
-  /* Diagram beside the text even on a phone. Stacked, six steps ran to nearly
-     four screens, and putting them side by side also lets someone compare fill
-     levels while reading rather than scrolling between them. The fill is a solid
-     block, so it stays readable at this size. */
   .step {
     display: grid;
-    grid-template-columns: 132px minmax(0, 1fr);
-    gap: var(--s3) var(--s4);
+    /* Mobile is its own composition, not the desktop row stacked: reading on the
+       top-left, price on the top-right, drawing and description beneath. */
+    /* Fluid so the drawing grows with the screen instead of staying at phone
+       size on a tablet, where the text column has width to spare. */
+    grid-template-columns: clamp(5.5rem, 13vw, 9rem) minmax(0, 1fr);
+    grid-template-areas:
+      'frac read'
+      'diag text'
+      'ex   ex';
+    column-gap: var(--s4);
+    row-gap: var(--s3);
     align-items: start;
-    padding-block: var(--s4);
+    padding-block: var(--s5);
     border-bottom: 1px solid var(--rule);
   }
 
+  .frac {
+    grid-area: frac;
+    font-size: var(--num-lg);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The unit rides small and high off the numeral so the number itself keeps
+     the weight. */
+  .pct {
+    font-size: 0.34em;
+    font-weight: 600;
+    color: var(--ink-3);
+    vertical-align: super;
+    margin-inline-start: 0.12em;
+    letter-spacing: 0;
+  }
+
   .diagram {
+    grid-area: diag;
     width: 100%;
     max-width: 300px;
     height: auto;
   }
 
-  /* The example chips get the full width under both columns. */
-  .examples {
-    grid-column: 1 / -1;
-  }
-
-  .heading-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s3);
+  .text {
+    grid-area: text;
   }
 
   h3 {
     font-size: var(--d3);
-  }
-
-  /* The percentage is the scale reading, so it gets the data register. */
-  .pct {
-    font-size: var(--t2);
-    font-weight: 600;
-    color: var(--ink-3);
   }
 
   .summary {
@@ -189,9 +216,13 @@ const fullLoadNote = `A full load means our ${
   }
 
   /* The recognisable examples carry most of the meaning here, because "a packed
-     two-car garage" is far easier to judge yourself against than a number. */
+     two-car garage" is far easier to judge yourself against than a number.
+     Square-edged and rule-bound rather than pills: this section is an
+     instrument, and the chips were the one soft shape in it. */
   .examples {
+    grid-area: ex;
     padding: 0;
+    margin-top: var(--s3);
     list-style: none;
     display: flex;
     flex-wrap: wrap;
@@ -201,25 +232,29 @@ const fullLoadNote = `A full load means our ${
   .examples li {
     font-size: var(--t3);
     padding: var(--s1) var(--s3);
-    background: var(--bone-2);
-    border-radius: var(--r-pill);
-    color: var(--ink);
+    border: 1px solid var(--rule-strong);
+    color: var(--ink-2);
   }
 
-  /* The price is the answer people came for, so it gets display weight rather
-     than sitting as a footnote after the volume. */
+  .readings {
+    grid-area: read;
+    text-align: end;
+  }
+
+  /* The price is the answer people came for, so it gets display weight. */
   .price {
-    margin-top: var(--s3);
     font-size: var(--t1);
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
   }
 
   .volume {
     margin-top: var(--s1);
     font-size: var(--t3);
     color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
   }
 
   .notes {
@@ -245,21 +280,40 @@ const fullLoadNote = `A full load means our ${
     color: var(--ink);
   }
 
-  @media (min-width: 700px) {
+  @media (min-width: 860px) {
+    /* One horizontal row per load: reading, drawing, description, price. */
     .step {
-      grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-      gap: var(--s7);
+      /* Fluid, not fixed. The numeral column has to track the numeral, which is
+         itself a clamp on viewport width: at a fixed 14rem the text column
+         collapsed to 200px around 1024 and the descriptions wrapped to ribbons.
+         Roughly 2x the numeral's font-size is what three digits plus the unit
+         need. */
+      grid-template-columns:
+        clamp(7rem, 16vw, 14rem)
+        clamp(9rem, 18vw, 230px)
+        minmax(0, 1fr)
+        minmax(0, 9rem);
+      grid-template-areas:
+        'frac diag text read'
+        'frac diag ex   read';
+      column-gap: clamp(var(--s5), 3vw, var(--s7));
       padding-block: var(--s6);
       align-items: center;
+    }
+
+    .frac {
+      font-size: var(--num-xl);
+      /* Optical alignment: the mono numerals sit slightly right of the rule
+         they share with the section masthead without this. */
+      margin-inline-start: -0.04em;
     }
 
     .summary {
       font-size: var(--t2);
     }
 
-    .examples {
-      grid-column: 2;
-      margin-top: var(--s3);
+    .price {
+      font-size: var(--d3);
     }
   }
 </style>

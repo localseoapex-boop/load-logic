@@ -62,7 +62,8 @@ import TrustFacts from '../components/TrustFacts.astro';
 import FaqBlock from '../components/FaqBlock.astro';
 import FinalQuoteCta from '../components/FinalQuoteCta.astro';
 
-import { SITE, hasVerifiedFacts } from '../config/site';
+import { SITE, BUSINESS, hasVerifiedFacts } from '../config/site';
+import { confirmedCapacityCubicYards } from '../data/equipment';
 import { getJob } from '../data/jobs';
 import { hasVerifiedReviews } from '../data/reviews';
 import { getFaq } from '../data/faqs';
@@ -118,6 +119,20 @@ const operatingFacts = [
   'Donation and recycling first',
 ];
 
+/**
+ * The hero's operating rail. Four facts a dispatcher would actually state, and
+ * every one is checkable: the home city, the real single-trip capacity from
+ * equipment.ts (the larger of the two trailers, never their sum, because only
+ * one can be towed at a time), the published minimum from pricing.ts, and the
+ * business phone number.
+ */
+const heroFacts = [
+  { label: 'Base', value: 'Mesa, AZ' },
+  { label: 'Per trip', value: `${confirmedCapacityCubicYards()} yd³` },
+  { label: 'Minimum', value: '$85' },
+  { label: 'Dispatch', value: BUSINESS.phoneDisplay },
+];
+
 const showReviews = hasVerifiedReviews();
 const showTrust = hasVerifiedFacts();
 ---
@@ -130,6 +145,7 @@ const showTrust = hasVerifiedFacts();
     subhead="Furniture, appliances, garages and full property cleanouts. Send photos and get a price before anything is loaded."
     alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
     mobileAlt="A gloved hand gripping the wooden frame under a worn sofa as it is lifted"
+    facts={heroFacts}
   />
 
   <!-- 1b. The four facts the original homepage led with. They answer "why you"
@@ -150,7 +166,8 @@ const showTrust = hasVerifiedFacts();
        full 88-item catalogue stays in the knowledge graph and in
        /knowledge.json rather than on the homepage. -->
   <Section
-    tone="sunk"
+    index="01"
+    label="Materials"
     heading="What do you need gone?"
     intro="If it fits on the trailer and it is legal to haul, it goes. Here is the shape of it."
     id="what-we-take"
@@ -171,6 +188,10 @@ const showTrust = hasVerifiedFacts();
        scale already carries the prices, so the ledger beneath only covers what
        else moves the number, with the volume point omitted as redundant. -->
   <Section
+    index="02"
+    label="Load size / Pricing"
+    tone="white"
+    scale="display"
     weight="feature"
     heading="How much junk do you have?"
     intro="Price follows volume, so find the closest match and you already have a range. The minimum is $85."
@@ -206,6 +227,9 @@ const showTrust = hasVerifiedFacts();
        the directory is the one that answers "what do you offer" directly. The
        Situations component stays in the codebase for service and location pages. -->
   <Section
+    index="03"
+    label="Service index"
+    tone="sunk"
     heading="Junk removal services"
     intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
     id="services"
@@ -225,7 +249,10 @@ const showTrust = hasVerifiedFacts();
   <!-- 5. Proof. One job, shown rather than described, with the equipment that did
        it. Replaces three sections that were all making the same point. -->
   <Section
-    tone="sunk"
+    index="04"
+    label="Field record"
+    tone="spruce"
+    scale="display"
     weight="feature"
     heading="Proof of the work"
     intro="One job end to end, with the same detail you get on a quote."
@@ -259,7 +286,7 @@ const showTrust = hasVerifiedFacts();
   <!-- 6. How it works. The original four steps, verbatim. A booking process on
        a homepage is for conversion clarity, not documentation: four steps can be
        taken in at a glance, where six read as a procedure. -->
-  <Section heading="How it works">
+  <Section index="05" label="Process" heading="How it works">
     <Image
       slot="media"
       src={imgQuotePhoto}
@@ -274,7 +301,10 @@ const showTrust = hasVerifiedFacts();
   <!-- 7. Where we work. Real ZIP codes and plain anchors to every city, so the
        service-area relationships are crawlable without running the checker. -->
   <Section
+    index="06"
+    label="Service area"
     tone="sunk"
+    scale="display"
     heading="Where we work"
     intro="Based in Mesa and working across the East Valley. Check a ZIP code or browse the list."
     width="wide"
@@ -315,7 +345,7 @@ const showTrust = hasVerifiedFacts();
   }
 
   <!-- 9. FAQ. Six questions with decision value, not a knowledge dump. -->
-  <Section heading="Common questions" width="wide">
+  <Section index="07" label="FAQ" scale="utility" heading="Common questions" width="wide">
     <FaqBlock faqs={homeFaqs} />
   </Section>
 

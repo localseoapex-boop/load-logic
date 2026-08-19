@@ -1,21 +1,32 @@
 ---
 /**
- * Hero.astro — full-bleed photograph with the value proposition in a lower-left
- * well.
+ * Hero.astro — photograph above, type in a spruce panel that overlaps it.
  *
- * This deliberately replaces the pattern the old site used, which was the
- * textbook generated hero: 135deg brand gradient, centred eyebrow, headline,
- * lead paragraph, two buttons and four translucent trust pills. DESIGN.md bans
- * every element of it.
+ * ────────────────────────── Why this was rebuilt ──────────────────────────
  *
- * Stack discipline, per the anti-slop standard: at most four text elements. Here
- * that is location line, headline, one short subhead, and the CTA pair. No trust
- * pills, no micro-tagline under the buttons, no scroll cue. The trust content
- * lives in its own section directly below, where it can actually be read.
+ * The previous hero was a full-bleed photograph with the copy in a lower-left
+ * well over a scrim. Nothing about it was wrong, and that was the problem: it is
+ * the composition every competently built site arrives at, so it read as correct
+ * rather than as designed. It also forced the headline to stay small enough to
+ * survive being set over photographic detail, which capped the single biggest
+ * piece of typography on the page.
  *
- * The photograph is the hero. It loads eagerly at high priority because it is
- * the LCP element, and it carries a bottom-up near-black scrim so the copy stays
- * legible without tinting the image a brand colour.
+ * Now the photograph gets to be a photograph and the type gets solid ground:
+ *
+ *   - the image runs full-bleed with a deliberate crop and no text on it
+ *   - a spruce panel is pulled UP over the image's lower edge, so the two
+ *     elements interlock instead of stacking, and the panel breaks the
+ *     photograph's rectangle rather than sitting politely beneath it
+ *   - on solid spruce the headline can run at --d0, roughly 112px at 1440,
+ *     which is the scale the page was missing
+ *   - a hi-vis edge marks the top of the panel; it is the accent doing
+ *     structural work, not decoration
+ *   - a mono data rail closes the hero with the operating facts a dispatcher
+ *     would actually state: where, how big, how fast, what number to call
+ *
+ * The image still loads eagerly at high priority because it remains the LCP
+ * element. The scrim is gone: with no copy over the photograph there is nothing
+ * to protect, and dropping it means the image is seen at full contrast.
  */
 import { Image } from 'astro:assets';
 import QuoteCta from './QuoteCta.astro';
@@ -36,9 +47,11 @@ interface Props {
    * all.
    */
   mobileAlt: string;
+  /** Operating data for the rail. Every value must be a real, checkable fact. */
+  facts: { label: string; value: string }[];
 }
 
-const { eyebrow, heading, subhead, alt, mobileAlt } = Astro.props;
+const { eyebrow, heading, subhead, alt, mobileAlt, facts } = Astro.props;
 ---
 
 <section class="hero">
@@ -61,15 +74,31 @@ const { eyebrow, heading, subhead, alt, mobileAlt } = Astro.props;
       loading="eager"
       fetchpriority="high"
     />
-    <div class="scrim"></div>
   </div>
 
-  <div class="container container-wide well">
-    <p class="eyebrow">{eyebrow}</p>
-    <h1>{heading}</h1>
-    <p class="subhead">{subhead}</p>
-    <div class="actions">
-      <QuoteCta size="lg" source="hero" onDark />
+  <div class="container container-wide">
+    <div class="panel">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1>{heading}</h1>
+      <p class="subhead">{subhead}</p>
+      <div class="actions">
+        <QuoteCta size="lg" source="hero" onDark />
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="container container-wide">
+      <dl>
+        {
+          facts.map((fact) => (
+            <div class="fact">
+              <dt>{fact.label}</dt>
+              <dd class="data">{fact.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 </section>
@@ -77,89 +106,104 @@ const { eyebrow, heading, subhead, alt, mobileAlt } = Astro.props;
 <style>
   .hero {
     position: relative;
-    display: grid;
-    /* dvh rather than vh: the iOS address bar must not shift the layout. */
-    min-height: min(78dvh, 720px);
-    align-content: end;
-    isolation: isolate;
     background: var(--spruce);
+    isolation: isolate;
   }
 
+  /* ─── Photograph ─── */
+
   .media {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
+    position: relative;
   }
 
   .img {
     width: 100%;
-    height: 100%;
+    /* dvh rather than vh: the iOS address bar must not resize the crop. */
+    height: min(52dvh, 460px);
     object-fit: cover;
+    display: block;
   }
 
   .desktop {
     display: none;
-    object-position: center 42%;
+    object-position: center 40%;
   }
 
   .mobile {
     display: block;
-    object-position: center center;
+    object-position: center 45%;
   }
 
-  /* Near-black bottom-up ramp, never a brand-coloured wash.
-     Two layers: a vertical ramp for the copy block, plus a left-weighted wash so
-     the eyebrow and headline stay legible even where the photograph is bright,
-     which at some widths lands on open sky. */
-  .scrim {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(
-        to right,
-        rgb(8 14 11 / 0.62) 0%,
-        rgb(8 14 11 / 0.34) 42%,
-        rgb(8 14 11 / 0) 78%
-      ),
-      linear-gradient(
-        to top,
-        rgb(8 14 11 / 0.92) 0%,
-        rgb(8 14 11 / 0.74) 34%,
-        rgb(8 14 11 / 0.28) 68%,
-        rgb(8 14 11 / 0.12) 100%
-      );
-  }
+  /* ─── The panel that breaks the photograph ─── */
 
-  .well {
-    padding-block: var(--s8) var(--s9);
-    color: #fff;
-    max-width: var(--w-wide);
+  .panel {
+    position: relative;
+    /* The overlap. This is the whole composition: pull the panel up over the
+       image so the two interlock rather than stack. */
+    margin-top: calc(var(--s8) * -1);
+    background: var(--spruce);
+    padding: var(--s7) var(--s6) var(--s7);
+    /* Bleeds past the container gutter to the viewport edge on small screens,
+       where a floating panel would waste width it cannot spare. */
+    margin-inline: calc(var(--gutter) * -1);
+    border-top: 4px solid var(--hi-vis);
   }
 
   .eyebrow {
+    font-family: var(--font-data);
     font-size: var(--lbl);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
     color: var(--hi-vis);
-    margin-bottom: var(--s4);
+    margin-bottom: var(--s5);
   }
 
   h1 {
     color: #fff;
-    max-width: 16ch;
+    font-size: var(--d0);
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    max-width: 15ch;
   }
 
   .subhead {
     margin-top: var(--s5);
     font-size: var(--t1);
-    color: rgb(255 255 255 / 0.86);
-    max-width: 46ch;
+    color: rgb(255 255 255 / 0.84);
+    max-width: 48ch;
   }
 
   .actions {
     margin-top: var(--s6);
+  }
+
+  /* ─── Operating data rail ─── */
+
+  .rail {
+    border-top: 1px solid var(--rule-on-spruce);
+    padding-block: var(--s5);
+  }
+
+  .rail dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s5) var(--s6);
+  }
+
+  .fact dt {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--on-spruce-2);
+  }
+
+  .fact dd {
+    margin-top: var(--s2);
+    font-size: var(--t2);
+    font-weight: 700;
+    color: #fff;
   }
 
   @media (min-width: 768px) {
@@ -171,8 +215,37 @@ const { eyebrow, heading, subhead, alt, mobileAlt } = Astro.props;
       display: none;
     }
 
-    .well {
-      padding-block: var(--s9) var(--s10);
+    .img {
+      height: min(62dvh, 600px);
+    }
+
+    /* At desktop the panel becomes a measured block anchored to the container's
+       left edge. It does not need to bleed to the viewport: the photograph
+       already runs full width, so a contained panel pulled up over it is itself
+       the break in the rectangle. Roughly the left 55% is type, the right 45%
+       stays photograph, which is where the asymmetry comes from. */
+    .panel {
+      margin-top: calc(var(--s10) * -1);
+      /* Bleed left to the viewport edge. Contained, the panel left a narrow
+         strip of photograph down its outer side that read as a mistake rather
+         than as a margin. Running it off the edge is also the stronger move:
+         the block breaks the content column instead of sitting inside it.
+         50% resolves against the centred container, so 50% - 50vw is exactly
+         the distance from the container's content edge to the viewport. */
+      margin-inline-start: calc(50% - 50vw);
+      margin-inline-end: 0;
+      padding: var(--s8);
+      padding-inline-start: calc(50vw - 50% + var(--s2));
+      width: calc(50vw - 50% + min(60%, 46rem));
+    }
+
+    .rail dl {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--s6);
+    }
+
+    .rail {
+      padding-block: var(--s6);
     }
   }
 </style>

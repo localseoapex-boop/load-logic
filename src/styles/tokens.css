@@ -47,13 +47,25 @@
   --font-text: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-data: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  --d1: clamp(2.75rem, 6vw, 5rem);
-  --d2: clamp(2rem, 4vw, 3.25rem);
-  --d3: clamp(1.375rem, 2vw, 1.75rem);
+  /* Display scale. The previous build ran every section heading at --d2, which
+     meant the load scale and the FAQ shouted at exactly the same volume and the
+     page had no way to tell you what mattered. The steps below are deliberately
+     far apart: contrast is the point, not size. */
+  --d0: clamp(2.75rem, 7vw, 5.5rem); /* hero only */
+  --d1: clamp(2.5rem, 5.5vw, 4.5rem); /* signature sections */
+  --d2: clamp(2rem, 4vw, 3.25rem); /* standard sections */
+  --d3: clamp(1.375rem, 2vw, 1.75rem); /* utility sections, sub-heads */
   --t1: 1.1875rem;
   --t2: 1.0625rem;
   --t3: 0.9375rem;
   --lbl: 0.75rem;
+
+  /* Operational numerals: section indices, load fractions, job numbers. Set in
+     the mono face and allowed to get genuinely large, because a measurement is
+     the one thing on this page that earns being the biggest element in its row. */
+  --num-xl: clamp(3rem, 8vw, 7rem);
+  --num-lg: clamp(2.5rem, 4.5vw, 3.5rem);
+  --num-md: clamp(1.25rem, 2vw, 1.75rem);
 
   /* ────────────────────────── Spacing ────────────────────────── */
 
