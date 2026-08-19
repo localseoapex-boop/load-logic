@@ -33,9 +33,13 @@
  * Headings name their subject in plain language, so the page structure reads the
  * same way to a person and to a parser.
  *
+ * FROM THE ORIGINAL HOMEPAGE, kept because they were better:
+ *   the four operating facts, the four-step booking process, and the named
+ *   service list with a one-line explanation of each.
+ *
  * MERGED:   item categories + search + exclusions -> one overview section
  *           before/after + example job + equipment -> one proof section
- *           situations + service directory        -> one navigation section
+ *           situations + service rail            -> one service directory
  *           disposal                              -> final step of How it works
  * REMOVED:  the DIY comparison, the standalone quote strip, the standalone
  *           service rail, the standalone exclusions and disposal sections.
@@ -47,7 +51,7 @@ import Hero from '../components/Hero.astro';
 import MaterialOverview from '../components/MaterialOverview.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
-import Situations from '../components/Situations.astro';
+import ServiceDirectory from '../components/ServiceDirectory.astro';
 import BeforeAfter from '../components/BeforeAfter.astro';
 import ExampleJob from '../components/ExampleJob.astro';
 import EquipmentCapability from '../components/EquipmentCapability.astro';
@@ -56,15 +60,12 @@ import ServiceAreaChecker from '../components/ServiceAreaChecker.astro';
 import ReviewWall from '../components/ReviewWall.astro';
 import TrustFacts from '../components/TrustFacts.astro';
 import FaqBlock from '../components/FaqBlock.astro';
-import RelatedRail from '../components/RelatedRail.astro';
 import FinalQuoteCta from '../components/FinalQuoteCta.astro';
 
 import { SITE, hasVerifiedFacts } from '../config/site';
-import { services } from '../data/services';
 import { getJob } from '../data/jobs';
 import { hasVerifiedReviews } from '../data/reviews';
 import { getFaq } from '../data/faqs';
-import { serviceUrl } from '../lib/urls';
 
 import baGarageBefore from '../assets/photos/before-after/ba-garage-before.jpg';
 import baGarageAfter from '../assets/photos/before-after/ba-garage-after.jpg';
@@ -101,9 +102,6 @@ const operatingFacts = [
   'Full-service loading and hauling',
   'Donation and recycling first',
 ];
-
-/** Every service keeps a crawlable anchor, integrated rather than in its own block. */
-const serviceLinks = services.map((s) => ({ label: s.name, href: serviceUrl(s.slug) }));
 
 const showReviews = hasVerifiedReviews();
 const showTrust = hasVerifiedFacts();
@@ -168,21 +166,19 @@ const showTrust = hasVerifiedFacts();
     </div>
   </Section>
 
-  <!-- 4. Why people call, then the services those situations map to. Problem-led
-       discovery and service-topic internal linking in one section. -->
+  <!-- 4. What Load Logic actually offers. Restores the original homepage's
+       clearest feature, a named service with a one-line explanation of what it
+       is for, in a ruled directory rather than fourteen equal cards.
+       This REPLACES the situations navigator: situations, a service directory
+       and a related-services rail were three ways of saying the same thing, and
+       the directory is the one that answers "what do you offer" directly. The
+       Situations component stays in the codebase for service and location pages. -->
   <Section
-    heading="Why people call, and what they book"
-    intro="Nobody wakes up wanting junk removal. They want a garage back, a house listed, or an estate settled."
+    heading="Junk removal services"
+    intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
+    id="services"
   >
-    <Situations variant="navigator" />
-    <div class="directory">
-      <RelatedRail
-        title="Junk removal services"
-        links={serviceLinks}
-        variant="index"
-        headingLevel="h3"
-      />
-    </div>
+    <ServiceDirectory />
   </Section>
 
   <!-- 5. Proof. One job, shown rather than described, with the equipment that did
@@ -208,10 +204,11 @@ const showTrust = hasVerifiedFacts();
     </div>
   </Section>
 
-  <!-- 6. How it works. Six steps, ending with where the material goes, which is
-       why disposal no longer needs a section of its own. -->
+  <!-- 6. How it works. The original four steps, verbatim. A booking process on
+       a homepage is for conversion clarity, not documentation: four steps can be
+       taken in at a glance, where six read as a procedure. -->
   <Section heading="How it works">
-    <HowItWorks variant="compact" />
+    <HowItWorks variant="booking" />
   </Section>
 
   <!-- 7. Where we work. Real ZIP codes and plain anchors to every city, so the
@@ -226,10 +223,16 @@ const showTrust = hasVerifiedFacts();
     <ServiceAreaChecker />
   </Section>
 
-  <!-- Hidden until verified data exists. No placeholder ships. -->
+  <!-- 8. Reviews. The section is built and positioned. It renders only when
+       reviews.ts holds an entry with `verified: true` and a source, and there is
+       currently no evidence any of the three stored testimonials came from a
+       real customer: no date, no platform beyond "direct", no link, and all
+       three first appeared in the commit that rebranded the starter template.
+       Publishing them would be inventing social proof, so the section stays
+       hidden until the business confirms them or supplies real ones. -->
   {
     showReviews && (
-      <Section heading="What customers say">
+      <Section heading="What customers say" width="wide">
         <ReviewWall />
       </Section>
     )
@@ -242,12 +245,12 @@ const showTrust = hasVerifiedFacts();
     )
   }
 
-  <!-- 8. FAQ. Six questions with decision value, not a knowledge dump. -->
+  <!-- 9. FAQ. Six questions with decision value, not a knowledge dump. -->
   <Section heading="Common questions" width="wide">
     <FaqBlock faqs={homeFaqs} />
   </Section>
 
-  <!-- 9. Convert. Nothing educational below this. -->
+  <!-- 10. Convert. Nothing educational below this. -->
   <FinalQuoteCta
     heading="Send a few photos and get a real number"
     body="Most quotes come back the same day. Same-day pickup is often possible when you get in touch early and the job fits an existing route."
@@ -326,14 +329,6 @@ const showTrust = hasVerifiedFacts();
 
   .section-link a::after {
     content: ' \2192';
-  }
-
-  /* The service directory sits under the situations that lead to it, so the two
-     read as one navigation moment rather than two competing blocks. */
-  .directory {
-    margin-top: var(--s7);
-    padding-top: var(--s6);
-    border-top: 2px solid var(--ink);
   }
 
   .job {

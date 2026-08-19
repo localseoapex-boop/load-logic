@@ -1,0 +1,112 @@
+---
+/**
+ * ServiceDirectory.astro — every service, what it is, and a link to its page.
+ *
+ * Restores the clearest thing the original homepage did: it named all fourteen
+ * services and said in one line what each one was for. The redesign had replaced
+ * that with customer situations, which are good at "why would I call" but leave
+ * "what do you actually offer" to be inferred. This states it.
+ *
+ * ─────────────────────────── Presentation ───────────────────────────
+ *
+ * NOT the original's four-column card grid. Fourteen equal cards was the single
+ * most templated thing on the old homepage. This is a ruled two-column
+ * directory: the service name carries display weight, its own tagline sits
+ * beneath, and the whole row is the link. Same information, an eighth of the
+ * visual noise.
+ *
+ * Names and blurbs come from services.ts, so adding a service to the catalogue
+ * adds it here with no edit. The taglines are the original copy, unchanged.
+ *
+ * ────────────────────────── SEO and agentic ──────────────────────────
+ *
+ * This is the section that states, in plain crawlable HTML:
+ *
+ *     Load Logic -> junk removal services -> this service -> what it is -> its URL
+ *
+ * Fourteen anchors with descriptive text next to each. For an assistant asked
+ * "what does Load Logic do", this is the answer in one block, and every entry
+ * points at the page that holds the depth.
+ */
+import { services } from '../data/services';
+import { serviceUrl } from '../lib/urls';
+
+interface Props {
+  /** Limit to specific service slugs. Omit for the full catalogue. */
+  only?: string[];
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { only, headingLevel: Heading = 'h3' } = Astro.props;
+
+const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
+---
+
+<ul class="directory" data-reveal>
+  {
+    shown.map((service) => (
+      <li>
+        <a href={serviceUrl(service.slug)}>
+          <Heading class="name">{service.name}</Heading>
+          <span class="blurb">{service.tagline}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .directory {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .directory li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* The whole row is the target, not just the name. On a phone that is the
+     difference between a comfortable tap and a fiddly one. */
+  .directory a {
+    display: block;
+    padding-block: var(--s3);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: var(--t2);
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .directory a:hover .name {
+    color: var(--spruce-2);
+  }
+
+  /* A small directional mark on hover only, so fourteen rows do not carry
+     fourteen permanent arrows. */
+  .directory a:hover .name::after {
+    content: ' \2192';
+    color: var(--spruce-2);
+  }
+
+  .blurb {
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  @media (min-width: 700px) {
+    .directory {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+  }
+</style>

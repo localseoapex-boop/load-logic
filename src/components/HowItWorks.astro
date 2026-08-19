@@ -14,18 +14,30 @@
  * Rendered as a ruled ledger rather than four cards in a row, which is the
  * layout family this content kept getting shoved into.
  *
- * TWO VARIANTS.
+ * THREE VARIANTS.
  *
- *   `compact`  six steps, ending with where the material goes. The homepage
- *              version: this section should reinforce conversion, not become
- *              another deep educational block.
+ *   `booking`  the original four steps, read straight from `serviceProcess` in
+ *              service-content.ts. This is the homepage version. Four steps can
+ *              be understood in a couple of seconds, which is what a booking
+ *              process on a homepage is for; the longer sets turned it into
+ *              documentation. The copy is the original wording, unchanged.
+ *   `compact`  six steps, ending with where the material goes.
  *   `full`     eight steps with the detail behind each. For service pages.
  */
+import { serviceProcess } from '../data/service-content';
+
 interface Props {
-  variant?: 'compact' | 'full';
+  variant?: 'booking' | 'compact' | 'full';
 }
 
 const { variant = 'full' } = Astro.props;
+
+/**
+ * The original four steps, preserved verbatim. Step one's "Call or send the
+ * form" was aspirational when it was written, because no form existed. It is
+ * accurate now that /quote is built, so the wording stands.
+ */
+const bookingSteps = serviceProcess.map((step) => ({ title: step.title, text: step.text }));
 
 /**
  * The compact set folds the disposal story into its final step, which is why
@@ -93,7 +105,8 @@ const fullSteps = [
   },
 ];
 
-const steps = variant === 'compact' ? compactSteps : fullSteps;
+const steps =
+  variant === 'booking' ? bookingSteps : variant === 'compact' ? compactSteps : fullSteps;
 ---
 
 <ol class="steps" data-reveal>
