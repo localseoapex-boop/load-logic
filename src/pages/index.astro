@@ -88,6 +88,20 @@ const homeFaqs = [
 
 const featureJob = getJob('gilbert-garage-reset');
 
+/**
+ * Restored verbatim from the original homepage, where they were the strongest
+ * thing above the fold. Each is a description of how the service operates rather
+ * than a claim that needs checking: the pricing model is volume based, the
+ * service is full-service so no dumpster is involved, and disposal.ts really
+ * does order donation and recycling ahead of landfill.
+ */
+const operatingFacts = [
+  'Upfront, volume-based quotes',
+  'No dumpster rental needed',
+  'Full-service loading and hauling',
+  'Donation and recycling first',
+];
+
 /** Every service keeps a crawlable anchor, integrated rather than in its own block. */
 const serviceLinks = services.map((s) => ({ label: s.name, href: serviceUrl(s.slug) }));
 
@@ -100,9 +114,22 @@ const showTrust = hasVerifiedFacts();
   <Hero
     eyebrow="Junk removal in Mesa and the East Valley"
     heading="Point at it. We carry it out."
-    subhead="Send a few photos and get a price. Nothing is loaded until you agree to the number."
+    subhead="Furniture, appliances, garages and full property cleanouts. Send photos and get a price before anything is loaded."
     alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
   />
+
+  <!-- 1b. The four facts the original homepage led with. They answer "why you"
+       in about three seconds and the redesign had dropped them entirely. They sit
+       below the hero rather than inside it, which is where a trust strip belongs:
+       these are operational descriptions of how the service works, not
+       credentials, so nothing here needs verifying. -->
+  <section class="facts">
+    <div class="container container-wide">
+      <ul>
+        {operatingFacts.map((fact) => <li>{fact}</li>)}
+      </ul>
+    </div>
+  </section>
 
   <!-- 2. Discovery. Eight categories with recognisable examples, answering
        "do they take my kind of stuff" in a few seconds and then moving on. The
@@ -117,26 +144,31 @@ const showTrust = hasVerifiedFacts();
     <MaterialOverview />
   </Section>
 
-  <!-- 3. Load size. The strongest reason someone can answer their own question
-       before contacting anyone. -->
+  <!-- 3. How much, and what that costs. Merged, because the customer asks these
+       as one question: how much junk do I have, and what will that run me. The
+       scale already carries the prices, so the ledger beneath only covers what
+       else moves the number, with the volume point omitted as redundant. -->
   <Section
     weight="feature"
     heading="How much junk do you have?"
-    intro="Price is mostly the share of the trailer you fill. Find the closest match and you already have a range."
+    intro="Price follows volume, so find the closest match and you already have a range. The minimum is $85."
     width="wide"
   >
     <LoadSizeScale />
+
+    <div class="pricing-note">
+      <h3>What else moves the price</h3>
+      {/* The scale's footer already states the minimum, the multiple-load rule
+          and the price-approval commitment, so only the factors it does not
+          cover appear here. */}
+      <PricingLedger variant="brief" omit={['volume', 'loads', 'approve']} />
+      <p class="section-link">
+        <a href="/pricing">Every pricing factor, worked examples and the do-it-yourself comparison</a>
+      </p>
+    </div>
   </Section>
 
-  <!-- 4. Pricing. The model only. The detail is one link away. -->
-  <Section tone="sunk" heading="How junk removal pricing works">
-    <PricingLedger variant="brief" />
-    <p class="section-link">
-      <a href="/pricing">Every pricing factor, worked examples and the do-it-yourself comparison</a>
-    </p>
-  </Section>
-
-  <!-- 5. Why people call, then the services those situations map to. Problem-led
+  <!-- 4. Why people call, then the services those situations map to. Problem-led
        discovery and service-topic internal linking in one section. -->
   <Section
     heading="Why people call, and what they book"
@@ -153,7 +185,7 @@ const showTrust = hasVerifiedFacts();
     </div>
   </Section>
 
-  <!-- 6. Proof. One job, shown rather than described, with the equipment that did
+  <!-- 5. Proof. One job, shown rather than described, with the equipment that did
        it. Replaces three sections that were all making the same point. -->
   <Section
     tone="sunk"
@@ -176,13 +208,13 @@ const showTrust = hasVerifiedFacts();
     </div>
   </Section>
 
-  <!-- 7. How it works. Six steps, ending with where the material goes, which is
+  <!-- 6. How it works. Six steps, ending with where the material goes, which is
        why disposal no longer needs a section of its own. -->
   <Section heading="How it works">
     <HowItWorks variant="compact" />
   </Section>
 
-  <!-- 8. Where we work. Real ZIP codes and plain anchors to every city, so the
+  <!-- 7. Where we work. Real ZIP codes and plain anchors to every city, so the
        service-area relationships are crawlable without running the checker. -->
   <Section
     tone="sunk"
@@ -210,12 +242,12 @@ const showTrust = hasVerifiedFacts();
     )
   }
 
-  <!-- 9. FAQ. Six questions with decision value, not a knowledge dump. -->
+  <!-- 8. FAQ. Six questions with decision value, not a knowledge dump. -->
   <Section heading="Common questions" width="wide">
     <FaqBlock faqs={homeFaqs} />
   </Section>
 
-  <!-- 10. Convert. Nothing educational below this. -->
+  <!-- 9. Convert. Nothing educational below this. -->
   <FinalQuoteCta
     heading="Send a few photos and get a real number"
     body="Most quotes come back the same day. Same-day pickup is often possible when you get in touch early and the job fits an existing route."
@@ -224,6 +256,59 @@ const showTrust = hasVerifiedFacts();
 </BaseLayout>
 
 <style>
+  /* The restored operating facts. A ruled row, not translucent pills over a
+     gradient: same information, without the pattern that made the original hero
+     read as generated. */
+  .facts {
+    background: var(--bone);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .facts ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s3);
+    padding-block: var(--s5);
+  }
+
+  .facts li {
+    position: relative;
+    padding-inline-start: var(--s5);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t3);
+  }
+
+  .facts li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.62em;
+    width: 12px;
+    height: 2px;
+    background: var(--hi-vis);
+  }
+
+  @media (min-width: 700px) {
+    .facts ul {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--s5);
+    }
+  }
+
+  /* The pricing model, attached to the scale that produced the numbers. */
+  .pricing-note {
+    margin-top: var(--s8);
+    padding-top: var(--s6);
+    border-top: 2px solid var(--ink);
+  }
+
+  .pricing-note h3 {
+    margin-bottom: var(--s4);
+  }
+
   /* Contextual link out to a deeper page. Deliberately not a button: DESIGN.md
      reserves full-size CTAs for the two conversion actions, and one after every
      section is the CTA fatigue this restructure exists to avoid. */

@@ -49,9 +49,18 @@ interface Props {
    * `full`     every factor, the access checklist and the load definitions.
    */
   variant?: 'brief' | 'summary' | 'full';
+  /**
+   * Point keys to leave out. Set when this sits directly under the load size
+   * scale, whose footer already states the minimum, the multiple-load rule and
+   * the price-approval commitment. Repeating them two hundred pixels later is
+   * the redundancy this prop exists to prevent.
+   */
+  omit?: PointKey[];
 }
 
-const { variant = 'full' } = Astro.props;
+type PointKey = 'volume' | 'heavy' | 'access' | 'loads' | 'approve';
+
+const { variant = 'full', omit = [] } = Astro.props;
 
 const primary = primaryPricingFactors();
 const secondary = pricingFactors.filter((f) => !f.primary);
@@ -67,6 +76,38 @@ const quoted = quotedSurcharges();
  * the template. A JSX expression on its own line contributes the surrounding
  * whitespace, which renders as "the trailer filled , about 9 cubic yards".
  */
+/**
+ * The summary points, keyed so a caller can drop the ones its surrounding
+ * context has already made.
+ */
+const allPoints: { key: PointKey; title: string; body: string }[] = [
+  {
+    key: 'volume',
+    title: 'Volume first',
+    body: 'Most of the price is the share of the trailer your items fill. The scale above is the fastest way to judge it yourself.',
+  },
+  {
+    key: 'heavy',
+    title: 'Heavy material is different',
+    body: '', // filled below, it interpolates the confirmed dump trailer capacity
+  },
+  {
+    key: 'access',
+    title: 'Access and labour matter',
+    body: 'Stairs, long carries from the door to the truck, tight gates and elevator buildings all add time. Mentioning them up front is what keeps a quote accurate.',
+  },
+  {
+    key: 'loads',
+    title: 'Big jobs are several loads',
+    body: '', // filled below, it interpolates the confirmed trailer capacity
+  },
+  {
+    key: 'approve',
+    title: 'You approve the price first',
+    body: 'The crew confirms the number on site and nothing is loaded until you agree to it. If there is more than expected, you decide before it goes on the trailer.',
+  },
+];
+
 const fullLoadSentence = `One full load is the utility trailer filled${
   capacity ? `, about ${capacity} cubic yards` : ''
 }. ${fleetLimits.consequence}`;
@@ -74,50 +115,31 @@ const fullLoadSentence = `One full load is the utility trailer filled${
 const heavySentence = `Concrete, tile, brick and soil are charged on weight rather than space, and they travel in the dump trailer${
   dump?.cubicYards ? ` (about ${dump.cubicYards} cubic yards)` : ''
 }.`;
+
+allPoints[1].body = heavySentence;
+allPoints[3].body = fullLoadSentence;
+
+const points = allPoints.filter((p) => !omit.includes(p.key));
 ---
 
 {
   (variant === 'summary' || variant === 'brief') && (
     <div class="summary-ledger" data-reveal>
       <dl class="points">
-        <div class="point">
-          <dt>Volume first</dt>
-          <dd>
-            Most of the price is the share of the trailer your items fill. The
-            scale above is the fastest way to judge it yourself.
-          </dd>
-        </div>
-        <div class="point">
-          <dt>Heavy material is different</dt>
-          <dd>{heavySentence}</dd>
-        </div>
-        <div class="point">
-          <dt>Access and labour matter</dt>
-          <dd>
-            Stairs, long carries from the door to the truck, tight gates and
-            elevator buildings all add time. Mentioning them up front is what
-            keeps a quote accurate.
-          </dd>
-        </div>
-        <div class="point">
-          <dt>Big jobs are several loads</dt>
-          <dd>{fullLoadSentence}</dd>
-        </div>
-        <div class="point emphasis">
-          <dt>You approve the price first</dt>
-          <dd>
-            The crew confirms the number on site and nothing is loaded until you
-            agree to it. If there is more than expected, you decide before it
-            goes on the trailer.
-          </dd>
-        </div>
+        {points.map((point) => (
+          <div class:list={['point', { emphasis: point.key === 'approve' }]}>
+            <dt>{point.title}</dt>
+            <dd>{point.body}</dd>
+          </div>
+        ))}
       </dl>
 
       {published && variant === 'brief' && (
         <p class="minimum brief-min">
-          <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong> Mattresses,
-          fridges and heavy material carry their own disposal charge, and every
-          figure is confirmed on site before anything is loaded.
+          <strong>A few things carry their own disposal charge.</strong> Mattresses
+          and box springs, anything containing refrigerant, and heavy material,
+          because facilities charge separately for each. They are quoted with the
+          job rather than added afterwards.
         </p>
       )}
 
