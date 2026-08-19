@@ -56,32 +56,43 @@ const schema = {
 <script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />
 
 <style>
+  /*
+   * Moved from hardcoded hex values to the design tokens. This component is
+   * shared by the rebuilt pages and by the templates still on legacy.css, so it
+   * has to read correctly in both. The tokens are global, the old `--accent`
+   * variable was only defined in legacy.css, so tokens are the safe choice.
+   */
   .breadcrumbs {
-    padding: 1rem 0 0;
-    font-size: 0.875rem;
+    padding: var(--s5) 0 0;
+    font-size: var(--t3);
   }
+
   .breadcrumbs ol {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--s2);
     align-items: center;
   }
+
   .breadcrumbs a {
-    color: #6b7280;
+    color: var(--ink-2);
     text-decoration: none;
   }
+
   .breadcrumbs a:hover {
-    color: var(--accent);
+    color: var(--spruce-2);
     text-decoration: underline;
   }
+
   .breadcrumbs span[aria-current='page'] {
-    color: #111827;
-    font-weight: 500;
+    color: var(--ink);
+    font-weight: 600;
   }
+
   .sep {
-    color: #9ca3af;
+    color: var(--ink-3);
   }
 </style>

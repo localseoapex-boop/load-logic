@@ -325,4 +325,21 @@ const isActive = (href: string) =>
       display: none;
     }
   }
+
+  /*
+   * Between 1024 and 1200 the five nav items, the phone block and the quote
+   * button add up to almost exactly the available width, and the nav wrapped to
+   * a second line. Tightening the gaps in that band keeps it on one row without
+   * dropping anything or shrinking a CTA label. Above 1200 the generous spacing
+   * returns.
+   */
+  @media (min-width: 1024px) and (max-width: 1200px) {
+    .bar {
+      gap: var(--s5);
+    }
+
+    .desktop-nav ul {
+      gap: var(--s5);
+    }
+  }
 </style>

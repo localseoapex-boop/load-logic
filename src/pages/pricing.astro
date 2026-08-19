@@ -1,0 +1,205 @@
+---
+/**
+ * /pricing — what junk removal actually costs, and why there is no price list.
+ *
+ * WHY THIS URL EXISTS. "How much does junk removal cost" is one of the highest
+ * intent searches in this trade and nothing on the site targeted it. The service
+ * pages target service intent ("garage cleanout mesa"), the location pages target
+ * geographic intent, and neither is the right answer for someone whose actual
+ * question is price. Before this page, that visitor landed on a service page and
+ * had to infer the pricing model from a CTA.
+ *
+ * It is also the natural home for the full PricingLedger, which was deliberately
+ * held back from the homepage in phase 5.5. The homepage now carries the summary
+ * variant and links here for the depth.
+ *
+ * ─────────────────────────── Honesty contract ───────────────────────────
+ *
+ * There are still NO REAL AMOUNTS. Every figure in pricing.ts sits behind
+ * `published: false`, so this page explains the model, the inputs, and how the
+ * number is agreed, without publishing a price anyone could rely on.
+ *
+ * That is not a weaker page than one with an invented "from $99" on it. It is a
+ * more useful one: the load scale lets someone estimate their own volume, the
+ * ledger tells them exactly what moves the number, and the example jobs show what
+ * a real job involved. Those are the things a made-up starting price does not do.
+ *
+ * CRITICALLY: no Offer, PriceSpecification or AggregateOffer schema is emitted.
+ * Marking up a price that does not exist is a fabricated claim and a rich-result
+ * risk. Only BreadcrumbList and FAQPage, both describing content that is visibly
+ * on the page.
+ *
+ * A NEW URL, not a changed one. Nothing existing moves, so the 175 baseline URLs
+ * are untouched and no redirect is needed.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Section from '../components/Section.astro';
+import LoadSizeScale from '../components/LoadSizeScale.astro';
+import PricingLedger from '../components/PricingLedger.astro';
+import ExampleJob from '../components/ExampleJob.astro';
+import ComparisonLedger from '../components/ComparisonLedger.astro';
+import FaqBlock from '../components/FaqBlock.astro';
+import FinalQuoteCta from '../components/FinalQuoteCta.astro';
+import QuoteCta from '../components/QuoteCta.astro';
+
+import { faqsForTopic } from '../data/faqs';
+import { getJob } from '../data/jobs';
+import { isPricingPublished, pricingTerms } from '../data/pricing';
+import { confirmedCapacityCubicYards } from '../data/equipment';
+
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Pricing' }];
+
+/** Pricing questions, plus the quote questions people ask in the same breath. */
+const faqs = [...faqsForTopic('pricing'), ...faqsForTopic('quote')].map((f) => ({
+  question: f.question,
+  answer: f.answer,
+}));
+
+/** Two jobs at different scales, so the range is visible rather than described. */
+const jobs = [getJob('chandler-yard-cleanup'), getJob('gilbert-garage-reset')].filter(
+  (j): j is NonNullable<typeof j> => Boolean(j),
+);
+
+const capacity = confirmedCapacityCubicYards();
+const published = isPricingPublished();
+---
+
+<BaseLayout
+  title="Junk Removal Pricing in Mesa, AZ"
+  description="How junk removal pricing works in Mesa and the East Valley: what the price is based on, what makes a job cost more, and how to estimate your own load before you call."
+>
+  <div class="container">
+    <Breadcrumbs items={crumbs} />
+  </div>
+
+  <!-- Text-led hero. Deliberately not the photographic hero the homepage uses:
+       this page answers a question, so the answer is the opening image. -->
+  <header class="page-hero">
+    <div class="container">
+      <p class="label">Pricing</p>
+      <h1>What it costs, and what decides it</h1>
+      <p class="lede">
+        Junk removal is priced per job, not from a menu. The honest version is
+        that two garages of the same size can cost different amounts, and the
+        things that move the number are volume, weight and how hard the items are
+        to get to.
+      </p>
+
+      <div class="promise">
+        <p>
+          What does not change: <strong>you get the price before anything is
+          loaded.</strong> The crew confirms the number on site, and if there is
+          more than expected you decide before it goes on the trailer.
+        </p>
+      </div>
+
+      <div class="hero-cta">
+        <QuoteCta source="pricing-hero" />
+      </div>
+    </div>
+  </header>
+
+  <!-- The estimation tool comes first. Someone on this page wants a number, and
+       working out their own load size gets them closest fastest. -->
+  <Section
+    weight="feature"
+    tone="sunk"
+    heading="Start with how much you have"
+    intro="Volume is the main input, so this is the fastest way to get close to a real figure before you speak to anyone."
+    width="wide"
+  >
+    <LoadSizeScale />
+  </Section>
+
+  <!-- The full ledger, held back from the homepage in phase 5.5. -->
+  <Section
+    heading="Everything that moves the number"
+    intro="Volume first, then weight, then how much carrying is involved. The rest are smaller adjustments, and none of them are a surprise on the day."
+    width="wide"
+  >
+    <PricingLedger variant="full" />
+  </Section>
+
+  <!-- Real job records make the model concrete in a way a factor list cannot. -->
+  <Section
+    tone="sunk"
+    heading="Two jobs, end to end"
+    intro="The same detail you get on a quote: how much space it took, how many people, how long, and where the material went."
+  >
+    <div class="jobs">
+      {jobs.map((job) => <ExampleJob {job} />)}
+    </div>
+  </Section>
+
+  <!-- Cost is exactly the axis on which people weigh doing it themselves, so the
+       comparison belongs on this page at full depth. -->
+  <Section
+    heading="Is it cheaper to do it yourself?"
+    intro="Often it looks that way until the truck rental, the dump fees and the Saturday are added up. Sometimes it genuinely is, and here is when."
+    width="wide"
+  >
+    <ComparisonLedger slug="diy-vs-full-service" />
+  </Section>
+
+  <Section heading="Pricing questions" width="wide">
+    <FaqBlock {faqs} />
+  </Section>
+
+  <FinalQuoteCta
+    heading="The fastest way to a real number"
+    body="Send photos of the pile and the path to it. Most quotes come back the same day, and the figure you get is the one the crew works to."
+    source="pricing-final"
+  />
+</BaseLayout>
+
+<style>
+  .page-hero {
+    padding-block: var(--s7) var(--s9);
+  }
+
+  .label {
+    margin-bottom: var(--s3);
+  }
+
+  h1 {
+    max-width: 16ch;
+  }
+
+  .lede {
+    margin-top: var(--s5);
+    font-size: var(--t1);
+    color: var(--ink-2);
+    max-width: 58ch;
+  }
+
+  /* The one commitment that is true regardless of the missing figures, given the
+     weight it deserves on a page about price. */
+  .promise {
+    margin-top: var(--s6);
+    padding: var(--s5);
+    background: var(--surface);
+    border-inline-start: 3px solid var(--hi-vis);
+    max-width: 62ch;
+  }
+
+  .promise strong {
+    color: var(--ink);
+  }
+
+  .hero-cta {
+    margin-top: var(--s6);
+  }
+
+  .jobs {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  @media (min-width: 1100px) {
+    .jobs {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+  }
+</style>

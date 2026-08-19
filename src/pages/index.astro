@@ -152,6 +152,11 @@ const showTrust = hasVerifiedFacts();
     intro="No published price list, because volume, weight and access vary too much for one to be honest. Five things decide the number."
   >
     <PricingLedger variant="summary" />
+    {/* Contextual link rather than another full-size CTA. The depth this
+        summary was cut from now lives on its own URL. */}
+    <p class="section-link">
+      <a href="/pricing">Every factor, two worked examples and the do-it-yourself comparison</a>
+    </p>
   </Section>
 
   <!-- 6. Situations, as a navigator. The reader is orienting here, so their own
@@ -269,3 +274,24 @@ const showTrust = hasVerifiedFacts();
     source="home-final"
   />
 </BaseLayout>
+
+<style>
+  /* Contextual link out to a deeper page. Deliberately not a button: DESIGN.md
+     reserves full-size CTAs for the two conversion actions, and a third one per
+     section is exactly the CTA fatigue the refinement pass was avoiding. */
+  .section-link {
+    margin-top: var(--s6);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .section-link a {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--spruce-2);
+  }
+
+  .section-link a::after {
+    content: ' \2192';
+  }
+</style>

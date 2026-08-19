@@ -103,10 +103,17 @@ export const hasVerifiedFacts = (): boolean =>
       (VERIFIED.claims && VERIFIED.claims.length > 0),
   );
 
-/** Primary navigation links rendered in the header. */
+/**
+ * Primary navigation links rendered in the header.
+ *
+ * Pricing sits between Services and Areas We Serve because "what does it cost"
+ * is the question that follows "what do you do", and it is the second most
+ * common reason someone leaves a home-service site without enquiring.
+ */
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Areas We Serve', href: '/locations' },
   { label: 'Blog', href: '/blog' },
 ] as const;
@@ -126,6 +133,7 @@ export const FOOTER_LINKS = [
     title: 'Company',
     links: [
       { label: 'All Services', href: '/services' },
+      { label: 'Pricing', href: '/pricing' },
       { label: 'Areas We Serve', href: '/locations' },
       // Mesa is the home market — represented by the homepage, not a location page.
       { label: 'Mesa Junk Removal', href: '/' },
