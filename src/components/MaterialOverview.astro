@@ -1,0 +1,180 @@
+---
+/**
+ * MaterialOverview.astro — "What do you need gone?" as a fast visual answer.
+ *
+ * Replaces the homepage's searchable 88-item directory. This section has exactly
+ * one job, and it should be done in five to ten seconds:
+ *
+ *     "Do these people probably take the kind of stuff I have?"
+ *
+ * Yes or no, then move on to the quote. It is not a reference tool, and it does
+ * not need to be: someone with an unusual item is better served by sending a
+ * photo than by scrolling an inventory, and the photo quote is the stronger
+ * conversion path for exactly that case.
+ *
+ * ─────────────────────── Presentation, not data ───────────────────────
+ *
+ * NOTHING WAS REMOVED FROM THE KNOWLEDGE GRAPH. All 88 materials, their
+ * acceptance status, conditions, services, disposal routes and pricing
+ * considerations stay in src/data/materials.ts and stay published through
+ * /knowledge.json. This component simply selects a handful of them to show.
+ *
+ * Categories and example names are read from the existing structured data via
+ * the `featured` slug list, so there is no second taxonomy to drift out of sync
+ * with the first. Changing what appears here is a matter of reordering slugs,
+ * never of retyping item names.
+ *
+ * The three categories not featured (heavy materials, outdoor structures, office
+ * and commercial) are acknowledged in the closing note rather than dropped
+ * silently, because each is a real capability that a visitor might be looking
+ * for. They are the ones most likely to need a conversation anyway.
+ */
+import { getMaterialCategory, materialsInCategory, prohibitedMaterials } from '../data/materials';
+import { primaryQuoteAction } from '../data/quote-actions';
+
+interface Props {
+  /** Category slugs to feature, in display order. Selection, not a new taxonomy. */
+  featured?: string[];
+  /** Example item names shown per category. */
+  examples?: number;
+}
+
+const {
+  featured = [
+    'furniture',
+    'appliances',
+    'household-goods',
+    'garage-storage',
+    'yard-green-waste',
+    'construction-debris',
+    'electronics',
+    'mattresses-bedding',
+  ],
+  examples = 4,
+} = Astro.props;
+
+const quote = primaryQuoteAction();
+
+/** Resolve each featured slug to its real category and a few of its real items. */
+const rows = featured
+  .map((slug) => {
+    const category = getMaterialCategory(slug);
+    if (!category) return undefined;
+    return {
+      category,
+      // Everything except prohibited. Restricted items ARE taken, they just
+      // carry a condition, and filtering them out removed the most recognisable
+      // names in the catalogue: a fridge, a washer and a dryer are all
+      // `restricted` because they have to be disconnected first, which left the
+      // appliances row reading "Microwave". The condition is explained in the
+      // graph and on the service pages; this row only answers whether we take
+      // that kind of thing at all.
+      items: materialsInCategory(slug)
+        .filter((m) => m.status !== 'prohibited')
+        .slice(0, examples),
+    };
+  })
+  .filter((r): r is NonNullable<typeof r> => Boolean(r) && r!.items.length > 0);
+
+/** Categories genuinely handled but not worth a homepage row. */
+const otherCategories = ['heavy-materials', 'outdoor-structures', 'office-commercial']
+  .map(getMaterialCategory)
+  .filter((c): c is NonNullable<typeof c> => Boolean(c));
+
+const prohibitedCount = prohibitedMaterials().length;
+---
+
+<div class="overview">
+  <ul class="categories">
+    {
+      rows.map(({ category, items }) => (
+        <li>
+          <h3>{category.name}</h3>
+          <p class="examples">{items.map((m) => m.name).join(' · ')}</p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="notes">
+    <p class="unsure">
+      <strong>Do not see your item?</strong> Send us a photo and we will tell you
+      whether we can take it. <a href={`${quote.href}?from=materials`}>{quote.label}</a>
+    </p>
+
+    {/* One line for the categories that need a conversation rather than a row of
+        their own, plus the exclusions. Neither needs a section. */}
+    <p class="special">
+      We also handle {otherCategories.map((c) => c.name.toLowerCase()).join(', ')}.
+      Heavy material is priced by weight rather than by space, and {prohibitedCount}
+      hazardous or regulated items need a licensed handler rather than a truck.
+      Send a photo if you are unsure.
+    </p>
+  </div>
+</div>
+
+<style>
+  .overview {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  /* A ruled index rather than eight stacked cards. Each row is one glance: the
+     category, then four names a homeowner will recognise. */
+  .categories {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .categories li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .categories h3 {
+    font-size: var(--t2);
+    letter-spacing: 0;
+  }
+
+  .examples {
+    margin-top: var(--s1);
+    color: var(--ink-2);
+    font-size: var(--t3);
+  }
+
+  .notes {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .unsure {
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+    max-width: 64ch;
+    color: var(--ink-2);
+  }
+
+  .unsure strong {
+    color: var(--ink);
+  }
+
+  .unsure a {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .special {
+    font-size: var(--t3);
+    color: var(--ink-3);
+    max-width: 68ch;
+  }
+
+  @media (min-width: 700px) {
+    .categories {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+  }
+</style>

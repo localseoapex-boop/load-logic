@@ -22,15 +22,18 @@
  * The entity relationships a crawler or an assistant needs are all still stated
  * in the HTML: the business, its services, the material categories it handles,
  * its service area with real ZIP codes, its pricing model, its equipment and its
- * quote action. All 88 items remain in the document inside a disclosure. Every
- * service and every city keeps a plain anchor. Nothing was removed that carried
- * a relationship; what went was repetition of relationships already stated
- * elsewhere on the page.
+ * quote action. Every service and every city keeps a plain anchor.
+ *
+ * The homepage no longer lists all 88 individual materials. That inventory is
+ * business knowledge rather than homepage content: it lives in the graph, in
+ * /knowledge.json and on the pages that own each material relationship. What the
+ * homepage states is the category level, which is what a person and an assistant
+ * both need in order to know whether to keep reading.
  *
  * Headings name their subject in plain language, so the page structure reads the
  * same way to a person and to a parser.
  *
- * MERGED:   item categories + search + exclusions -> one discovery section
+ * MERGED:   item categories + search + exclusions -> one overview section
  *           before/after + example job + equipment -> one proof section
  *           situations + service directory        -> one navigation section
  *           disposal                              -> final step of How it works
@@ -41,7 +44,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Section from '../components/Section.astro';
 import Hero from '../components/Hero.astro';
-import ItemDiscovery from '../components/ItemDiscovery.astro';
+import MaterialOverview from '../components/MaterialOverview.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
 import Situations from '../components/Situations.astro';
@@ -101,15 +104,17 @@ const showTrust = hasVerifiedFacts();
     alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
   />
 
-  <!-- 2. Discovery. Categories, search and the exclusions line in one section,
-       replacing three that were asking the same question. -->
+  <!-- 2. Discovery. Eight categories with recognisable examples, answering
+       "do they take my kind of stuff" in a few seconds and then moving on. The
+       full 88-item catalogue stays in the knowledge graph and in
+       /knowledge.json rather than on the homepage. -->
   <Section
     tone="sunk"
     heading="What do you need gone?"
-    intro="Search the item you have in mind, or scan the categories. If it fits on the trailer and it is legal to haul, it goes."
+    intro="If it fits on the trailer and it is legal to haul, it goes. Here is the shape of it."
     id="what-we-take"
   >
-    <ItemDiscovery />
+    <MaterialOverview />
   </Section>
 
   <!-- 3. Load size. The strongest reason someone can answer their own question
