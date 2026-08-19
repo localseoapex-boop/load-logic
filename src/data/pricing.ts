@@ -440,6 +440,18 @@ export const formatPrice = (price: PriceRange): string => {
   return `$${price.min} to $${price.max}`;
 };
 
+/**
+ * Compact range for the load scale, where six prices stack into a column and
+ * need to align as readings rather than as sentences. "$85 to $125" wraps in a
+ * narrow measure and breaks that alignment; "$85-125" does not. Prose contexts
+ * keep formatPrice.
+ */
+export const formatPriceCompact = (price: PriceRange): string => {
+  if (!price.published || price.min === undefined) return '';
+  if (price.max === undefined || price.max === price.min) return `$${price.min}`;
+  return `$${price.min}\u2013${price.max}`;
+};
+
 /** Surcharges with a published per-unit figure. */
 export const publishedSurcharges = () =>
   pricingTerms.surcharges.filter((s) => s.price?.published);

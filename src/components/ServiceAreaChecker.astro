@@ -255,10 +255,18 @@ const zipMap = Object.fromEntries(
     max-width: 56ch;
   }
 
+  /* ─────────────── The coverage list as the geographic moment ───────────────
+     Same nine cities, same forty-nine ZIP codes, same links. What changed is
+     that the city names are now set at display size, so the section reads as a
+     territory rather than as a lookup table, and the ZIPs sit opposite them in
+     mono as the supporting data. The home city is set larger again, because
+     "based in Mesa" is the single most important geographic fact on the page
+     and it was previously the same size as Ahwatukee. */
+
   .cities {
     list-style: none;
     padding: 0;
-    border-top: 1px solid var(--rule);
+    border-top: 2px solid var(--ink);
   }
 
   .cities li {
@@ -267,15 +275,29 @@ const zipMap = Object.fromEntries(
     align-items: baseline;
     justify-content: space-between;
     gap: var(--s2) var(--s5);
-    padding-block: var(--s3);
+    padding-block: var(--s4);
     border-bottom: 1px solid var(--rule);
   }
 
   .city {
     font-family: var(--font-display);
-    font-weight: 600;
+    font-size: var(--d3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--ink);
     text-decoration: none;
+  }
+
+  .cities li.home .city {
+    font-size: var(--num-lg);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  @media (hover: hover) {
+    a.city:hover {
+      color: var(--spruce-2);
+    }
   }
 
   a.city:hover {
