@@ -26,15 +26,21 @@ interface Props {
   links: RailLink[];
   /** `index` for a ruled list, `rail` for a scrolling row of larger targets. */
   variant?: 'index' | 'rail';
+  /**
+   * Heading level for the block title. Defaults to h2, but drops to h3 when the
+   * rail is nested inside a section that already owns an h2, so the document
+   * outline stays a real hierarchy rather than a flat run of h2s.
+   */
+  headingLevel?: 'h2' | 'h3';
 }
 
-const { title, links, variant = 'index' } = Astro.props;
+const { title, links, variant = 'index', headingLevel: Heading = 'h2' } = Astro.props;
 ---
 
 {
   links.length > 0 && (
     <nav class:list={['related', variant]} aria-label={title} data-reveal>
-      <h2 class="title">{title}</h2>
+      <Heading class="title">{title}</Heading>
       <ul>
         {links.map((link) => (
           <li>

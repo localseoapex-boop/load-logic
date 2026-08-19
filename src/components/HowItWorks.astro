@@ -13,8 +13,52 @@
  *
  * Rendered as a ruled ledger rather than four cards in a row, which is the
  * layout family this content kept getting shoved into.
+ *
+ * TWO VARIANTS.
+ *
+ *   `compact`  six steps, ending with where the material goes. The homepage
+ *              version: this section should reinforce conversion, not become
+ *              another deep educational block.
+ *   `full`     eight steps with the detail behind each. For service pages.
  */
-const steps = [
+interface Props {
+  variant?: 'compact' | 'full';
+}
+
+const { variant = 'full' } = Astro.props;
+
+/**
+ * The compact set folds the disposal story into its final step, which is why
+ * the homepage no longer needs a standalone "where it goes" section.
+ */
+const compactSteps = [
+  {
+    title: 'Send photos or call',
+    text: 'A few shots of the pile and the path to it is enough. Calling works if it is easier to explain than to photograph.',
+  },
+  {
+    title: 'We review the job',
+    text: 'We check the property is in the service area and come back with an estimate and the soonest windows we have.',
+  },
+  {
+    title: 'The price is confirmed on site',
+    text: 'The estimate gets you close. The crew confirms the real number when they see the job, and nothing is loaded until you agree to it.',
+  },
+  {
+    title: 'We load it',
+    text: 'From wherever it sits: inside the house, the garage, the patio, the yard. You do not move anything to the curb first.',
+  },
+  {
+    title: 'We sweep up',
+    text: 'The area is left clean. That is part of the job, not an extra.',
+  },
+  {
+    title: 'The load gets sorted',
+    text: 'Usable items are separated for reuse, metal and electronics go to recovery, yard waste goes to a green waste facility, and only what is left goes to disposal.',
+  },
+];
+
+const fullSteps = [
   {
     title: 'Send photos or call',
     text: 'A few photos of the pile and the path to it is enough to start. Calling works too if it is easier to explain than to photograph.',
@@ -48,6 +92,8 @@ const steps = [
     text: 'Usable items are separated for reuse, metal and electronics go to recovery, green waste goes to a green waste facility, and only what is left goes to disposal.',
   },
 ];
+
+const steps = variant === 'compact' ? compactSteps : fullSteps;
 ---
 
 <ol class="steps" data-reveal>

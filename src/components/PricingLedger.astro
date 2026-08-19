@@ -43,7 +43,12 @@ import { pricingRelevantAccess } from '../data/access';
 import { confirmedCapacityCubicYards, heavyMaterialVehicle, fleetLimits } from '../data/equipment';
 
 interface Props {
-  variant?: 'summary' | 'full';
+  /**
+   * `brief`    five rows and the minimum, roughly a screen. Homepage.
+   * `summary`  the same five points with the surcharge list. 
+   * `full`     every factor, the access checklist and the load definitions.
+   */
+  variant?: 'brief' | 'summary' | 'full';
 }
 
 const { variant = 'full' } = Astro.props;
@@ -72,7 +77,7 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
 ---
 
 {
-  variant === 'summary' && (
+  (variant === 'summary' || variant === 'brief') && (
     <div class="summary-ledger" data-reveal>
       <dl class="points">
         <div class="point">
@@ -108,7 +113,15 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
         </div>
       </dl>
 
-      {published ? (
+      {published && variant === 'brief' && (
+        <p class="minimum brief-min">
+          <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong> Mattresses,
+          fridges and heavy material carry their own disposal charge, and every
+          figure is confirmed on site before anything is loaded.
+        </p>
+      )}
+
+      {published && variant === 'summary' ? (
         <div class="terms">
           <p class="minimum">
             <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong> Ranges
@@ -131,13 +144,13 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
             </ul>
           )}
         </div>
-      ) : (
+      ) : !published ? (
         <p class="no-list">
           We quote per job rather than publishing a fixed list, because volume,
           weight and access vary too much for a list to be honest. Photos get you
           a real number before anyone arrives.
         </p>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -328,6 +341,11 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
     margin-top: var(--s5);
     display: grid;
     gap: var(--s4);
+  }
+
+  .brief-min {
+    margin-top: var(--s5);
+    font-size: var(--t3);
   }
 
   .minimum {

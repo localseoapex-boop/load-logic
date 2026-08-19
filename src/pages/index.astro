@@ -1,50 +1,47 @@
 ---
 /**
- * Homepage — the complete 16-section build.
+ * Homepage — nine sections, restructured around Understand, Trust, Estimate, Convert.
  *
- * Every section is an independently removable component fed from the knowledge
- * graph, which is the point of shipping the whole thing before pruning: the
- * system gets evaluated at full extent, then sections get cut or moved with real
- * evidence rather than guesses.
+ * The complete build was eighteen sections and 25,857px at 390px, about 31
+ * screens. That was deliberate: build everything, see the whole system, then cut
+ * with evidence. This is the cut.
  *
- * WHAT CHANGED FROM THE OLD HOMEPAGE. It was six consecutive card grids on a
- * gradient hero, with three hardcoded testimonials, four hardcoded FAQs, and a
- * "Free quote" button pointing at /services. Nothing is hardcoded here: services,
- * cities, materials, situations, load sizes, pricing factors, disposal routes,
- * jobs and questions all come from src/data through src/lib/knowledge.ts.
+ * ─────────────── What the homepage is now responsible for ───────────────
  *
- * SECTIONS CURRENTLY HIDDEN, by design and not by omission:
- *   - Reviews. reviews.ts holds no verified entries, so ReviewWall renders
- *     nothing and the heading is suppressed with it. No placeholder ships.
- *   - Trust facts. VERIFIED in site.ts is empty, so no credential is claimed.
- * Both appear automatically once real data exists.
+ * Answering, in order, quickly enough that a homeowner can scan it one-handed:
+ * what Load Logic does, whether they take your thing, how much you have, how
+ * pricing works, why people call, that the work is real, what happens next,
+ * where they operate, and how to ask.
  *
- * LAYOUT DISCIPLINE. Nine distinct layout families across sixteen sections, no
- * family repeated, never three consecutive image-and-text splits, and three
- * micro-labels total against a budget of five.
+ * It is NOT responsible for displaying the knowledge graph. Depth now lives on
+ * /pricing, the service pages, the location pages and /knowledge.json, and the
+ * homepage routes intent to them through ordinary crawlable links.
  *
- * DEPTH LIVES DEEPER. Six sections render a compact variant here and keep their
- * full version for service and location pages:
+ * ─────────────────────── What that means for SEO ───────────────────────
  *
- *   WhatWeRemove      overview  categories and counts, not sampled items
- *   Situations        navigator a ruled index, not four photo splits
- *   PricingLedger     summary   five points, not every factor at depth
- *   DisposalFlow      flow      three stages plus ranked routes, not eight essays
- *   EquipmentCapability compact two trailers and the constraint, no photography
- *   ComparisonLedger  rows=5    the dimensions that change a decision
+ * The entity relationships a crawler or an assistant needs are all still stated
+ * in the HTML: the business, its services, the material categories it handles,
+ * its service area with real ZIP codes, its pricing model, its equipment and its
+ * quote action. All 88 items remain in the document inside a disclosure. Every
+ * service and every city keeps a plain anchor. Nothing was removed that carried
+ * a relationship; what went was repetition of relationships already stated
+ * elsewhere on the page.
  *
- * Nothing was deleted. The homepage answers what Load Logic does, what it takes,
- * whether a job qualifies, how much junk there is, how pricing works, where it
- * operates, what happens next and how to ask. Everything below that belongs on a
- * URL that matches the intent.
+ * Headings name their subject in plain language, so the page structure reads the
+ * same way to a person and to a parser.
+ *
+ * MERGED:   item categories + search + exclusions -> one discovery section
+ *           before/after + example job + equipment -> one proof section
+ *           situations + service directory        -> one navigation section
+ *           disposal                              -> final step of How it works
+ * REMOVED:  the DIY comparison, the standalone quote strip, the standalone
+ *           service rail, the standalone exclusions and disposal sections.
+ *           Every one of those components still exists and stays reusable.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Section from '../components/Section.astro';
 import Hero from '../components/Hero.astro';
-import QuoteStarter from '../components/QuoteStarter.astro';
-import WhatWeRemove from '../components/WhatWeRemove.astro';
-import WhatWeDontRemove from '../components/WhatWeDontRemove.astro';
-import ItemLookup from '../components/ItemLookup.astro';
+import ItemDiscovery from '../components/ItemDiscovery.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
 import Situations from '../components/Situations.astro';
@@ -54,124 +51,110 @@ import EquipmentCapability from '../components/EquipmentCapability.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import ServiceAreaChecker from '../components/ServiceAreaChecker.astro';
 import ReviewWall from '../components/ReviewWall.astro';
-import ComparisonLedger from '../components/ComparisonLedger.astro';
-import DisposalFlow from '../components/DisposalFlow.astro';
+import TrustFacts from '../components/TrustFacts.astro';
 import FaqBlock from '../components/FaqBlock.astro';
 import RelatedRail from '../components/RelatedRail.astro';
 import FinalQuoteCta from '../components/FinalQuoteCta.astro';
-import TrustFacts from '../components/TrustFacts.astro';
 
-import { SITE } from '../config/site';
+import { SITE, hasVerifiedFacts } from '../config/site';
 import { services } from '../data/services';
 import { getJob } from '../data/jobs';
 import { hasVerifiedReviews } from '../data/reviews';
-import { hasVerifiedFacts } from '../config/site';
-import { featuredFaqs, faqsForTopic, globalFaqs } from '../data/faqs';
+import { getFaq } from '../data/faqs';
 import { serviceUrl } from '../lib/urls';
 
 import baGarageBefore from '../assets/photos/before-after/ba-garage-before.jpg';
 import baGarageAfter from '../assets/photos/before-after/ba-garage-after.jpg';
 
-/** The homepage question set: high-intent first, then the topic banks. */
+/**
+ * Six questions, chosen for decision value rather than coverage: price, what is
+ * taken, how a quote works, timing, heavy material, and whether anything has to
+ * be moved outside first. Everything else belongs on the page that owns it.
+ */
 const homeFaqs = [
-  ...featuredFaqs(),
-  ...faqsForTopic('pricing').filter((f) => !f.featured),
-  ...globalFaqs().filter((f) => !f.featured),
+  'how-is-pricing-determined',
+  'what-do-you-not-take',
+  'can-i-send-photos',
+  'how-quickly-can-you-come',
+  'do-you-take-heavy-material',
+  'do-i-need-to-move-things-outside',
 ]
-  .filter((faq, i, all) => all.findIndex((f) => f.slug === faq.slug) === i)
-  .slice(0, 10)
+  .map(getFaq)
+  .filter((f): f is NonNullable<typeof f> => Boolean(f))
   .map((f) => ({ question: f.question, answer: f.answer }));
 
 const featureJob = getJob('gilbert-garage-reset');
 
-const serviceLinks = services.map((s) => ({
-  label: s.name,
-  href: serviceUrl(s.slug),
-  description: s.tagline,
-}));
+/** Every service keeps a crawlable anchor, integrated rather than in its own block. */
+const serviceLinks = services.map((s) => ({ label: s.name, href: serviceUrl(s.slug) }));
 
 const showReviews = hasVerifiedReviews();
 const showTrust = hasVerifiedFacts();
 ---
 
 <BaseLayout title={SITE.name} description={SITE.description}>
-  <!-- 1. Hero. Full-bleed photograph, four text elements, both CTAs. -->
+  <!-- 1. Hero. Four text elements, both CTAs, no explanatory copy above the fold. -->
   <Hero
-    eyebrow="Mesa and the East Valley"
+    eyebrow="Junk removal in Mesa and the East Valley"
     heading="Point at it. We carry it out."
-    subhead="Furniture, appliances, garages, estates and construction debris. You get the price before anything is loaded."
+    subhead="Send a few photos and get a price. Nothing is loaded until you agree to the number."
     alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
   />
 
-  <!-- 2. Quote starter. A tight action strip, not a section of content. -->
-  <Section weight="tight" tone="sunk" id="start">
-    <QuoteStarter />
-  </Section>
-
-  <!-- 3. What we remove. Typographic index. -->
-  <Section
-    label="What we take"
-    heading="80 things we take. And 8 we won't."
-    intro="Eleven categories, with the conditions that apply. Search the full list below for anything specific."
-  >
-    <WhatWeRemove variant="overview" />
-  </Section>
-
-  <!-- 3b. The searchable catalogue. One place holds all 88 items and every
-       condition, so nothing above needs to repeat them. -->
+  <!-- 2. Discovery. Categories, search and the exclusions line in one section,
+       replacing three that were asking the same question. -->
   <Section
     tone="sunk"
-    heading="Can we take yours?"
-    intro="Every item we handle, with the answer attached. Type what you have."
-    width="wide"
-    id="can-we-take"
+    heading="What do you need gone?"
+    intro="Search the item you have in mind, or scan the categories. If it fits on the trailer and it is legal to haul, it goes."
+    id="what-we-take"
   >
-    <ItemLookup />
+    <ItemDiscovery />
   </Section>
 
-  <!-- 3c. The exclusions, stated plainly with somewhere else to go. -->
-  <Section heading="What we cannot take">
-    <WhatWeDontRemove />
-  </Section>
-
-  <!-- 4. Load size. The signature component, given feature weight. -->
+  <!-- 3. Load size. The strongest reason someone can answer their own question
+       before contacting anyone. -->
   <Section
     weight="feature"
-    label="How much have you got"
-    heading="Work out your load size"
-    intro="Price is mostly about how much of the trailer you fill. Find the closest match and you are already most of the way to a real number."
+    heading="How much junk do you have?"
+    intro="Price is mostly the share of the trailer you fill. Find the closest match and you already have a range."
     width="wide"
   >
     <LoadSizeScale />
   </Section>
 
-  <!-- 5. Pricing. Ledger. -->
-  <Section
-    tone="sunk"
-    heading="How pricing works"
-    intro="No published price list, because volume, weight and access vary too much for one to be honest. Five things decide the number."
-  >
-    <PricingLedger variant="summary" />
-    {/* Contextual link rather than another full-size CTA. The depth this
-        summary was cut from now lives on its own URL. */}
+  <!-- 4. Pricing. The model only. The detail is one link away. -->
+  <Section tone="sunk" heading="How junk removal pricing works">
+    <PricingLedger variant="brief" />
     <p class="section-link">
-      <a href="/pricing">Every factor, two worked examples and the do-it-yourself comparison</a>
+      <a href="/pricing">Every pricing factor, worked examples and the do-it-yourself comparison</a>
     </p>
   </Section>
 
-  <!-- 6. Situations, as a navigator. The reader is orienting here, so their own
-       words lead and each row routes to the service that solves it. -->
+  <!-- 5. Why people call, then the services those situations map to. Problem-led
+       discovery and service-topic internal linking in one section. -->
   <Section
-    heading="Why people call"
+    heading="Why people call, and what they book"
     intro="Nobody wakes up wanting junk removal. They want a garage back, a house listed, or an estate settled."
   >
     <Situations variant="navigator" />
+    <div class="directory">
+      <RelatedRail
+        title="Junk removal services"
+        links={serviceLinks}
+        variant="index"
+        headingLevel="h3"
+      />
+    </div>
   </Section>
 
-  <!-- 7. Before and after. Feature weight, full width. -->
+  <!-- 6. Proof. One job, shown rather than described, with the equipment that did
+       it. Replaces three sections that were all making the same point. -->
   <Section
+    tone="sunk"
     weight="feature"
-    heading="A two-car garage, cleared"
+    heading="Proof of the work"
+    intro="One job end to end, with the same detail you get on a quote."
     width="wide"
   >
     <BeforeAfter
@@ -182,46 +165,31 @@ const showTrust = hasVerifiedFacts();
       afterAlt="The same two-car garage completely empty with a clean swept concrete floor"
       caption="Drag to compare. Representative of a three-quarter load garage cleanout."
     />
+    {featureJob && <div class="job"><ExampleJob job={featureJob} /></div>}
+    <div class="rigs">
+      <EquipmentCapability variant="compact" />
+    </div>
   </Section>
 
-  <!-- 8. Example job. A single record, not a grid of them. -->
+  <!-- 7. How it works. Six steps, ending with where the material goes, which is
+       why disposal no longer needs a section of its own. -->
+  <Section heading="How it works">
+    <HowItWorks variant="compact" />
+  </Section>
+
+  <!-- 8. Where we work. Real ZIP codes and plain anchors to every city, so the
+       service-area relationships are crawlable without running the checker. -->
   <Section
     tone="sunk"
-    heading="What a job actually looks like"
-    intro="Every number here is the kind of detail you get on a quote: how much space, how many people, how long, and where it all ended up."
-  >
-    {featureJob && <ExampleJob job={featureJob} />}
-  </Section>
-
-  <!-- 9. Equipment. Asymmetric, with the honest capacity constraint. -->
-  <Section
-    heading="What we haul with"
-    intro="Two trailers for two different problems, and one truck."
-  >
-    <EquipmentCapability variant="compact" />
-  </Section>
-
-  <!-- 10. Process. Numbered ledger. -->
-  <Section
-    label="Start to finish"
-    heading="How it works"
-    intro="Eight steps, including the three that happen after we drive away."
-  >
-    <HowItWorks />
-  </Section>
-
-  <!-- 11. Areas served, with the ZIP checker. -->
-  <Section
-    tone="sunk"
-    heading="Do we come to you?"
-    intro="Based in Mesa, working across the East Valley. Check a ZIP or browse the list."
+    heading="Where we work"
+    intro="Based in Mesa and working across the East Valley. Check a ZIP code or browse the list."
     width="wide"
     id="areas"
   >
     <ServiceAreaChecker />
   </Section>
 
-  <!-- 12. Reviews. Hidden entirely until verified reviews exist. -->
+  <!-- Hidden until verified data exists. No placeholder ships. -->
   {
     showReviews && (
       <Section heading="What customers say">
@@ -229,8 +197,6 @@ const showTrust = hasVerifiedFacts();
       </Section>
     )
   }
-
-  <!-- 12b. Verified credentials. Hidden until any exist. -->
   {
     showTrust && (
       <Section weight="tight" heading="The checkable bits">
@@ -239,35 +205,12 @@ const showTrust = hasVerifiedFacts();
     )
   }
 
-  <!-- 13. DIY comparison, including when to not call us. -->
-  <Section
-    heading="Should you just rent a truck?"
-    intro="Sometimes, genuinely. Here is how the two compare on the points that decide it."
-    width="wide"
-  >
-    <ComparisonLedger slug="diy-vs-full-service" rows={5} />
-  </Section>
-
-  <!-- 14. Disposal. -->
-  <Section
-    tone="sunk"
-    heading="Where it goes after it leaves"
-    intro="Every load follows the same three stages, then splits by what the material actually is."
-  >
-    <DisposalFlow variant="flow" />
-  </Section>
-
-  <!-- 15. FAQs. Two-column list above 768px, collapsed below. -->
-  <Section heading="Questions people ask first" width="wide">
+  <!-- 9. FAQ. Six questions with decision value, not a knowledge dump. -->
+  <Section heading="Common questions" width="wide">
     <FaqBlock faqs={homeFaqs} />
   </Section>
 
-  <!-- 15b. Service navigation as a designed rail, replacing the old link grid. -->
-  <Section weight="tight" tone="sunk">
-    <RelatedRail title="All services" links={serviceLinks} variant="index" />
-  </Section>
-
-  <!-- 16. Final CTA. -->
+  <!-- 10. Convert. Nothing educational below this. -->
   <FinalQuoteCta
     heading="Send a few photos and get a real number"
     body="Most quotes come back the same day. Same-day pickup is often possible when you get in touch early and the job fits an existing route."
@@ -277,8 +220,8 @@ const showTrust = hasVerifiedFacts();
 
 <style>
   /* Contextual link out to a deeper page. Deliberately not a button: DESIGN.md
-     reserves full-size CTAs for the two conversion actions, and a third one per
-     section is exactly the CTA fatigue the refinement pass was avoiding. */
+     reserves full-size CTAs for the two conversion actions, and one after every
+     section is the CTA fatigue this restructure exists to avoid. */
   .section-link {
     margin-top: var(--s6);
     padding-top: var(--s4);
@@ -293,5 +236,23 @@ const showTrust = hasVerifiedFacts();
 
   .section-link a::after {
     content: ' \2192';
+  }
+
+  /* The service directory sits under the situations that lead to it, so the two
+     read as one navigation moment rather than two competing blocks. */
+  .directory {
+    margin-top: var(--s7);
+    padding-top: var(--s6);
+    border-top: 2px solid var(--ink);
+  }
+
+  .job {
+    margin-top: var(--s7);
+  }
+
+  .rigs {
+    margin-top: var(--s7);
+    padding-top: var(--s6);
+    border-top: 1px solid var(--rule);
   }
 </style>

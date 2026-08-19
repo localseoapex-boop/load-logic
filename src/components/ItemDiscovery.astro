@@ -1,0 +1,438 @@
+---
+/**
+ * ItemDiscovery.astro — "What do you need gone?"
+ *
+ * Merges three homepage sections that were separately asking the same question:
+ * the category overview, the searchable catalogue, and the exclusions list. They
+ * cost roughly 4,900px between them and told the visitor the same thing three
+ * times.
+ *
+ * ─────────────────────── How the disclosure works ───────────────────────
+ *
+ * DEFAULT   the eleven categories with counts. Breadth at a glance, about a
+ *           screen and a half.
+ * SEARCH    typing reveals matching items with their real answer attached.
+ * BROWSE    a <details> holds the complete catalogue for anyone who wants to
+ *           read rather than search.
+ *
+ * ALL 88 ITEMS ARE IN THE HTML at every stage. They are inside a <details>,
+ * which crawlers index and assistive technology can open, so hiding them by
+ * default costs nothing in crawlability or accessibility. This is progressive
+ * disclosure, not cloaking: the same content is one interaction away for a human
+ * and immediately present for a machine.
+ *
+ * Without JavaScript the search input degrades to inert and the browse
+ * disclosure still works natively, so no visitor is stuck.
+ *
+ * EXCLUSIONS ARE ONE LINE, not a section. Someone with a garage full of paint
+ * needs to find that out, but the other 99% of visitors do not need a screen of
+ * hazardous-waste detail before they can ask for a quote. The full reasons and
+ * alternatives stay in the search results and on the deeper pages.
+ */
+import { acceptedCategories, materialsInCategory, materials, prohibitedMaterials } from '../data/materials';
+import { coverageFor } from '../lib/knowledge';
+import { serviceUrl } from '../lib/urls';
+
+/** Categories with their counts, for the always-visible index. */
+const categories = acceptedCategories().map((category) => {
+  const items = materialsInCategory(category.slug);
+  return {
+    category,
+    total: items.length,
+    conditional: items.filter((m) => m.status === 'restricted').length,
+    /** A few recognisable names, so the row says something concrete. */
+    sample: items.slice(0, 3).map((m) => m.name).join(', '),
+  };
+});
+
+/** Every item with its full coverage answer, accepted first. */
+const order = { accepted: 0, restricted: 1, prohibited: 2 } as const;
+const rows = materials
+  .map((m) => coverageFor(m.slug))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c))
+  .sort((a, b) => {
+    const s = order[a.material.status] - order[b.material.status];
+    return s !== 0 ? s : a.material.name.localeCompare(b.material.name);
+  });
+
+const statusLabel = {
+  accepted: 'We take it',
+  restricted: 'Yes, with a condition',
+  prohibited: 'Needs specialty disposal',
+} as const;
+
+const prohibitedCount = prohibitedMaterials().length;
+---
+
+<div class="discovery">
+  <!-- Search first: most people arrive with one specific thing in mind. -->
+  <form class="search" role="search" onsubmit="return false">
+    <label class="label" for="item-q">Search an item</label>
+    <input
+      id="item-q"
+      type="search"
+      placeholder="couch, fridge, mattress, paint"
+      autocomplete="off"
+      data-discover-input
+    />
+    <p class="hint" data-discover-hint>
+      {materials.length} items in the list. Or browse the categories below.
+    </p>
+  </form>
+
+  <!-- Results. Empty until a search matches, so the default view stays short. -->
+  <div class="results" data-discover-results hidden>
+    <ul>
+      {
+        rows.map(({ material, accepted, condition, alternative, services }) => (
+          <li
+            class:list={['item', material.status]}
+            data-terms={[material.name, ...material.aliases].join(' ').toLowerCase()}
+            hidden
+          >
+            <div class="item-head">
+              <span class="item-name">{material.name}</span>
+              <span class:list={['item-status', material.status]}>
+                {statusLabel[material.status]}
+              </span>
+            </div>
+            {condition && <p class="item-note">{condition}</p>}
+            {alternative && <p class="item-alt">{alternative}</p>}
+            {accepted && services.length > 0 && (
+              <p class="item-service">
+                <a href={serviceUrl(services[0].slug)}>{services[0].name}</a>
+              </p>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+    <p class="no-match" data-discover-empty hidden>
+      Nothing matched that. It may still be something we take, so send a photo and
+      we will tell you either way.
+    </p>
+  </div>
+
+  <!-- The category index. This is the default view and the breadth signal. -->
+  <ul class="categories" data-discover-categories>
+    {
+      categories.map(({ category, total, conditional, sample }) => (
+        <li>
+          <div class="cat-main">
+            <h3>{category.name}</h3>
+            <p class="cat-sample">{sample}</p>
+          </div>
+          <p class="cat-meta data">
+            <span>{total} items</span>
+            {conditional > 0 && <span class="cat-cond">{conditional} conditional</span>}
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <!-- One line, not a section. The detail lives in the search results. -->
+  <p class="exclusions">
+    <strong>Some materials need specialty disposal.</strong> Hazardous and
+    regulated items, {prohibitedCount} in total, including paint, fuels, chemicals
+    and asbestos, have to go to a licensed handler rather than on a truck. Search
+    your item above, or send a photo if you are unsure and we will tell you where
+    it should go.
+  </p>
+
+  <!-- The complete catalogue, for people who would rather read than search, and
+       for anything that does not run JavaScript. -->
+  <details class="browse">
+    <summary>Browse all {materials.length} items</summary>
+    <ul class="all-items">
+      {
+        rows.map(({ material }) => (
+          <li class:list={material.status}>
+            <span>{material.name}</span>
+            {material.status === 'restricted' && <span class="mark">condition</span>}
+            {material.status === 'prohibited' && <span class="mark no">specialty</span>}
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+</div>
+
+<script>
+  // Filter only. Every item is already in the document, so this degrades to a
+  // complete browsable catalogue inside the <details> if the script never runs.
+  const input = document.querySelector<HTMLInputElement>('[data-discover-input]');
+  const results = document.querySelector<HTMLElement>('[data-discover-results]');
+  const categories = document.querySelector<HTMLElement>('[data-discover-categories]');
+  const empty = document.querySelector<HTMLElement>('[data-discover-empty]');
+  const hint = document.querySelector<HTMLElement>('[data-discover-hint]');
+
+  if (input && results && categories && empty && hint) {
+    const items = Array.from(results.querySelectorAll<HTMLElement>('.item'));
+    const total = items.length;
+    const defaultHint = hint.textContent ?? '';
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+
+      // An empty box returns the page to its default state rather than dumping
+      // all 88 rows into the flow.
+      if (q.length < 2) {
+        results.hidden = true;
+        categories.hidden = false;
+        hint.textContent = defaultHint;
+        return;
+      }
+
+      let shown = 0;
+      items.forEach((item) => {
+        const match = (item.dataset.terms ?? '').includes(q);
+        item.hidden = !match;
+        if (match) shown += 1;
+      });
+
+      results.hidden = false;
+      categories.hidden = true;
+      empty.hidden = shown > 0;
+      hint.textContent =
+        shown > 0
+          ? `${shown} of ${total} items match "${input.value.trim()}".`
+          : `No match for "${input.value.trim()}".`;
+    });
+  }
+</script>
+
+<style>
+  .discovery {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  /* ─── Search ─── */
+
+  .search {
+    max-width: 32rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: var(--s2);
+  }
+
+  input {
+    width: 100%;
+    min-height: 52px;
+    padding: var(--s3) var(--s4);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-size: var(--t2);
+  }
+
+  input::placeholder {
+    color: var(--ink-3);
+  }
+
+  input:focus-visible {
+    border-color: var(--ink);
+  }
+
+  .hint {
+    margin-top: var(--s2);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* ─── Results ─── */
+
+  .results ul {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    max-height: 26rem;
+    overflow-y: auto;
+  }
+
+  .item {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .item[hidden] {
+    display: none;
+  }
+
+  .item-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s1) var(--s4);
+  }
+
+  .item-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t2);
+  }
+
+  .item-status {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .item-status.accepted {
+    color: var(--spruce-2);
+  }
+
+  .item-status.restricted {
+    color: var(--ink-2);
+  }
+
+  .item-status.prohibited {
+    color: var(--rust);
+  }
+
+  .item-note,
+  .item-alt,
+  .item-service {
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  .item-alt {
+    color: var(--ink);
+  }
+
+  .no-match {
+    margin-top: var(--s4);
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  /* ─── Categories, the default view ─── */
+
+  .categories {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .categories[hidden] {
+    display: none;
+  }
+
+  .categories li {
+    display: grid;
+    gap: var(--s1);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .categories h3 {
+    font-size: var(--t2);
+    letter-spacing: 0;
+  }
+
+  .cat-sample {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .cat-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  .cat-cond {
+    color: var(--rust);
+  }
+
+  /* ─── Exclusions, one line ─── */
+
+  .exclusions {
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--rust);
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  .exclusions strong {
+    color: var(--ink);
+  }
+
+  /* ─── Browse everything ─── */
+
+  .browse > summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    padding-block: var(--s3);
+    border-top: 1px solid var(--rule);
+    list-style: none;
+  }
+
+  .browse > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .browse > summary::after {
+    content: ' +';
+    font-family: var(--font-data);
+    color: var(--ink-3);
+  }
+
+  .browse[open] > summary::after {
+    content: ' \2013';
+  }
+
+  .all-items {
+    list-style: none;
+    padding: var(--s3) 0 0;
+    display: grid;
+    gap: var(--s2);
+    font-size: var(--t3);
+  }
+
+  .all-items li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s2);
+  }
+
+  .mark {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .mark.no {
+    color: var(--rust);
+  }
+
+  @media (min-width: 700px) {
+    .categories li {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      align-items: baseline;
+      gap: var(--s6);
+    }
+
+    .cat-meta {
+      justify-content: flex-end;
+    }
+
+    .all-items {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--s2) var(--s6);
+    }
+  }
+</style>
