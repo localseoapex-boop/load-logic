@@ -22,7 +22,7 @@
  * `published: false` until real pricing is supplied, so this shows how much junk
  * you have, never what it will cost.
  */
-import { loadScale, isPricingPublished, formatVolume } from '../data/pricing';
+import { loadScale, isPricingPublished, formatVolume, formatPrice, pricingTerms } from '../data/pricing';
 import { confirmedCapacityCubicYards, fleetLimits } from '../data/equipment';
 
 const loads = loadScale();
@@ -89,12 +89,10 @@ const fullLoadNote = `A full load means our ${
 
               <p class="summary">{load.summary}</p>
 
-              <p class="volume data">
-                {formatVolume(load) && <>about {formatVolume(load)}</>}
-                {showPrices && load.price.published && load.price.min && (
-                  <span class="price"> · from ${load.price.min}</span>
-                )}
-              </p>
+              {showPrices && formatPrice(load.price) && (
+                <p class="price data">{formatPrice(load.price)}</p>
+              )}
+              <p class="volume data">{formatVolume(load) && `about ${formatVolume(load)}`}</p>
             </div>
 
             <ul class="examples">
@@ -109,6 +107,14 @@ const fullLoadNote = `A full load means our ${
   </ol>
 
   <footer class="notes">
+    {
+      showPrices && (
+        <p class="minimum">
+          <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong>{' '}
+          {pricingTerms.minimum.description}
+        </p>
+      )
+    }
     <p>
       <strong>These are estimates.</strong> {fullLoadNote}
     </p>
@@ -200,15 +206,20 @@ const fullLoadNote = `A full load means our ${
     color: var(--ink);
   }
 
-  .volume {
-    margin-top: var(--s2);
-    font-size: var(--t3);
-    color: var(--ink-3);
+  /* The price is the answer people came for, so it gets display weight rather
+     than sitting as a footnote after the volume. */
+  .price {
+    margin-top: var(--s3);
+    font-size: var(--t1);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
   }
 
-  .price {
-    color: var(--ink);
-    font-weight: 600;
+  .volume {
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    color: var(--ink-3);
   }
 
   .notes {
@@ -223,6 +234,15 @@ const fullLoadNote = `A full load means our ${
   .pending {
     padding-top: var(--s3);
     border-top: 1px solid var(--rule);
+  }
+
+  .minimum {
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+  }
+
+  .minimum strong {
+    color: var(--ink);
   }
 
   @media (min-width: 700px) {

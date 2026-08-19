@@ -35,6 +35,9 @@ import {
   pricingFactors,
   pricingTerms,
   isPricingPublished,
+  formatPrice,
+  publishedSurcharges,
+  quotedSurcharges,
 } from '../data/pricing';
 import { pricingRelevantAccess } from '../data/access';
 import { confirmedCapacityCubicYards, heavyMaterialVehicle, fleetLimits } from '../data/equipment';
@@ -51,6 +54,8 @@ const access = pricingRelevantAccess();
 const capacity = confirmedCapacityCubicYards();
 const dump = heavyMaterialVehicle();
 const published = isPricingPublished();
+const flatSurcharges = publishedSurcharges();
+const quoted = quotedSurcharges();
 
 /**
  * Sentences that interpolate an optional value are assembled here rather than in
@@ -103,7 +108,30 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
         </div>
       </dl>
 
-      {!published && (
+      {published ? (
+        <div class="terms">
+          <p class="minimum">
+            <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong> Ranges
+            cover normal access. The crew confirms the figure on site.
+          </p>
+          {flatSurcharges.length > 0 && (
+            <ul class="surcharges">
+              {flatSurcharges.map((sc) => (
+                <li>
+                  <span class="sc-name">{sc.name}</span>
+                  <span class="sc-price data">{formatPrice(sc.price!)} each</span>
+                </li>
+              ))}
+              {quoted.map((sc) => (
+                <li>
+                  <span class="sc-name">{sc.name}</span>
+                  <span class="sc-price data">quoted from photos</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
         <p class="no-list">
           We quote per job rather than publishing a fixed list, because volume,
           weight and access vary too much for a list to be honest. Photos get you
@@ -194,12 +222,39 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
       }
       <div class="row">
         <dt>Bigger than one load</dt>
-        <dd>{fleetLimits.consequence} {fleetLimits.reason}</dd>
+        <dd>{`${fleetLimits.consequence} ${fleetLimits.reason}`}</dd>
       </div>
       <div class="row">
-        <dt>Minimum</dt>
+        <dt>
+          <span class="sc-label">Minimum</span>
+          {published && <span class="dt-price data">{formatPrice(pricingTerms.minimum)}</span>}
+        </dt>
         <dd>{pricingTerms.minimum.description}</dd>
       </div>
+    </dl>
+  </section>
+
+  <!-- Charges that sit on top of the volume price. Stated up front, because
+       these are the ones that otherwise turn into a driveway conversation. -->
+  <section class="block">
+    <h3>What gets added on top</h3>
+    <dl class="rows">
+      {
+        pricingTerms.surcharges.map((sc) => (
+          <div class="row">
+            <dt>
+              <span class="sc-label">{sc.name}</span>
+              <span class="dt-price data">
+                {sc.price?.published ? `${formatPrice(sc.price)} each` : 'quoted from photos'}
+              </span>
+            </dt>
+            {/* `appliesTo` stays in the data for machine consumers but is not
+                printed here: the heading already names the item and the price
+                already says "each", so it read as a repeat. */}
+            <dd>{sc.reason}</dd>
+          </div>
+        ))
+      }
     </dl>
   </section>
 
@@ -267,6 +322,62 @@ const heavySentence = `Concrete, tile, brick and soil are charged on weight rath
     font-size: var(--t3);
     color: var(--ink-2);
     max-width: 62ch;
+  }
+
+  .terms {
+    margin-top: var(--s5);
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .minimum {
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+    max-width: 62ch;
+    color: var(--ink-2);
+  }
+
+  .minimum strong {
+    color: var(--ink);
+  }
+
+  .surcharges {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    max-width: 40rem;
+  }
+
+  .surcharges li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s2) var(--s4);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t3);
+  }
+
+  .sc-name {
+    font-weight: 600;
+  }
+
+  .sc-price {
+    color: var(--ink-2);
+  }
+
+  /* The figure sits under the label rather than inside the explanation, so a
+     reader scanning for numbers finds them all in one column. */
+  .sc-label {
+    display: block;
+  }
+
+  .dt-price {
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    font-weight: 400;
+    color: var(--ink-2);
   }
 
   /* ─── full variant ─── */

@@ -5,19 +5,33 @@
  * much will this cost" is unanswerable until "how much junk do you have" is
  * answered, and volume is the primary input to the price.
  *
- * ─────────────────────────── Honesty contract ───────────────────────────
+ * ─────────────────────────── Pricing basis ───────────────────────────
  *
- * NO DOLLAR FIGURES ARE INVENTED HERE. Every monetary value sits behind a
- * `published` flag and is absent until the business supplies real numbers.
- * Components read `isPricingPublished()` and render the structure, the factors,
- * and the load scale without amounts until then. Publishing a plausible-looking
- * price a customer might rely on is exactly the kind of fabrication this data
- * layer exists to prevent.
+ * These figures are MARKET BENCHMARKED, not owner-confirmed. They were derived
+ * on 2026-08-19 from published Mesa and Maricopa County competitor pricing, then
+ * scaled to Load Logic's actual 9 cubic yard utility trailer. See PRICING_BASIS
+ * below for the sources and the method.
  *
- * `cubicYards` IS now populated, because the equipment is confirmed. The
- * reference volume is the 9 cubic yard open utility trailer from
- * src/data/equipment.ts, which is the larger of the two trailers and therefore
- * the maximum single-trip capacity. A "full load" means that trailer filled.
+ * THE OWNER MUST CONFIRM THESE BEFORE THE SITE GOES LIVE. A published price is
+ * a number a customer will hold you to. Everything here is a defensible market
+ * position rather than a guess, but a market position is still a proposal until
+ * the person doing the work agrees to honour it.
+ *
+ * Ranges rather than fixed prices, deliberately. Volume, weight and access
+ * genuinely vary, and a single number would either be wrong or would have to be
+ * padded to cover the worst case.
+ *
+ * `cubicYards` is populated from confirmed equipment. The reference volume is
+ * the 9 cubic yard open utility trailer in src/data/equipment.ts, the larger of
+ * the two and therefore the maximum single-trip capacity. A "full load" means
+ * that trailer filled.
+ *
+ * THAT NUMBER IS WHY THE PRICES ARE NOT COPIED FROM COMPETITORS. The industry
+ * standard truck is 15 to 16 cubic yards, so a competitor's "full truck" holds
+ * nearly twice what Load Logic's full trailer does. Charging their full-truck
+ * rate for a 9 yard trailer would overcharge by roughly 70% for the volume
+ * delivered. Every figure below was converted to a price per cubic yard first,
+ * then applied to Load Logic's real capacities.
  *
  * The business runs one tow vehicle, so only one trailer is hitched at a time.
  * Anything bigger than a full load is several trips, quoted together. Components
@@ -53,6 +67,56 @@ const unpublished = (note: string): PriceRange => ({
   currency: 'USD',
   note,
 });
+
+const usd = (min: number, max: number, note?: string): PriceRange => ({
+  published: true,
+  currency: 'USD',
+  min,
+  max,
+  note,
+});
+
+/**
+ * PRICING_BASIS — where these numbers came from, so they can be re-derived.
+ *
+ * Kept in the data layer rather than in a comment because the reasoning is the
+ * asset: when the owner revisits prices, or when a competitor moves, this is what
+ * tells them whether the position still holds.
+ */
+export const PRICING_BASIS = {
+  derivedOn: '2026-08-19',
+  confirmedByOwner: false,
+  referenceCubicYards: 9,
+  method:
+    'Competitor prices converted to a price per cubic yard, then applied to Load Logic\'s real 9 cubic yard trailer. Positioned just above the local trailer operators, because Load Logic removes items from inside the property and sorts for donation rather than loading from the curb, and clearly below the national franchise rate.',
+  benchmarks: [
+    {
+      name: 'Just Haul It (Maricopa County)',
+      note: 'Closest structural match: a 10.6 cubic yard trailer, not a truck.',
+      fullLoad: 380,
+      cubicYards: 10.6,
+      perCubicYard: 35.8,
+    },
+    {
+      name: 'Junk Rescue AZ',
+      note: 'Standard truck. Full load 500 to 600.',
+      fullLoad: 550,
+      cubicYards: 15.5,
+      perCubicYard: 35.5,
+    },
+    {
+      name: 'Arizona franchise-tier guide',
+      note: 'Higher end of the market. Full truck 649 to 795.',
+      fullLoad: 722,
+      cubicYards: 15.5,
+      perCubicYard: 46.6,
+    },
+  ],
+  /** Where Load Logic lands, for comparison against the benchmarks above. */
+  loadLogicPerCubicYardAtFullLoad: 42,
+  marketContext:
+    'Reported Mesa average job is 226 to 251 dollars, which is roughly a half to three-quarter load on this scale.',
+} as const;
 
 export interface LoadSize {
   slug: string;
@@ -95,7 +159,7 @@ export const loadSizes: LoadSize[] = [
     services: ['furniture-removal', 'mattress-removal', 'appliance-removal', 'same-day-junk-removal'],
     image: 'load-single-item',
     cubicYards: 0.75,
-    price: unpublished('Single items are quoted individually. Send a photo for a firm price.'),
+    price: usd(85, 125, 'Covers the trip, the crew and disposal. Send a photo for a firm number.'),
     order: 1,
   },
   {
@@ -113,7 +177,7 @@ export const loadSizes: LoadSize[] = [
     services: ['junk-removal', 'furniture-removal', 'yard-waste-removal'],
     image: 'load-small',
     cubicYards: 1.5,
-    price: unpublished('Quoted from photos or a short description.'),
+    price: usd(95, 145),
     order: 2,
   },
   {
@@ -131,7 +195,7 @@ export const loadSizes: LoadSize[] = [
     services: ['junk-removal', 'yard-waste-removal', 'garage-cleanouts', 'shed-removal'],
     image: 'load-quarter',
     cubicYards: 2.25,
-    price: unpublished('Volume-based. Confirmed on site before loading starts.'),
+    price: usd(125, 175),
     order: 3,
   },
   {
@@ -149,7 +213,7 @@ export const loadSizes: LoadSize[] = [
     services: ['garage-cleanouts', 'junk-removal', 'construction-debris-removal', 'foreclosure-cleanouts'],
     image: 'load-half',
     cubicYards: 4.5,
-    price: unpublished('Volume-based. Confirmed on site before loading starts.'),
+    price: usd(185, 255),
     order: 4,
   },
   {
@@ -167,7 +231,7 @@ export const loadSizes: LoadSize[] = [
     services: ['garage-cleanouts', 'estate-cleanouts', 'office-cleanouts', 'hot-tub-removal'],
     image: 'load-three-quarter',
     cubicYards: 6.75,
-    price: unpublished('Volume-based. Confirmed on site before loading starts.'),
+    price: usd(255, 340),
     order: 5,
   },
   {
@@ -186,7 +250,7 @@ export const loadSizes: LoadSize[] = [
     services: ['estate-cleanouts', 'foreclosure-cleanouts', 'hoarder-cleanouts', 'junk-removal'],
     image: 'load-full',
     cubicYards: 9,
-    price: unpublished('Large jobs are quoted on site or from photos. Multiple loads are priced together.'),
+    price: usd(325, 435, 'Larger than this is quoted as multiple loads, priced together.'),
     order: 6,
   },
 ];
@@ -282,9 +346,28 @@ export const pricingFactors: PricingFactor[] = [
 
 /* ───────────────────────── Commercial terms ───────────────────────── */
 
+/**
+ * A charge that sits on top of the volume price.
+ *
+ * These exist because certain material costs the business real money to dispose
+ * of regardless of the space it takes. Stating them up front is the difference
+ * between a quote that holds and a conversation on the driveway.
+ */
+export interface Surcharge {
+  slug: string;
+  name: string;
+  /** Per unit, or undefined when the item is quoted individually. */
+  price?: PriceRange;
+  reason: string;
+  /** What it applies to, in the customer's terms. */
+  appliesTo: string;
+}
+
 export interface PricingTerms {
   /** The smallest job the business will take, and what it covers. */
   minimum: PriceRange & { description: string };
+  /** Charges added on top of the volume price. */
+  surcharges: Surcharge[];
   /** How and when the price is agreed. */
   commitments: string[];
   /** Payment methods. Empty until confirmed. */
@@ -293,15 +376,43 @@ export interface PricingTerms {
 
 export const pricingTerms: PricingTerms = {
   minimum: {
-    ...unpublished('Minimum pickup pricing has not been published yet.'),
+    ...usd(85, 85),
     description:
-      'Every job has a minimum that covers getting a crew and truck to the property, even for a single item.',
+      'Every job has a minimum that covers getting a crew and trailer to the property, even for a single item. If you only have one thing to move, it is worth checking whether anything else can go at the same time.',
   },
+
+  surcharges: [
+    {
+      slug: 'mattress',
+      name: 'Mattress or box spring',
+      price: usd(25, 25),
+      reason:
+        'Mattresses cannot be compressed and most facilities charge a separate fee to take them, so this is a pass-through rather than a markup.',
+      appliesTo: 'Each mattress or box spring',
+    },
+    {
+      slug: 'refrigerant',
+      name: 'Fridge, freezer or air conditioner',
+      price: usd(35, 35),
+      reason:
+        'Anything containing refrigerant has to be handled separately from the general load and taken to a facility set up for it.',
+      appliesTo: 'Each unit containing refrigerant',
+    },
+    {
+      slug: 'heavy-material',
+      name: 'Concrete, tile, brick, soil and roofing',
+      reason:
+        'Dense debris is limited by weight rather than by space, and disposal is charged by the ton locally. A small pile can weigh more than a whole trailer of furniture, so these are quoted from photos rather than off the volume scale.',
+      appliesTo: 'Any load of dense construction or landscaping material',
+    },
+  ],
+
   commitments: [
     'You get the price before anything is loaded',
     'The quote is based on what the crew can actually see, not an estimate over the phone',
     'Nothing is loaded until you agree to the number',
     'Photos sent ahead of time get you a closer estimate before the crew arrives',
+    'The range covers normal access. Stairs, long carries and tight gates are discussed before we book, not after we arrive',
   ],
   paymentMethods: [],
 };
@@ -317,6 +428,25 @@ export const getPricingFactor = (slug: string): PricingFactor | undefined =>
 /** True once any real figure has been supplied. Gates all price display. */
 export const isPricingPublished = (): boolean =>
   pricingTerms.minimum.published || loadSizes.some((l) => l.price.published);
+
+/**
+ * Format a price for display. Returns an empty string when unpublished, so
+ * callers can render the surrounding markup unconditionally and simply get
+ * nothing while figures are missing.
+ */
+export const formatPrice = (price: PriceRange): string => {
+  if (!price.published || price.min === undefined) return '';
+  if (price.max === undefined || price.max === price.min) return `$${price.min}`;
+  return `$${price.min} to $${price.max}`;
+};
+
+/** Surcharges with a published per-unit figure. */
+export const publishedSurcharges = () =>
+  pricingTerms.surcharges.filter((s) => s.price?.published);
+
+/** Surcharges quoted case by case rather than at a fixed rate. */
+export const quotedSurcharges = () =>
+  pricingTerms.surcharges.filter((s) => !s.price?.published);
 
 /** The factors that matter most, for compact pricing summaries. */
 export const primaryPricingFactors = (): PricingFactor[] =>
