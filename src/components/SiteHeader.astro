@@ -213,6 +213,21 @@ const isActive = (href: string) =>
 
   /* ─── Mobile disclosure ─── */
 
+  /*
+   * Explicit reset. The templates still on legacy.css carry a global `details`
+   * rule from the old design system (white fill, 1px border, 8px radius, 1.1rem
+   * padding) which was written for FAQ accordions. It leaked into this menu on
+   * every legacy page and rendered the button 81px tall with a white box around
+   * it. The shell has to be self-defending rather than assume no other CSS is
+   * present, so these are stated instead of inherited.
+   */
+  .menu {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+
   .menu > summary {
     display: flex;
     align-items: center;

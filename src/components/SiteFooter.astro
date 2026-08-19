@@ -92,7 +92,16 @@ const areas = serviceAreaLocations;
     border-top: 1px solid var(--rule-on-spruce);
   }
 
+  /*
+   * The width is restated here because legacy.css also defines `.container`, at
+   * the same specificity, and it is loaded after the base stylesheet on the
+   * templates that still use it. That capped the footer at the old 1100px with
+   * 16px gutters. Scoping these to `.inner` and `.legal` wins on specificity
+   * without changing the global container for anyone else.
+   */
   .inner {
+    max-width: var(--w-wide);
+    padding-inline: var(--gutter);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: var(--s7) var(--s6);
@@ -168,6 +177,8 @@ const areas = serviceAreaLocations;
   }
 
   .legal {
+    max-width: var(--w-wide);
+    padding-inline: var(--gutter);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
