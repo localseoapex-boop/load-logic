@@ -1,0 +1,123 @@
+---
+/**
+ * BeforeAfterPair.astro — two frames of one job, side by side.
+ *
+ * Replaces the draggable comparison slider on the homepage. The slider was a
+ * nice piece of engineering and the wrong tool here: it shows one image at a
+ * time, so the comparison only happens if the visitor discovers the handle and
+ * drags it, and on a phone that gesture competes with scrolling. Two frames
+ * shown at once make the point without asking for an interaction, and they
+ * survive being screenshotted, printed or read by something that does not run
+ * CSS. The slider component stays in the codebase for pages that want it.
+ *
+ * HONESTY. The pair is generated photography of a representative cleanout, not a
+ * specific customer's job, and it says so in the note. It is never captioned
+ * with a name, an address, a date or a price.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  before: ImageMetadata;
+  after: ImageMetadata;
+  beforeAlt: string;
+  afterAlt: string;
+  /** Provenance line. Keep it plain: this is not a testimonial. */
+  note?: string;
+}
+
+const { before, after, beforeAlt, afterAlt, note } = Astro.props;
+---
+
+<div class="pair" data-reveal>
+  <figure class="frame">
+    <Image
+      src={before}
+      alt={beforeAlt}
+      widths={[420, 760, 1000]}
+      sizes="(min-width: 800px) 46vw, 92vw"
+      loading="lazy"
+    />
+    <figcaption><span class="tag before">Before</span></figcaption>
+  </figure>
+
+  <figure class="frame">
+    <Image
+      src={after}
+      alt={afterAlt}
+      widths={[420, 760, 1000]}
+      sizes="(min-width: 800px) 46vw, 92vw"
+      loading="lazy"
+    />
+    <figcaption><span class="tag after">After</span></figcaption>
+  </figure>
+</div>
+
+{note && <p class="note data">{note}</p>}
+
+<style>
+  .pair {
+    display: grid;
+    gap: var(--s5);
+  }
+
+  .frame {
+    position: relative;
+    margin: 0;
+  }
+
+  .frame :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--r-flat);
+  }
+
+  /* The label sits on the image rather than under it, so a reader scanning past
+     at speed gets the pairing without reading a caption. */
+  figcaption {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+  }
+
+  .tag {
+    display: block;
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: var(--s2) var(--s4);
+  }
+
+  /* Literal colours, not tokens. Spruce sections remap --ink to white so that
+     light-surface components render correctly on dark, which is right for body
+     copy and wrong for these two labels: BEFORE became white-on-white the moment
+     the section turned dark. A state label has to look the same everywhere it
+     appears, so it does not participate in the remap. */
+  .before {
+    background: #171a17;
+    color: #fff;
+  }
+
+  .after {
+    background: #cfe034;
+    color: #171a17;
+  }
+
+  .note {
+    margin-top: var(--s4);
+    font-size: var(--t3);
+    color: var(--ink-3);
+  }
+
+  @media (min-width: 700px) {
+    .pair {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s5);
+    }
+  }
+</style>

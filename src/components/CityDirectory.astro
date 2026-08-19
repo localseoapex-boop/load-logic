@@ -1,0 +1,104 @@
+---
+/**
+ * CityDirectory.astro — the cities, as plain crawlable links.
+ *
+ * This is the load-bearing half of the coverage section. The map beside it is a
+ * picture; these anchors are what a crawler and an assistant actually read to
+ * learn where the business operates, so they stay ordinary <a> elements with the
+ * city name as their text.
+ *
+ * NO ZIP CODES. Forty-nine of them were previously listed here, which was a wall
+ * of digits doing local-SEO work that the location pages already do better and
+ * in context. The ZIPs remain in locations.ts, in the knowledge graph and in
+ * /knowledge.json, and each city page still carries its own.
+ *
+ * The home market appears first and is marked, because "based in Mesa" is the
+ * single most important geographic fact on the page. It is not a link: it has no
+ * location page by design, since the homepage is its page.
+ */
+import { locations } from '../data/locations';
+import { serviceAreaLocations, isHomeCity } from '../lib/links';
+import { cityUrl } from '../lib/urls';
+
+const home = locations.find((l) => isHomeCity(l.slug));
+---
+
+<ul class="cities" data-reveal>
+  {
+    home && (
+      <li class="home">
+        <span class="name">{home.city}</span>
+        <span class="tag data">Home base</span>
+      </li>
+    )
+  }
+  {
+    serviceAreaLocations.map((loc) => (
+      <li>
+        <a class="name" href={cityUrl(loc.slug)}>
+          {loc.city}
+        </a>
+        <span class="mark" aria-hidden="true">
+          &#8594;
+        </span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .cities {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .cities li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .home .name {
+    font-size: var(--num-lg);
+    line-height: 1.05;
+  }
+
+  .tag {
+    font-size: var(--lbl);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .mark {
+    color: var(--rule-strong);
+    transition:
+      transform var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  @media (hover: hover) {
+    a.name:hover {
+      color: var(--spruce-2);
+    }
+
+    li:hover .mark {
+      color: var(--ink);
+      transform: translateX(3px);
+    }
+  }
+</style>

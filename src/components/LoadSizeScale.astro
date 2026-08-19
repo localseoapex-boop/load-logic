@@ -18,19 +18,30 @@
  * example leads, the fraction supports it, and the cubic yard figure comes last
  * as a secondary detail for anyone who wants it.
  *
- * HONESTY. Every figure is an estimate and says so. Amounts stay hidden behind
- * `published: false` until real pricing is supplied, so this shows how much junk
- * you have, never what it will cost.
+ * HONESTY. Prices are STARTING figures, from pricing.ts. Every rendering says
+ * "Starting at" rather than showing a bare amount, because a floor shown as a
+ * bare number reads as a fixed price. Amounts stay behind `published: false`
+ * until real pricing is supplied.
+ *
+ * TWO LAYOUTS. `rows` is the full-width instrument used on /pricing, where the
+ * page exists to explain price and the reading can take the space. `grid` is the
+ * homepage form: the same six loads as compact cells, two across, so the scale
+ * occupies one column of a two-column tool instead of six full-width rows the
+ * visitor has to scroll past.
  */
 import {
   loadScale,
   isPricingPublished,
   formatVolume,
-  formatPrice,
-  formatPriceCompact,
-  pricingTerms,
+  formatAmount,
 } from '../data/pricing';
 import { confirmedCapacityCubicYards, fleetLimits } from '../data/equipment';
+
+interface Props {
+  layout?: 'rows' | 'grid';
+}
+
+const { layout = 'rows' } = Astro.props;
 
 const loads = loadScale();
 const capacity = confirmedCapacityCubicYards();
@@ -63,10 +74,10 @@ const diagramFor = (image: string): string | undefined => diagrams[image];
 /** Assembled here so the optional capacity does not pick up template whitespace. */
 const fullLoadNote = `A full load means our ${
   capacity ? `${capacity} cubic yard ` : ''
-}open utility trailer filled to the rails. Sizes are judged on site before anything is loaded, and you approve the price first.`;
+}open utility trailer filled to the rails. The final price depends on volume, material, access and labour, and it is confirmed on site before anything is loaded.`;
 ---
 
-<div class="scale" data-reveal>
+<div class:list={['scale', layout]} data-reveal>
   <ol class="steps">
     {
       loads.map((load) => {
@@ -103,9 +114,14 @@ const fullLoadNote = `A full load means our ${
               ))}
             </ul>
 
+            {/* "Starting at" is part of the reading, never implied. A floor
+                rendered as a bare number reads as a fixed price. */}
             <div class="readings">
-              {showPrices && formatPriceCompact(load.price) && (
-                <p class="price data">{formatPriceCompact(load.price)}</p>
+              {showPrices && formatAmount(load.price) && (
+                <p class="price">
+                  <span class="from">Starting at</span>
+                  <span class="amount data">{formatAmount(load.price)}</span>
+                </p>
               )}
               <p class="volume data">{formatVolume(load)}</p>
             </div>
@@ -115,17 +131,13 @@ const fullLoadNote = `A full load means our ${
     }
   </ol>
 
+  {layout === 'rows' && (
   <footer class="notes">
-    {
-      showPrices && (
-        <p class="minimum">
-          <strong>Minimum {formatPrice(pricingTerms.minimum)}.</strong>{' '}
-          {pricingTerms.minimum.description}
-        </p>
-      )
-    }
+    {/* The separate minimum is gone: under starting prices the single-item
+        figure IS the floor, so publishing a second, lower number alongside it
+        stated two different smallest prices for the same job. */}
     <p>
-      <strong>These are estimates.</strong> {fullLoadNote}
+      <strong>These are starting prices.</strong> {fullLoadNote}
     </p>
     <p>
       {fleetLimits.consequence}
@@ -139,42 +151,23 @@ const fullLoadNote = `A full load means our ${
       )
     }
   </footer>
+  )}
 </div>
 
 <style>
   /* ─────────────────────── The instrument ───────────────────────
-     Read as a gauge, not as a list of six options. The percentage climbs down
-     the left edge in a fixed-width mono column, the drawn trailer fills beside
-     it, and the price and volume sit in a right-hand readings column so all six
-     numbers align vertically and can be compared without moving your eye. */
+     Two layouts over one set of readings. `rows` is the full-width version on
+     /pricing. `grid` is the homepage version: the same six loads as compact
+     cells so the scale becomes one column of a two-column tool rather than six
+     full-width rows to scroll past. */
 
   .steps {
     list-style: none;
     padding: 0;
-    border-top: 2px solid var(--ink);
-  }
-
-  .step {
-    display: grid;
-    /* Mobile is its own composition, not the desktop row stacked: reading on the
-       top-left, price on the top-right, drawing and description beneath. */
-    /* Fluid so the drawing grows with the screen instead of staying at phone
-       size on a tablet, where the text column has width to spare. */
-    grid-template-columns: clamp(5.5rem, 13vw, 9rem) minmax(0, 1fr);
-    grid-template-areas:
-      'frac read'
-      'diag text'
-      'ex   ex';
-    column-gap: var(--s4);
-    row-gap: var(--s3);
-    align-items: start;
-    padding-block: var(--s5);
-    border-bottom: 1px solid var(--rule);
+    margin: 0;
   }
 
   .frac {
-    grid-area: frac;
-    font-size: var(--num-lg);
     font-weight: 700;
     line-height: 0.85;
     letter-spacing: -0.04em;
@@ -182,8 +175,6 @@ const fullLoadNote = `A full load means our ${
     font-variant-numeric: tabular-nums;
   }
 
-  /* The unit rides small and high off the numeral so the number itself keeps
-     the weight. */
   .pct {
     font-size: 0.34em;
     font-weight: 600;
@@ -194,14 +185,8 @@ const fullLoadNote = `A full load means our ${
   }
 
   .diagram {
-    grid-area: diag;
     width: 100%;
-    max-width: 300px;
     height: auto;
-  }
-
-  .text {
-    grid-area: text;
   }
 
   h3 {
@@ -215,12 +200,9 @@ const fullLoadNote = `A full load means our ${
     font-size: var(--t3);
   }
 
-  /* The recognisable examples carry most of the meaning here, because "a packed
-     two-car garage" is far easier to judge yourself against than a number.
-     Square-edged and rule-bound rather than pills: this section is an
-     instrument, and the chips were the one soft shape in it. */
+  /* Square-edged and rule-bound rather than pills: this is an instrument, and
+     the chips were the one soft shape in it. */
   .examples {
-    grid-area: ex;
     padding: 0;
     margin-top: var(--s3);
     list-style: none;
@@ -236,22 +218,31 @@ const fullLoadNote = `A full load means our ${
     color: var(--ink-2);
   }
 
-  .readings {
-    grid-area: read;
-    text-align: end;
+  .price {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  /* The price is the answer people came for, so it gets display weight. */
-  .price {
-    font-size: var(--t1);
+  .from {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .amount {
     font-weight: 700;
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
+    font-size: var(--d3);
+    line-height: 1;
   }
 
   .volume {
-    margin-top: var(--s1);
+    margin-top: var(--s2);
     font-size: var(--t3);
     color: var(--ink-3);
     font-variant-numeric: tabular-nums;
@@ -266,33 +257,126 @@ const fullLoadNote = `A full load means our ${
     color: var(--ink-2);
   }
 
+  .notes strong {
+    color: var(--ink);
+  }
+
   .pending {
     padding-top: var(--s3);
     border-top: 1px solid var(--rule);
   }
 
-  .minimum {
-    padding-inline-start: var(--s4);
-    border-inline-start: 3px solid var(--hi-vis);
+  /* ─────────────────────────── grid layout ─────────────────────────── */
+
+  .grid .steps {
+    display: grid;
+    gap: var(--s5);
+    border-top: 2px solid var(--ink);
   }
 
-  .minimum strong {
-    color: var(--ink);
+  .grid .step {
+    display: grid;
+    grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+    grid-template-areas:
+      'diag  head'
+      'diag  price';
+    column-gap: var(--s4);
+    align-items: center;
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .grid .diagram {
+    grid-area: diag;
+  }
+
+  .grid .frac,
+  .grid .summary,
+  .grid .examples {
+    display: none;
+  }
+
+  .grid .text {
+    grid-area: head;
+  }
+
+  .grid h3 {
+    font-size: var(--t1);
+  }
+
+  .grid .readings {
+    grid-area: price;
+  }
+
+  .grid .volume {
+    display: none;
+  }
+
+  .grid .amount {
+    font-size: var(--t1);
+  }
+
+  @media (min-width: 560px) {
+    .grid .steps {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s6);
+    }
+  }
+
+  /* ─────────────────────────── rows layout ─────────────────────────── */
+
+  .rows .steps {
+    border-top: 2px solid var(--ink);
+  }
+
+  .rows .step {
+    display: grid;
+    grid-template-columns: clamp(5.5rem, 13vw, 9rem) minmax(0, 1fr);
+    grid-template-areas:
+      'frac read'
+      'diag text'
+      'ex   ex';
+    column-gap: var(--s4);
+    row-gap: var(--s3);
+    align-items: start;
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .rows .frac {
+    grid-area: frac;
+    font-size: var(--num-lg);
+  }
+
+  .rows .diagram {
+    grid-area: diag;
+    max-width: 300px;
+  }
+
+  .rows .text {
+    grid-area: text;
+  }
+
+  .rows .examples {
+    grid-area: ex;
+  }
+
+  .rows .readings {
+    grid-area: read;
+    text-align: end;
+  }
+
+  .rows .price {
+    align-items: flex-end;
   }
 
   @media (min-width: 860px) {
-    /* One horizontal row per load: reading, drawing, description, price. */
-    .step {
-      /* Fluid, not fixed. The numeral column has to track the numeral, which is
-         itself a clamp on viewport width: at a fixed 14rem the text column
-         collapsed to 200px around 1024 and the descriptions wrapped to ribbons.
-         Roughly 2x the numeral's font-size is what three digits plus the unit
-         need. */
+    .rows .step {
       grid-template-columns:
         clamp(7rem, 16vw, 14rem)
         clamp(9rem, 18vw, 230px)
         minmax(0, 1fr)
-        minmax(0, 9rem);
+        minmax(0, 11rem);
       grid-template-areas:
         'frac diag text read'
         'frac diag ex   read';
@@ -301,19 +385,13 @@ const fullLoadNote = `A full load means our ${
       align-items: center;
     }
 
-    .frac {
+    .rows .frac {
       font-size: var(--num-xl);
-      /* Optical alignment: the mono numerals sit slightly right of the rule
-         they share with the section masthead without this. */
       margin-inline-start: -0.04em;
     }
 
-    .summary {
+    .rows .summary {
       font-size: var(--t2);
-    }
-
-    .price {
-      font-size: var(--d3);
     }
   }
 </style>

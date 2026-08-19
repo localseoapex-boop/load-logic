@@ -52,11 +52,11 @@ import MaterialOverview from '../components/MaterialOverview.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
 import ServiceDirectory from '../components/ServiceDirectory.astro';
-import BeforeAfter from '../components/BeforeAfter.astro';
-import ExampleJob from '../components/ExampleJob.astro';
-import EquipmentCapability from '../components/EquipmentCapability.astro';
+import CtaBreak from '../components/CtaBreak.astro';
+import BeforeAfterPair from '../components/BeforeAfterPair.astro';
 import HowItWorks from '../components/HowItWorks.astro';
-import ServiceAreaChecker from '../components/ServiceAreaChecker.astro';
+import CityDirectory from '../components/CityDirectory.astro';
+import ServiceAreaMap from '../components/ServiceAreaMap.astro';
 import ReviewWall from '../components/ReviewWall.astro';
 import TrustFacts from '../components/TrustFacts.astro';
 import FaqBlock from '../components/FaqBlock.astro';
@@ -64,13 +64,13 @@ import FinalQuoteCta from '../components/FinalQuoteCta.astro';
 
 import { SITE, BUSINESS, hasVerifiedFacts } from '../config/site';
 import { confirmedCapacityCubicYards } from '../data/equipment';
-import { getJob } from '../data/jobs';
+import { loadScale } from '../data/pricing';
 import { hasVerifiedReviews } from '../data/reviews';
 import { getFaq } from '../data/faqs';
 
 import { Image } from 'astro:assets';
-import baGarageBefore from '../assets/photos/before-after/ba-garage-before.jpg';
-import baGarageAfter from '../assets/photos/before-after/ba-garage-after.jpg';
+import baBefore from '../assets/photos/before-after/cleanout-before.jpg';
+import baAfter from '../assets/photos/before-after/cleanout-after.jpg';
 
 /*
  * Homepage photography. Three of these were generated for this pass; the rest
@@ -82,8 +82,6 @@ import baGarageAfter from '../assets/photos/before-after/ba-garage-after.jpg';
 import imgStaged from '../assets/photos/equipment/equip-sorting.jpg';
 import imgLoadSide from '../assets/photos/loads/load-side.jpg';
 import imgServiceGarage from '../assets/photos/services/svc-garage.jpg';
-import imgProofLoaded from '../assets/photos/home/proof-loaded.jpg';
-import imgQuotePhoto from '../assets/photos/home/quote-photo.jpg';
 import imgSuburb from '../assets/photos/cities/ctx-suburb.jpg';
 
 /**
@@ -103,8 +101,6 @@ const homeFaqs = [
   .filter((f): f is NonNullable<typeof f> => Boolean(f))
   .map((f) => ({ question: f.question, answer: f.answer }));
 
-const featureJob = getJob('gilbert-garage-reset');
-
 /**
  * Restored verbatim from the original homepage, where they were the strongest
  * thing above the fold. Each is a description of how the service operates rather
@@ -123,13 +119,25 @@ const operatingFacts = [
  * The hero's operating rail. Four facts a dispatcher would actually state, and
  * every one is checkable: the home city, the real single-trip capacity from
  * equipment.ts (the larger of the two trailers, never their sum, because only
- * one can be towed at a time), the published minimum from pricing.ts, and the
+ * one can be towed at a time), the lowest published starting price, and the
  * business phone number.
+ *
+ * The price reads from pricing.ts rather than being typed here, so the rail
+ * cannot drift from the scale further down the page. It is labelled "Jobs from"
+ * because it is a floor: the old rail said "Minimum $85", which under the
+ * starting-price model was both stale and a different claim.
  */
+const lowestStart = Math.min(
+  ...loadScale()
+    .map((l) => l.price)
+    .filter((p) => p.published && p.min !== undefined)
+    .map((p) => p.min as number),
+);
+
 const heroFacts = [
   { label: 'Base', value: 'Mesa, AZ' },
   { label: 'Per trip', value: `${confirmedCapacityCubicYards()} yd³` },
-  { label: 'Minimum', value: '$85' },
+  { label: 'Jobs from', value: `$${lowestStart}` },
   { label: 'Dispatch', value: BUSINESS.phoneDisplay },
 ];
 
@@ -140,11 +148,10 @@ const showTrust = hasVerifiedFacts();
 <BaseLayout title={SITE.name} description={SITE.description}>
   <!-- 1. Hero. Four text elements, both CTAs, no explanatory copy above the fold. -->
   <Hero
-    eyebrow="Junk removal in Mesa and the East Valley"
-    heading="Point at it. We carry it out."
+    eyebrow="Full-service hauling · Same-day when the route allows"
+    heading="Junk Removal in Mesa & the East Valley"
     subhead="Furniture, appliances, garages and full property cleanouts. Send photos and get a price before anything is loaded."
-    alt="Two workers carrying a large sofa out through an open garage door and down a driveway"
-    mobileAlt="A gloved hand gripping the wooden frame under a worn sofa as it is lifted"
+    alt="An open utility trailer with mesh side rails loaded with a sofa and a chest of drawers, hitched to a pickup truck on a suburban driveway"
     facts={heroFacts}
   />
 
@@ -194,30 +201,58 @@ const showTrust = hasVerifiedFacts();
     scale="display"
     weight="feature"
     heading="How much junk do you have?"
-    intro="Price follows volume, so find the closest match and you already have a range. The minimum is $85."
+    intro="Price follows volume. Find the closest match and you have the starting figure for a job that size."
     width="wide"
   >
-    <Image
-      slot="media"
-      src={imgLoadSide}
-      alt="An open utility trailer with mesh side rails loaded with boxes and household junk, hitched to a pickup truck on a driveway"
-      widths={[420, 760]}
-      sizes="(min-width: 900px) 42vw, 92vw"
-      loading="lazy"
-    />
-    <LoadSizeScale />
+    {/* Two columns that read as one tool: the scale you measure yourself
+        against on the left, what that costs on the right. Previously this was
+        six full-width rows followed by a long pricing essay, which meant the
+        answer to "what will this cost" was several screens below the question.
 
-    <div class="pricing-note">
-      <h3>What else moves the price</h3>
-      {/* The scale's footer already states the minimum, the multiple-load rule
-          and the price-approval commitment, so only the factors it does not
-          cover appear here. */}
-      <PricingLedger variant="brief" omit={['volume', 'loads', 'approve']} />
-      <p class="section-link">
-        <a href="/pricing">Every pricing factor, worked examples and the do-it-yourself comparison</a>
-      </p>
+        The detailed pricing content is GONE from the homepage, not rewritten:
+        the minimum, the estimate disclaimer, the multiple-trip rule, the factor
+        ledger and the specialty-disposal explanation all live on /pricing, which
+        exists to answer exactly that. What stays here is the shortest honest
+        statement that these are floors and what moves them. */}
+    <div class="tool">
+      <div class="tool-scale">
+        <LoadSizeScale layout="grid" />
+      </div>
+
+      <aside class="tool-note">
+        <figure class="note-media">
+          <Image
+            src={imgLoadSide}
+            alt="An open utility trailer with mesh side rails loaded with boxes and household junk, hitched to a pickup truck on a driveway"
+            widths={[380, 700]}
+            sizes="(min-width: 1000px) 34vw, 92vw"
+            loading="lazy"
+          />
+        </figure>
+
+        <p class="note-lede">
+          Final pricing depends on volume, material, access and labor. Send us
+          photos for a more accurate quote.
+        </p>
+        <p class="note-heavy">
+          Concrete, dirt, tile and other dense materials are quoted separately
+          based on weight.
+        </p>
+        <p class="section-link">
+          <a href="/pricing">See full pricing details</a>
+        </p>
+      </aside>
     </div>
   </Section>
+
+  <!-- 3b. First conversion break. Placed here because this is the moment the
+       visitor has just worked out roughly how much they have and wants to know
+       what it actually costs for their pile. -->
+  <CtaBreak
+    heading="Not sure how much you have?"
+    body="Send us a few photos and we'll help you figure it out."
+    source="home-mid-load"
+  />
 
   <!-- 4. What Load Logic actually offers. Restores the original homepage's
        clearest feature, a named service with a one-line explanation of what it
@@ -229,74 +264,72 @@ const showTrust = hasVerifiedFacts();
   <Section
     index="03"
     label="Service index"
-    tone="sunk"
     heading="Junk removal services"
     intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
     id="services"
   >
-    <figure class="band">
-      <Image
-        src={imgServiceGarage}
-        alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
-        widths={[600, 1000, 1440]}
-        sizes="(min-width: 1100px) 1100px, 100vw"
-        loading="lazy"
-      />
-    </figure>
+    <Image
+      slot="media"
+      src={imgServiceGarage}
+      alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
     <ServiceDirectory />
   </Section>
 
   <!-- 5. Proof. One job, shown rather than described, with the equipment that did
        it. Replaces three sections that were all making the same point. -->
+  {/* 04. Before and after, and nothing else. This section previously carried the
+      slider, a full job-specification ledger, a second loaded-trailer photograph
+      and the equipment table, which meant four different things all making the
+      same point. The images make it on their own. The job record and the
+      equipment components still exist and stay reusable elsewhere. */}
   <Section
     index="04"
-    label="Field record"
+    label="Before / After"
     tone="spruce"
     scale="display"
     weight="feature"
-    heading="Proof of the work"
-    intro="One job end to end, with the same detail you get on a quote."
+    heading="The same driveway, twice"
+    intro="One cleanout, photographed before we started and after we left."
     width="wide"
   >
-    <BeforeAfter
-      id="garage"
-      before={baGarageBefore}
-      after={baGarageAfter}
-      beforeAlt="A two-car garage packed with cardboard boxes, storage totes, an old dresser and a bicycle, with no floor space visible"
-      afterAlt="The same two-car garage completely empty with a clean swept concrete floor"
-      caption="Drag to compare. Representative of a three-quarter load garage cleanout."
+    <BeforeAfterPair
+      before={baBefore}
+      after={baAfter}
+      beforeAlt="A suburban two-car garage packed wall to wall with cardboard boxes, storage totes, a bicycle and household clutter, with an armchair standing out on the driveway"
+      afterAlt="The same garage and driveway completely empty, the concrete swept clean and the garage bare"
+      note="Representative cleanout example"
     />
-    {featureJob && <div class="job"><ExampleJob job={featureJob} /></div>}
-    <figure class="band proof-band">
-      <Image
-        src={imgProofLoaded}
-        alt="Two workers closing the gate on a loaded trailer of old furniture, with a swept empty driveway behind"
-        widths={[600, 1000, 1440]}
-        sizes="(min-width: 1200px) 1200px, 100vw"
-        loading="lazy"
-      />
-      <figcaption class="data">The same job, loaded and away. One trailer, one trip.</figcaption>
-    </figure>
-
-    <div class="rigs">
-      <EquipmentCapability variant="compact" />
-    </div>
   </Section>
 
   <!-- 6. How it works. The original four steps, verbatim. A booking process on
        a homepage is for conversion clarity, not documentation: four steps can be
        taken in at a glance, where six read as a procedure. -->
-  <Section index="05" label="Process" heading="How it works">
-    <Image
-      slot="media"
-      src={imgQuotePhoto}
-      alt="A hand holding a phone up to photograph a pile of furniture and boxes in a garage"
-      widths={[420, 760]}
-      sizes="(min-width: 900px) 42vw, 92vw"
-      loading="lazy"
-    />
-    <HowItWorks variant="booking" />
+  {/* 05. The four steps as a horizontal banner. The supporting photograph is
+      gone on purpose: the process itself is the visual, and an image beside it
+      was competing with the thing it was supposed to support. */}
+  <Section
+    index="05"
+    label="Process"
+    tone="sunk"
+    weight="tight"
+    heading="How it works"
+  >
+    <HowItWorks variant="booking" layout="banner" />
   </Section>
+
+  <!-- 05b. Second conversion break, after the work has been shown and the
+       process explained. Spruce, because it is also the transition out of the
+       explaining half of the page and into the local half. -->
+  <CtaBreak
+    heading="Ready to clear the space?"
+    body="Send photos and get a real number back, usually the same day."
+    source="home-mid-process"
+    tone="spruce"
+  />
 
   <!-- 7. Where we work. Real ZIP codes and plain anchors to every city, so the
        service-area relationships are crawlable without running the checker. -->
@@ -306,20 +339,21 @@ const showTrust = hasVerifiedFacts();
     tone="sunk"
     scale="display"
     heading="Where we work"
-    intro="Based in Mesa and working across the East Valley. Check a ZIP code or browse the list."
+    intro="Based in Mesa and working across the East Valley."
     width="wide"
     id="areas"
   >
-    <figure class="band wide-band">
-      <Image
-        src={imgSuburb}
-        alt="A quiet East Valley residential street of single storey stucco homes with tile roofs and gravel front yards"
-        widths={[600, 1000, 1440]}
-        sizes="(min-width: 1200px) 1200px, 100vw"
-        loading="lazy"
-      />
-    </figure>
-    <ServiceAreaChecker />
+    {/* Two columns: the crawlable list of cities, and a map drawn from those
+        cities' real coordinates. The ZIP list that used to sit here is gone from
+        the homepage; the data stays in locations.ts and on the city pages. */}
+    <div class="area-cols">
+      <div class="area-list">
+        <CityDirectory />
+      </div>
+      <div class="area-map">
+        <ServiceAreaMap />
+      </div>
+    </div>
   </Section>
 
   <!-- 8. Reviews. The section is built and positioned. It renders only when
@@ -331,7 +365,12 @@ const showTrust = hasVerifiedFacts();
        hidden until the business confirms them or supplies real ones. -->
   {
     showReviews && (
-      <Section heading="What customers say" width="wide">
+      <Section
+        label="Reviews"
+        tone="white"
+        heading="What customers say"
+        width="wide"
+      >
         <ReviewWall />
       </Section>
     )
@@ -450,15 +489,58 @@ const showTrust = hasVerifiedFacts();
     color: var(--ink-2);
   }
 
-  /* The pricing model, attached to the scale that produced the numbers. */
-  .pricing-note {
-    margin-top: var(--s8);
-    padding-top: var(--s6);
-    border-top: 2px solid var(--ink);
+  /* ── The load/pricing tool ──
+     One instrument in two columns: the scale on the left, what it costs and what
+     moves it on the right. */
+  .tool {
+    display: grid;
+    gap: var(--s7);
   }
 
-  .pricing-note h3 {
-    margin-bottom: var(--s4);
+  .note-media img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--r-flat);
+    margin-bottom: var(--s5);
+  }
+
+  .note-lede {
+    font-size: var(--t1);
+    color: var(--ink);
+    max-width: 42ch;
+  }
+
+  .note-heavy {
+    margin-top: var(--s4);
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 44ch;
+  }
+
+  /* ── Coverage: cities beside the map ── */
+  .area-cols {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  @media (min-width: 900px) {
+    .area-cols {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: var(--s8);
+      align-items: start;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .tool {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: var(--s9);
+      align-items: start;
+    }
   }
 
   /* Contextual link out to a deeper page. Deliberately not a button: DESIGN.md

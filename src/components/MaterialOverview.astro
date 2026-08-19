@@ -144,12 +144,17 @@ const prohibitedCount = prohibitedMaterials().length;
     letter-spacing: -0.02em;
   }
 
+  /* Same family as everything else. These briefly ran in the mono face to
+     separate them from the category name, which introduced a second, unrelated
+     typeface into a section that needed no such thing. Hierarchy here comes from
+     size, weight and colour instead, which is how the rest of the page does it —
+     the mono face stays reserved for operational data: measurements, prices,
+     indices and labels. */
   .examples {
     margin-top: var(--s2);
     color: var(--ink-2);
-    font-family: var(--font-data);
     font-size: var(--t3);
-    letter-spacing: -0.01em;
+    font-weight: 400;
   }
 
   .notes {

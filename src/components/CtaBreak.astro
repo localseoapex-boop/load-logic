@@ -1,0 +1,104 @@
+---
+/**
+ * CtaBreak.astro — a compact conversion break between sections.
+ *
+ * Deliberately small. Its job is to give someone who has just understood one
+ * thing (how much they have, or what the work looks like) somewhere to go
+ * immediately, without waiting for the bottom of the page. It is NOT a section:
+ * no heading level competing with the page outline, no supporting copy beyond
+ * one line, no numbered index, no photograph.
+ *
+ * That restraint is the point. Two of these plus the hero and the closing block
+ * gives four conversion opportunities on the page, which is coverage; making any
+ * of them full-height would make it CTA fatigue instead.
+ *
+ * The heading is a <p>, not an <h2>. These breaks are conversion furniture, and
+ * putting them in the heading outline would interleave "Ready to clear the
+ * space?" between the real section headings a parser reads to understand the
+ * page.
+ */
+import QuoteCta from './QuoteCta.astro';
+
+interface Props {
+  heading: string;
+  body?: string;
+  source: string;
+  /** `bone` sits inside the light run; `spruce` marks a heavier transition. */
+  tone?: 'bone' | 'spruce';
+}
+
+const { heading, body, source, tone = 'bone' } = Astro.props;
+---
+
+<section class:list={['break', tone, { 'on-spruce': tone === 'spruce' }]}>
+  <div class="container container-wide inner">
+    <div class="copy">
+      <p class="heading">{heading}</p>
+      {body && <p class="body">{body}</p>}
+    </div>
+    <div class="action">
+      <QuoteCta {source} onDark={tone === 'spruce'} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .break {
+    padding-block: var(--s7);
+    border-block: 1px solid var(--rule);
+  }
+
+  .bone {
+    background: var(--bone-2);
+  }
+
+  .spruce {
+    background: var(--spruce);
+    color: var(--on-spruce);
+    border-block-color: var(--rule-on-spruce);
+    border-top: 4px solid var(--hi-vis);
+  }
+
+  .heading {
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .spruce .heading {
+    color: #fff;
+  }
+
+  .body {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 48ch;
+  }
+
+  .spruce .body {
+    color: var(--on-spruce-2);
+  }
+
+  .action {
+    margin-top: var(--s5);
+  }
+
+  /* Message and action side by side wherever there is width for it, so the break
+     stays one band rather than becoming a third the height of a real section. */
+  @media (min-width: 800px) {
+    .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s8);
+    }
+
+    .action {
+      margin-top: 0;
+      flex: none;
+    }
+  }
+</style>

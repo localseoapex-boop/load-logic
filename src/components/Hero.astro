@@ -1,37 +1,37 @@
 ---
 /**
- * Hero.astro — photograph above, type in a spruce panel that overlaps it.
+ * Hero.astro — art-directed photograph, then the message on solid ground.
  *
- * ────────────────────────── Why this was rebuilt ──────────────────────────
+ * ─────────────────────────── Composition ───────────────────────────
  *
- * The previous hero was a full-bleed photograph with the copy in a lower-left
- * well over a scrim. Nothing about it was wrong, and that was the problem: it is
- * the composition every competently built site arrives at, so it read as correct
- * rather than as designed. It also forced the headline to stay small enough to
- * survive being set over photographic detail, which capped the single biggest
- * piece of typography on the page.
+ * The photograph runs full width and carries no text at all. Underneath it a
+ * spruce block holds the message in two facing columns: the headline on the
+ * left, the supporting line and both conversion actions on the right, with a
+ * hi-vis rule marking the join. Keeping type off the photograph is the point —
+ * the headline can be set at display size without fighting photographic detail,
+ * and no generated subject ever sits behind text.
  *
- * Now the photograph gets to be a photograph and the type gets solid ground:
+ * ──────────────────── Responsive art direction ────────────────────
  *
- *   - the image runs full-bleed with a deliberate crop and no text on it
- *   - a spruce panel is pulled UP over the image's lower edge, so the two
- *     elements interlock instead of stacking, and the panel breaks the
- *     photograph's rectangle rather than sitting politely beneath it
- *   - on solid spruce the headline can run at --d0, roughly 112px at 1440,
- *     which is the scale the page was missing
- *   - a hi-vis edge marks the top of the panel; it is the accent doing
- *     structural work, not decoration
- *   - a mono data rail closes the hero with the operating facts a dispatcher
- *     would actually state: where, how big, how fast, what number to call
+ * TWO SOURCES, NOT ONE CROP. A 16:9 frame letterboxed into a phone leaves a hero
+ * whose subject is a strip of driveway. The wide frame carries the environment —
+ * house, driveway, truck and loaded trailer in context — and the tall frame
+ * moves in on the loaded trailer itself. Two compositions of one scene, not two
+ * crops of one file.
  *
- * The image still loads eagerly at high priority because it remains the LCP
- * element. The scrim is gone: with no copy over the photograph there is nothing
- * to protect, and dropping it means the image is seen at full contrast.
+ * Served through a real <picture> with a `media` source rather than two <img>
+ * elements toggled with display:none. The toggle is what this component used
+ * before and it wastes bandwidth: browsers fetch both, so every phone was
+ * downloading a desktop hero it would never display. getImage() builds the
+ * optimised srcset for each source and the browser fetches exactly one.
+ *
+ * The <img> is the LCP element: eager, high fetchpriority, explicit dimensions
+ * so its box is reserved before it loads.
  */
-import { Image } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import QuoteCta from './QuoteCta.astro';
-import heroDesktop from '../assets/photos/home/hero-carry.jpg';
-import heroMobile from '../assets/photos/home/hero-mobile.jpg';
+import heroWide from '../assets/photos/home/hero-drive-wide.jpg';
+import heroTall from '../assets/photos/home/hero-drive-tall.jpg';
 
 interface Props {
   eyebrow: string;
@@ -39,114 +39,89 @@ interface Props {
   subhead: string;
   /** Describes the work, never the company. See docs/image-art-direction.md. */
   alt: string;
-  /**
-   * Alt for the small-screen crop. It needs its own, not an empty string: the
-   * desktop image is display:none below 768px, which removes it from the
-   * accessibility tree, so this is the only hero image a mobile screen reader
-   * ever sees. Leaving it decorative meant mobile users got no description at
-   * all.
-   */
-  mobileAlt: string;
-  /** Operating data for the rail. Every value must be a real, checkable fact. */
+  /** Operating data. Every value must be a real, checkable fact. */
   facts: { label: string; value: string }[];
 }
 
-const { eyebrow, heading, subhead, alt, mobileAlt, facts } = Astro.props;
+const { eyebrow, heading, subhead, alt, facts } = Astro.props;
+
+const wide = await getImage({
+  src: heroWide,
+  widths: [960, 1440, 1920],
+  format: 'webp',
+});
+const tall = await getImage({
+  src: heroTall,
+  widths: [480, 780, 960],
+  format: 'webp',
+});
 ---
 
 <section class="hero">
   <div class="media">
-    <Image
-      class="img desktop"
-      src={heroDesktop}
-      {alt}
-      widths={[900, 1440, 1920]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <Image
-      class="img mobile"
-      src={heroMobile}
-      alt={mobileAlt}
-      widths={[480, 780]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
+    <picture>
+      <source media="(min-width: 768px)" srcset={wide.srcSet.attribute} sizes="100vw" />
+      <img
+        src={tall.src}
+        srcset={tall.srcSet.attribute}
+        sizes="100vw"
+        {alt}
+        width={tall.attributes.width}
+        height={tall.attributes.height}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
   </div>
 
-  <div class="container container-wide">
-    <div class="panel">
-      <p class="eyebrow">{eyebrow}</p>
-      <h1>{heading}</h1>
-      <p class="subhead">{subhead}</p>
-      <div class="actions">
-        <QuoteCta size="lg" source="hero" onDark />
+  <div class="block">
+    <div class="container container-wide inner">
+      <div class="say">
+        <p class="eyebrow">{eyebrow}</p>
+        <h1>{heading}</h1>
       </div>
-    </div>
-  </div>
 
-  <div class="rail">
-    <div class="container container-wide">
-      <dl>
-        {
-          facts.map((fact) => (
-            <div class="fact">
-              <dt>{fact.label}</dt>
-              <dd class="data">{fact.value}</dd>
-            </div>
-          ))
-        }
-      </dl>
+      <div class="act">
+        <p class="subhead">{subhead}</p>
+        <QuoteCta size="lg" source="hero" onDark />
+        <dl class="facts">
+          {
+            facts.map((fact) => (
+              <div>
+                <dt>{fact.label}</dt>
+                <dd class="data">{fact.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
   .hero {
-    position: relative;
     background: var(--spruce);
-    isolation: isolate;
   }
 
   /* ─── Photograph ─── */
 
-  .media {
-    position: relative;
-  }
-
-  .img {
+  .media img {
+    display: block;
     width: 100%;
     /* dvh rather than vh: the iOS address bar must not resize the crop. */
-    height: min(52dvh, 460px);
+    height: min(54dvh, 400px);
     object-fit: cover;
-    display: block;
+    object-position: center 56%;
   }
 
-  .desktop {
-    display: none;
-    object-position: center 40%;
-  }
+  /* ─── Message ─── */
 
-  .mobile {
-    display: block;
-    object-position: center 45%;
-  }
-
-  /* ─── The panel that breaks the photograph ─── */
-
-  .panel {
-    position: relative;
-    /* The overlap. This is the whole composition: pull the panel up over the
-       image so the two interlock rather than stack. */
-    margin-top: calc(var(--s8) * -1);
-    background: var(--spruce);
-    padding: var(--s7) var(--s6) var(--s7);
-    /* Bleeds past the container gutter to the viewport edge on small screens,
-       where a floating panel would waste width it cannot spare. */
-    margin-inline: calc(var(--gutter) * -1);
+  .block {
     border-top: 4px solid var(--hi-vis);
+    padding-block: var(--s7) var(--s8);
+    color: var(--on-spruce);
   }
 
   .eyebrow {
@@ -156,42 +131,38 @@ const { eyebrow, heading, subhead, alt, mobileAlt, facts } = Astro.props;
     text-transform: uppercase;
     font-weight: 700;
     color: var(--hi-vis);
-    margin-bottom: var(--s5);
+    margin-bottom: var(--s4);
   }
 
   h1 {
     color: #fff;
     font-size: var(--d0);
     letter-spacing: -0.035em;
-    line-height: 0.92;
-    max-width: 15ch;
+    line-height: 0.94;
+    max-width: 14ch;
   }
 
   .subhead {
-    margin-top: var(--s5);
     font-size: var(--t1);
-    color: rgb(255 255 255 / 0.84);
-    max-width: 48ch;
+    color: rgb(255 255 255 / 0.82);
+    max-width: 42ch;
+    margin-bottom: var(--s6);
   }
 
-  .actions {
+  .act {
     margin-top: var(--s6);
   }
 
-  /* ─── Operating data rail ─── */
-
-  .rail {
-    border-top: 1px solid var(--rule-on-spruce);
-    padding-block: var(--s5);
-  }
-
-  .rail dl {
+  .facts {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--s5) var(--s6);
+    gap: var(--s4) var(--s6);
+    margin-top: var(--s7);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--rule-on-spruce);
   }
 
-  .fact dt {
+  .facts dt {
     font-family: var(--font-data);
     font-size: var(--lbl);
     letter-spacing: 0.12em;
@@ -199,53 +170,39 @@ const { eyebrow, heading, subhead, alt, mobileAlt, facts } = Astro.props;
     color: var(--on-spruce-2);
   }
 
-  .fact dd {
-    margin-top: var(--s2);
+  .facts dd {
+    margin-top: var(--s1);
     font-size: var(--t2);
     font-weight: 700;
     color: #fff;
   }
 
   @media (min-width: 768px) {
-    .desktop {
-      display: block;
+    .media img {
+      height: min(58dvh, 540px);
+      object-position: center 54%;
+    }
+  }
+
+  /* The two facing columns. Below this the block is one stack, which is the
+     right answer on a phone: headline, the line that supports it, then the
+     action, in reading order. */
+  @media (min-width: 900px) {
+    .inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: var(--s9);
+      align-items: end;
     }
 
-    .mobile {
-      display: none;
+    .act {
+      margin-top: 0;
     }
 
-    .img {
-      height: min(62dvh, 600px);
-    }
-
-    /* At desktop the panel becomes a measured block anchored to the container's
-       left edge. It does not need to bleed to the viewport: the photograph
-       already runs full width, so a contained panel pulled up over it is itself
-       the break in the rectangle. Roughly the left 55% is type, the right 45%
-       stays photograph, which is where the asymmetry comes from. */
-    .panel {
-      margin-top: calc(var(--s10) * -1);
-      /* Bleed left to the viewport edge. Contained, the panel left a narrow
-         strip of photograph down its outer side that read as a mistake rather
-         than as a margin. Running it off the edge is also the stronger move:
-         the block breaks the content column instead of sitting inside it.
-         50% resolves against the centred container, so 50% - 50vw is exactly
-         the distance from the container's content edge to the viewport. */
-      margin-inline-start: calc(50% - 50vw);
-      margin-inline-end: 0;
-      padding: var(--s8);
-      padding-inline-start: calc(50vw - 50% + var(--s2));
-      width: calc(50vw - 50% + min(60%, 46rem));
-    }
-
-    .rail dl {
-      grid-template-columns: repeat(4, 1fr);
+    .facts {
+      grid-template-columns: repeat(4, auto);
+      justify-content: start;
       gap: var(--s6);
-    }
-
-    .rail {
-      padding-block: var(--s6);
     }
   }
 </style>

@@ -1,77 +1,83 @@
 ---
 /**
- * ReviewWall.astro — verified customer reviews, or nothing at all.
+ * ReviewWall.astro — one featured review, the rest in a supporting rail.
  *
- * reviews.ts currently holds three unverified entries (the testimonials that
- * used to be hardcoded into the old homepage and rendered as though real), and
- * `verifiedReviews()` returns an empty array. So this component renders NOTHING.
+ * ─────────────────────────── The gate ───────────────────────────
  *
- * That is the correct behaviour, not a gap to paper over:
- *   - no invented quotes, no initials-only attributions
- *   - no placeholder or skeleton that could ship to production by accident
- *   - no Review or AggregateRating schema anywhere on the site
+ * Renders NOTHING unless reviews.ts holds at least one entry with
+ * `verified: true`. Not a placeholder, not a skeleton, not an empty state — the
+ * component returns null and the caller's whole section disappears with it, so
+ * there is no blank band on the page while real reviews do not exist.
  *
- * When real reviews arrive with `verified: true` and a source, the section
- * appears automatically. The parent decides whether to render its heading by
- * calling `hasVerifiedReviews()` first, so an empty wall never leaves an orphan
- * heading above blank space.
+ * The three stored testimonials are all `verified: false`. There is no evidence
+ * any of them came from a real customer: no date, no link, no platform beyond
+ * "direct", and all three first appeared in the commit that rebranded the
+ * starter template. So the component is built and wired and shows nothing.
  *
- * Presentation, once populated: one large pull quote plus a compact list, not
- * three identical cards or a dot carousel.
+ * NO Review OR AggregateRating JSON-LD is emitted here, deliberately, and none
+ * should be added until the underlying reviews are confirmed. Marking up social
+ * proof that cannot be substantiated is a fabricated claim.
+ *
+ * ─────────────────────── Shape, once it is on ───────────────────────
+ *
+ * Not three identical cards. One review is featured at display size, because a
+ * single specific account read properly is worth more than three skimmed; the
+ * others sit beneath it as a ruled rail. Each carries whatever provenance
+ * exists: platform, rating, name and date. Provenance is what separates a review
+ * from a slogan, so anything missing is simply not printed rather than faked.
  */
 import { verifiedReviews } from '../data/reviews';
-import { getLocation } from '../data/locations';
-import { getService } from '../data/services';
 
-interface Props {
-  /** Narrow to one city, for location pages. */
-  location?: string;
-  /** Narrow to one service, for service pages. */
-  service?: string;
-  limit?: number;
-}
+const all = verifiedReviews();
+const [featured, ...rest] = all;
 
-const { location, service, limit = 5 } = Astro.props;
+/** Star row as text, so it survives with images or CSS off. */
+const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
 
-let reviews = verifiedReviews();
-if (location) reviews = reviews.filter((r) => r.location === location);
-if (service) reviews = reviews.filter((r) => r.service === service);
-reviews = reviews.slice(0, limit);
+const platformLabel: Record<string, string> = {
+  google: 'Google',
+  yelp: 'Yelp',
+  facebook: 'Facebook',
+  direct: 'Direct to us',
+};
 
-const [lead, ...rest] = reviews;
-
-const contextFor = (r: (typeof reviews)[number]) =>
-  [r.location ? getLocation(r.location)?.city : undefined, r.service ? getService(r.service)?.name : undefined]
-    .filter(Boolean)
-    .join(' · ');
+const formatDate = (iso?: string) =>
+  iso
+    ? new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : undefined;
 ---
 
 {
-  lead && (
+  featured && (
     <div class="reviews" data-reveal>
-      <figure class="lead">
-        <blockquote>
-          <p>{lead.text}</p>
-        </blockquote>
-        <figcaption>
-          <span class="name">{lead.author}</span>
-          <span class="context data">{contextFor(lead)}</span>
-          {lead.source && (
-            <a class="verify" href={lead.source} rel="nofollow noopener">
-              Verified on {lead.platform}
-            </a>
-          )}
-        </figcaption>
-      </figure>
+      <blockquote class="featured">
+        <p class="stars data" aria-label={`${featured.rating} out of 5`}>
+          {stars(featured.rating)}
+        </p>
+        <p class="quote">{featured.text}</p>
+        <footer class="who">
+          <span class="name">{featured.author}</span>
+          <span class="meta data">
+            {platformLabel[featured.platform] ?? featured.platform}
+            {formatDate(featured.date) && ` · ${formatDate(featured.date)}`}
+          </span>
+        </footer>
+      </blockquote>
 
       {rest.length > 0 && (
-        <ul class="rest">
-          {rest.map((review) => (
+        <ul class="rail">
+          {rest.map((r) => (
             <li>
-              <p class="text">{review.text}</p>
-              <p class="attribution">
-                <span class="name">{review.author}</span>
-                <span class="context data">{contextFor(review)}</span>
+              <p class="stars data" aria-label={`${r.rating} out of 5`}>
+                {stars(r.rating)}
+              </p>
+              <p class="text">{r.text}</p>
+              <p class="who small">
+                <span class="name">{r.author}</span>
+                <span class="meta data">
+                  {platformLabel[r.platform] ?? r.platform}
+                  {formatDate(r.date) && ` · ${formatDate(r.date)}`}
+                </span>
               </p>
             </li>
           ))}
@@ -84,31 +90,35 @@ const contextFor = (r: (typeof reviews)[number]) =>
 <style>
   .reviews {
     display: grid;
-    gap: var(--s8);
+    gap: var(--s7);
   }
 
-  blockquote p {
+  .featured {
+    margin: 0;
+    padding-top: var(--s5);
+    border-top: 2px solid var(--ink);
+  }
+
+  .stars {
+    color: var(--spruce-2);
+    letter-spacing: 0.18em;
+    font-size: var(--t2);
+  }
+
+  .quote {
+    margin-top: var(--s4);
     font-family: var(--font-display);
     font-size: var(--d3);
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: -0.01em;
-    max-width: 26ch;
-    text-wrap: balance;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    color: var(--ink);
+    max-width: 34ch;
+    text-wrap: pretty;
   }
 
-  blockquote p::before {
-    content: '\201C';
-  }
-
-  blockquote p::after {
-    content: '\201D';
-  }
-
-  figcaption {
+  .who {
     margin-top: var(--s5);
-    padding-top: var(--s4);
-    border-top: 1px solid var(--rule);
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -117,53 +127,50 @@ const contextFor = (r: (typeof reviews)[number]) =>
 
   .name {
     font-weight: 700;
+    color: var(--ink);
   }
 
-  .context {
-    font-size: var(--t3);
+  .meta {
+    font-size: var(--lbl);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--ink-3);
   }
 
-  .verify {
-    font-size: var(--t3);
-    color: var(--spruce-2);
-  }
-
-  .rest {
+  .rail {
     list-style: none;
     padding: 0;
+    margin: 0;
     display: grid;
-    gap: 0;
+    gap: var(--s5);
+  }
+
+  .rail li {
+    padding-top: var(--s4);
     border-top: 1px solid var(--rule);
   }
 
-  .rest li {
-    padding-block: var(--s5);
-    border-bottom: 1px solid var(--rule);
-  }
-
   .text {
+    margin-top: var(--s3);
     color: var(--ink-2);
-    max-width: 60ch;
+    font-size: var(--t3);
+    max-width: 48ch;
   }
 
-  .attribution {
-    margin-top: var(--s2);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s3);
-    font-size: var(--t3);
+  .who.small {
+    margin-top: var(--s3);
   }
 
   @media (min-width: 900px) {
     .reviews {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: var(--s8);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: var(--s9);
       align-items: start;
     }
 
-    blockquote p {
+    .quote {
       font-size: var(--d2);
+      font-weight: 700;
     }
   }
 </style>
