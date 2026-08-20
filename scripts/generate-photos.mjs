@@ -573,6 +573,60 @@ const HOMEPAGE_2026 = [
 /* The 2026 set is appended rather than spread into the SHOTS literal above: it
    is declared after it, so referencing it inside the literal would hit the
    temporal dead zone at module evaluation. */
+/*
+ * ─────────────── Background hero pair ───────────────
+ *
+ * Composed for text ON the image, which the earlier hero pair was not. Those
+ * were framed as pictures to sit ABOVE the copy, so the trailer landed dead
+ * centre — exactly where a left-aligned headline goes. Overlaying type on them
+ * would have meant a scrim heavy enough to destroy the photograph.
+ *
+ * So the subject is deliberately pushed out of the reading zone: right of frame
+ * on the wide crop, upper half on the tall one, with plain driveway and wall
+ * left behind it. Overcast light throughout, because hard Arizona sun puts blown
+ * highlights right where white text has to stay legible.
+ */
+const HERO_BG = [
+  {
+    id: 'hero-bg-wide',
+    dir: 'home',
+    ratio: '16:9',
+    scene:
+      'wide photograph looking across a large empty concrete driveway apron, ' +
+      'the foreground and the whole left side of the picture is nothing but bare empty concrete and gravel with absolutely nothing on it, ' +
+      'far away in the RIGHT THIRD of the frame and small in the distance, ' +
+      OPEN_TRAILER +
+      ' parked side on, loaded with a worn sofa, a chest of drawers and stacked cardboard boxes, mesh side rails visible, ' +
+      'a stucco house with a tile roof behind it on the right, ' +
+      NOT_A_BOX_TRUCK + ', ' +
+      'the truck and trailer must stay entirely within the right third of the picture and must not extend into the left half, ' +
+      'flat even overcast light with no bright sky and no blown highlights, ' +
+      'ordinary weekday, nothing staged for a photograph',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'hero-bg-tall',
+    dir: 'home',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of a household cleanout on a suburban driveway, ' +
+      'the subject sits in the UPPER HALF of the frame: ' +
+      OPEN_TRAILER +
+      ' parked side on with a worn sofa, a chest of drawers and stacked cardboard boxes loaded on the open deck, ' +
+      'the black mesh side rails clearly visible, a stucco house with a tile roof behind it, ' +
+      NOT_A_BOX_TRUCK + ', ' + NO_FACE + ', ' +
+      'the ENTIRE LOWER HALF of the frame is plain empty swept concrete driveway running toward the camera, ' +
+      'completely clear and uncluttered with nothing on it at all, ' +
+      'flat even overcast light with no bright sky and no blown highlights, ' +
+      'ordinary weekday, nothing staged for a photograph',
+    env: true,
+    empty: true,
+  },
+];
+
+SHOTS.push(...HERO_BG);
+
 SHOTS.push(...HOMEPAGE_2026);
 
 /* ───────────────────────────── Generation ───────────────────────────── */
@@ -619,7 +673,18 @@ async function generate(shot, force, urls) {
         `strength=${shot.strength ?? 0.88}`,
         'num_images=1',
       ]
-    : ['api', MODEL, `prompt=${buildPrompt(shot)}`, `image_size=${RATIO[shot.ratio]}`, 'num_images=1'];
+    : [
+        'api',
+        MODEL,
+        `prompt=${buildPrompt(shot)}`,
+        /* NOTE: the preset tops out at 1024px on the long edge. Passing explicit
+           pixels as image_size.width / image_size.height was tried and is NOT
+           accepted by the CLI — it silently fell back to a 1024x768 default and
+           broke the aspect ratio of both hero frames. If a larger source is ever
+           needed, the arg has to be passed as real nested JSON, not dotted keys. */
+        `image_size=${RATIO[shot.ratio]}`,
+        'num_images=1',
+      ];
 
   const { stdout } = await run(FAL, args, { maxBuffer: 1024 * 1024 * 8 });
 
