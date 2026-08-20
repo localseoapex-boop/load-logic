@@ -14,9 +14,11 @@
  * other thirteen. Rolling it out means adding slugs to that set, and reverting
  * means removing them.
  *
- * The old template stays because it still renders those thirteen pages. It also
- * still loads legacy.css, which this one deliberately does NOT — this page is on
- * the new design system: tokens, base, and scoped styles only.
+ * The old template stays because it still renders those thirteen pages, and it
+ * still loads legacy.css. This page never sees that stylesheet: it is served
+ * from its own static route file, so Astro bundles only this template's CSS with
+ * it. Nothing here is braced against legacy rules, and nothing needs to be —
+ * see pages/services/garage-cleanouts/index.astro for why the route is split.
  *
  * ────────────────────── What is reused from the homepage ──────────────────────
  *
@@ -399,35 +401,11 @@ const lowerName = service.name.toLowerCase();
     margin-bottom: var(--s4);
   }
 
-  /* ── legacy.css self-defense ──
-     This route's page file imports BOTH templates, because the redesign is
-     rolling out slug by slug. Astro therefore bundles ServiceLayout's
-     `import legacy.css` into this page's stylesheet even though this page never
-     renders that template, and legacy's unscoped rules load after base.css.
-
-     Two of them reach in here: `.hero h1 { color: var(--white) }` painted the
-     headline white on bone, and `.cta { background: var(--green) }` put a green
-     slab behind the button pair. Anything this layout declares itself wins on
-     specificity, so the fix is to declare them rather than to rename classes.
-
-     All of this disappears when the last service page moves over: ServiceLayout
-     goes, its legacy.css import goes with it, and these two rules become inert. */
   h1 {
     font-size: var(--d1);
     letter-spacing: -0.03em;
     line-height: 0.98;
     max-width: 16ch;
-    color: var(--ink);
-    margin: 0;
-  }
-
-  /* QuoteCta is a shared component, so its wrapper has to be reached through
-     :global — still confined to this layout's subtree. */
-  .hero-cta :global(.cta) {
-    background: none;
-    padding: 0;
-    margin-top: 0;
-    border-radius: 0;
   }
 
   .lede {

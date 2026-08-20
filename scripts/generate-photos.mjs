@@ -172,9 +172,23 @@ const SHOTS = [
     id: 'svc-garage',
     dir: 'services',
     ratio: '4:3',
+    /*
+     * env was false here, which is why the first version read Midwest: the
+     * Arizona environment line was never applied and the model filled the walls
+     * with timber. An Arizona garage is painted drywall or block over a bare
+     * concrete slab, and the door opens onto gravel rather than lawn, so those
+     * are now stated explicitly as well as inherited.
+     */
     scene:
-      'a packed suburban two-car garage full of storage totes, old shelving, bicycles and boxes stacked to the ceiling, nobody in frame',
-    env: false,
+      'the interior of a packed suburban two-car garage in Arizona, photographed from just inside the open roll-up door, ' +
+      'plain painted drywall walls and exposed ceiling framing, a bare grey concrete slab floor, no wood panelling anywhere, ' +
+      'full of stacked plastic storage totes, metal utility shelving, cardboard boxes, a bicycle, a folded stepladder and ' +
+      'general household overflow along both side walls, ' +
+      'through the open door behind the camera position the light is flat and bright off a concrete driveway and gravel yard, ' +
+      'muted desert palette of grey concrete, beige walls and dusty plastics, ' +
+      'nobody in frame, ordinary weekday, nothing tidied for a photograph',
+    env: true,
+    empty: true,
   },
   {
     id: 'svc-estate',
