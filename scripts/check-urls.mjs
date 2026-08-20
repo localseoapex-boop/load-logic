@@ -1,5 +1,12 @@
 /**
- * check-urls.mjs — guards the site's 175 existing URLs against silent loss.
+ * check-urls.mjs — guards the site's existing URLs against silent loss.
+ *
+ * BASELINE REWRITTEN 2026-08-20, deliberately. The city x service architecture
+ * was removed: /locations/[city]/[service] and its [subservice] child generated
+ * 144 URLs from 9 cities x 14 services, each asserting only that a service is
+ * available in a city — a fact that belongs in data, not in a page. Those 144
+ * are covered by two wildcard 301s in vercel.json, which is the single-hop
+ * redirect this file's own rule requires before a baseline rewrite.
  *
  * A redesign is the easiest way to accidentally drop a route: a changed
  * getStaticPaths filter, a renamed slug, or a data field that stops resolving,

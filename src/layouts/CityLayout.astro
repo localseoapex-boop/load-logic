@@ -14,7 +14,7 @@ import { BUSINESS } from '../config/site';
 import type { Location } from '../data/locations';
 import { getOffice, primaryOffice } from '../data/offices';
 import { servicesForLocation, nearbyCities } from '../lib/links';
-import { cityUrl, locationServiceUrl } from '../lib/urls';
+import { cityUrl, serviceUrl } from '../lib/urls';
 // Loads the pre-redesign stylesheet. This template still uses the old class
 // names and is rebuilt in a later phase; see src/styles/legacy.css.
 import '../styles/legacy.css';
@@ -36,10 +36,22 @@ const crumbs = [
   { name: cityState },
 ];
 
-// Services this city offers -> deep links to the location-service combo pages.
+/*
+ * Services this city offers -> the ONE canonical page for each service.
+ *
+ * These used to deep-link to a per-city service page. That architecture is gone:
+ * a city page and a service page were being multiplied into 126 near-duplicate
+ * URLs that all expressed the same thing, which is that the service is available
+ * in the city. The relationship is unchanged and still lives in the data; it is
+ * simply expressed as a link now instead of as a generated page.
+ *
+ * The label is the plain service name rather than "Furniture Removal in
+ * Gilbert", because the destination is the general service page. Labelling a
+ * link with a city it does not specifically address would misdescribe it.
+ */
 const serviceLinks = servicesForLocation(location).map((s) => ({
-  label: `${s.name} in ${location.city}`,
-  href: locationServiceUrl(location.slug, s.slug),
+  label: s.name,
+  href: serviceUrl(s.slug),
   description: s.tagline,
 }));
 
