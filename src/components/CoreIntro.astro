@@ -1,0 +1,111 @@
+---
+/**
+ * CoreIntro.astro — the one passage that states what the business is.
+ *
+ * WHY THIS EXISTS. Every other section on the homepage answers a narrower
+ * question: what jobs, what materials, how much, how it works, where. None of
+ * them ever said, in one continuous sentence a person or a parser could lift
+ * whole, that Load Logic is a full-service junk removal company based in Mesa
+ * serving residential and commercial property across the East Valley. The
+ * relationship was inferable from six places; now it is stated in one.
+ *
+ * It is deliberately NOT an SEO paragraph block. Around a hundred words, set as
+ * a lede beside the existing section masthead, with the operating facts pulled
+ * out as a short definition list in the mono register the rest of the page uses
+ * for data. That keeps it scannable and stops it reading as filler copy dropped
+ * under the hero.
+ *
+ * The phone and the city come from config so this passage cannot drift out of
+ * step with the rest of the site.
+ */
+import { BUSINESS } from '../config/site';
+
+interface Props {
+  /** Short operating facts. Keep to three: this is a lede, not a spec sheet. */
+  facts?: { label: string; value: string }[];
+}
+
+const { facts = [] } = Astro.props;
+---
+
+<div class="intro">
+  <p class="lede">
+    Load Logic provides full-service residential and commercial junk removal from
+    our home base in {BUSINESS.address.city}, Arizona. We handle furniture and appliance
+    removal, garage and property cleanouts, yard debris, construction debris and
+    other unwanted items throughout the East Valley. You point out what needs to
+    go, and we handle the lifting, loading, hauling and disposal.
+  </p>
+
+  {
+    facts.length > 0 && (
+      <dl class="facts">
+        {facts.map((fact) => (
+          <div>
+            <dt>{fact.label}</dt>
+            <dd class="data">{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+</div>
+
+<style>
+  .intro {
+    display: grid;
+    gap: var(--s5);
+  }
+
+  /* Set at body size rather than lede size. This is an orientation paragraph
+     that hands off to the service index immediately below it, not a section
+     opener that needs its own presence. */
+  .lede {
+    font-size: var(--t2);
+    color: var(--ink-2);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  /* Inline on a phone: three stacked label/value pairs cost most of a screen
+     for three short facts. */
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3) var(--s6);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .facts dt {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .facts dd {
+    margin-top: var(--s1);
+    font-size: var(--t2);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  @media (min-width: 820px) {
+    .intro {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      gap: var(--s8);
+      align-items: start;
+    }
+
+    .facts {
+      display: grid;
+      gap: var(--s4);
+      padding-top: 0;
+      border-top: 0;
+      border-inline-start: 1px solid var(--rule);
+      padding-inline-start: var(--s6);
+    }
+  }
+</style>

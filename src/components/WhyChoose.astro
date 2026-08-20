@@ -1,0 +1,133 @@
+---
+/**
+ * WhyChoose.astro — four differentiators, stated plainly.
+ *
+ * ─────────────────────────── Honesty ───────────────────────────
+ *
+ * Every claim here is one the site can already stand behind:
+ *
+ *   local and owner-operated  the business runs one truck and one trailer from
+ *                             a single Mesa office (offices.ts, equipment.ts)
+ *   upfront pricing           pricing.ts publishes starting figures and the
+ *                             page states the price is confirmed before loading
+ *   full-service removal      the operating facts and the process both say the
+ *                             crew does the lifting; nothing is moved to a curb
+ *   fast scheduling           hedged as "may be available", because route and
+ *                             job size genuinely decide it
+ *
+ * NOT stated, because nothing in the project supports them: licensed, insured,
+ * bonded, years in business, number of jobs, review counts, recycling or
+ * diversion percentages, certifications, awards, or any guarantee of same-day
+ * service. If the owner supplies evidence for any of these later, they belong in
+ * data with a `verified` flag like every other checkable claim on this site,
+ * not typed into this component.
+ *
+ * ─────────────────────────── Presentation ───────────────────────────
+ *
+ * Deliberately not another card grid. The page already has a numbered service
+ * index and a numbered process; a third grid of boxes here would flatten the
+ * rhythm. These are ruled rows with the claim in display weight and the
+ * qualification beneath, which reads as a short list of commitments rather than
+ * as feature tiles.
+ */
+interface Point {
+  title: string;
+  text: string;
+}
+
+const points: Point[] = [
+  {
+    title: 'Local and owner-operated',
+    text: 'Work directly with a local Mesa business instead of a national franchise or a call center.',
+  },
+  {
+    title: 'Upfront pricing',
+    text: 'We confirm the price before anything is loaded, so you know what the job will cost.',
+  },
+  {
+    title: 'Full-service removal',
+    text: 'You point out what needs to go. We handle the lifting, loading and hauling.',
+  },
+  {
+    title: 'Fast scheduling',
+    text: 'Same-day and next-day appointments may be available, depending on the route and the size of the job.',
+  },
+];
+---
+
+<ul class="points" data-reveal>
+  {
+    points.map((point, i) => (
+      <li>
+        <span class="idx data" aria-hidden="true">
+          {String(i + 1).padStart(2, '0')}
+        </span>
+        <div class="body">
+          <h3>{point.title}</h3>
+          <p>{point.text}</p>
+        </div>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .points {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .points li {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    column-gap: var(--s4);
+    align-items: baseline;
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .idx {
+    font-size: var(--t3);
+    font-weight: 700;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h3 {
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    font-size: var(--t3);
+    max-width: 56ch;
+  }
+
+  /* Two columns of ruled rows from 760px: the four points land as one band
+     rather than four full-width rows the visitor scrolls through. */
+  @media (min-width: 760px) {
+    .points {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    .points li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+
+    .points li {
+      grid-template-columns: 3rem minmax(0, 1fr);
+      padding-block: var(--s5);
+    }
+
+    h3 {
+      font-size: var(--d3);
+    }
+  }
+</style>

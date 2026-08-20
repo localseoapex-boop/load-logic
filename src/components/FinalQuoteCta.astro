@@ -19,9 +19,19 @@ interface Props {
   heading: string;
   body?: string;
   source?: string;
+  /**
+   * Render the numbered "what happens next" list.
+   *
+   * Defaults to true, which is what /pricing wants: that page ends on the CTA
+   * and the list is the only statement of the process it makes. The homepage
+   * passes false, because it now explains the process in its own How it works
+   * section and repeating it here produced a second four-step sequence after
+   * the page had already closed.
+   */
+  showSteps?: boolean;
 }
 
-const { heading, body, source = 'footer-cta' } = Astro.props;
+const { heading, body, source = 'footer-cta', showSteps = true } = Astro.props;
 const quote = primaryQuoteAction();
 ---
 
@@ -34,9 +44,13 @@ const quote = primaryQuoteAction();
 
     <div class="action">
       <QuoteCta size="lg" onDark {source} />
-      <ol class="steps">
-        {quote.nextSteps.map((step) => <li>{step}</li>)}
-      </ol>
+      {showSteps && (
+        <ol class="steps">
+          {quote.nextSteps.map((step) => (
+            <li>{step}</li>
+          ))}
+        </ol>
+      )}
     </div>
   </div>
 </section>

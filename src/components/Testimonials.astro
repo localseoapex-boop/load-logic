@@ -1,0 +1,135 @@
+---
+/**
+ * Testimonials.astro — the reviews section, currently showing placeholders.
+ *
+ * ⚠️  WHAT IS ON SCREEN RIGHT NOW IS NOT REAL. ⚠️
+ *
+ * While `reviews.ts` holds no entry with `verified: true`, this renders the
+ * `placeholderReviews` array. Those three quotes are invented and their names
+ * are stand-ins; they are approved as temporary display content while real
+ * reviews are collected. The on-screen development warning has been removed at
+ * the owner's request, so THIS COMMENT AND THE DATA FLAG ARE NOW THE ONLY
+ * MARKERS. Do not delete either.
+ *
+ * The moment a real review is added to `reviews` with `verified: true`, this
+ * component switches to the verified set on its own. Nothing else needs editing.
+ *
+ * ─────────────────────────── Structured data ───────────────────────────
+ *
+ * NONE is emitted here, deliberately, and none may be added while placeholders
+ * are showing. Review and AggregateRating markup describing invented quotes is a
+ * fabricated claim, and it is exactly the kind of thing that earns a manual
+ * action. No star ratings and no platform badges are rendered on placeholders
+ * either, for the same reason: a rating on invented copy is invented data.
+ */
+import {
+  verifiedReviews,
+  placeholderReviews,
+  usingPlaceholderReviews,
+} from '../data/reviews';
+
+const isPlaceholder = usingPlaceholderReviews();
+const real = verifiedReviews();
+
+/** One shape for the template, whichever source is in play. */
+const items = isPlaceholder
+  ? placeholderReviews.map((r) => ({
+      key: r.slug,
+      text: r.text,
+      author: r.author,
+      meta: r.city,
+    }))
+  : real.map((r) => ({
+      key: r.slug,
+      text: r.text,
+      author: r.author,
+      meta: r.location ?? '',
+    }));
+---
+
+{
+  items.length > 0 && (
+    <div class="wall" data-reveal>
+      <ul class="quotes">
+        {items.map((item) => (
+          <li>
+            <blockquote>
+              <p class="text">{item.text}</p>
+            </blockquote>
+            <p class="who">
+              <span class="author">&#8212; {item.author}</span>
+              {item.meta && <span class="meta data">{item.meta}</span>}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .wall {
+    display: grid;
+  }
+
+  .quotes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s5);
+    border-top: 2px solid var(--ink);
+  }
+
+  .quotes li {
+    padding-top: var(--s4);
+  }
+
+  blockquote {
+    margin: 0;
+  }
+
+  .text {
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+
+  .who {
+    margin-top: var(--s3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s3);
+  }
+
+  .author {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: var(--t3);
+  }
+
+  .meta {
+    font-size: var(--lbl);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* Three ruled columns, not three shadowed cards: the page already carries
+     enough boxed shapes, and the quotes read better with a shared top rule. */
+  @media (min-width: 860px) {
+    .quotes {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--s7);
+    }
+
+    .text {
+      font-size: var(--t2);
+    }
+  }
+</style>
