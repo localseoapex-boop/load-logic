@@ -53,11 +53,13 @@ import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
 import ServiceDirectory from '../components/ServiceDirectory.astro';
 import CtaBreak from '../components/CtaBreak.astro';
+import CoreIntro from '../components/CoreIntro.astro';
+import WhyChoose from '../components/WhyChoose.astro';
+import Testimonials from '../components/Testimonials.astro';
 import BeforeAfterPair from '../components/BeforeAfterPair.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import CityDirectory from '../components/CityDirectory.astro';
 import ServiceAreaMap from '../components/ServiceAreaMap.astro';
-import ReviewWall from '../components/ReviewWall.astro';
 import TrustFacts from '../components/TrustFacts.astro';
 import FaqBlock from '../components/FaqBlock.astro';
 import FinalQuoteCta from '../components/FinalQuoteCta.astro';
@@ -65,7 +67,6 @@ import FinalQuoteCta from '../components/FinalQuoteCta.astro';
 import { SITE, BUSINESS, hasVerifiedFacts } from '../config/site';
 import { confirmedCapacityCubicYards } from '../data/equipment';
 import { loadScale } from '../data/pricing';
-import { hasVerifiedReviews } from '../data/reviews';
 import { getFaq } from '../data/faqs';
 
 import { Image } from 'astro:assets';
@@ -141,7 +142,6 @@ const heroFacts = [
   { label: 'Dispatch', value: BUSINESS.phoneDisplay },
 ];
 
-const showReviews = hasVerifiedReviews();
 const showTrust = hasVerifiedFacts();
 ---
 
@@ -168,12 +168,61 @@ const showTrust = hasVerifiedFacts();
     </div>
   </section>
 
+  {/* 01. What the business actually is, in one passage.
+      Every other section answers a narrower question — which jobs, which
+      materials, how much, how it works, where. None of them stated the whole
+      relationship in one place a person or a parser could lift: Load Logic ->
+      full-service junk removal -> Mesa -> East Valley -> residential and
+      commercial. Kept to about a hundred words so it reads as a lede rather
+      than as an article dropped under the hero. */}
+  <Section
+    index="01"
+    label="Overview"
+    heading="Full-service junk removal in Mesa & the East Valley"
+    width="wide"
+  >
+    <CoreIntro
+      facts={[
+        { label: 'Home base', value: 'Mesa, Arizona' },
+        { label: 'Property types', value: 'Residential & commercial' },
+        { label: 'Service', value: 'Full-service hauling' },
+      ]}
+    />
+  </Section>
+
+  <!-- 4. What Load Logic actually offers. Restores the original homepage's
+       clearest feature, a named service with a one-line explanation of what it
+       is for, in a ruled directory rather than fourteen equal cards.
+       This REPLACES the situations navigator: situations, a service directory
+       and a related-services rail were three ways of saying the same thing, and
+       the directory is the one that answers "what do you offer" directly. The
+       Situations component stays in the codebase for service and location pages. -->
+  <Section
+    index="02"
+    label="Service index"
+    heading="Junk removal services"
+    intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
+    id="services"
+  >
+    <Image
+      slot="media"
+      src={imgServiceGarage}
+      alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
+    <ServiceDirectory />
+  </Section>
+
+  <!-- 5. Proof. One job, shown rather than described, with the equipment that did
+       it. Replaces three sections that were all making the same point. -->
   <!-- 2. Discovery. Eight categories with recognisable examples, answering
        "do they take my kind of stuff" in a few seconds and then moving on. The
        full 88-item catalogue stays in the knowledge graph and in
        /knowledge.json rather than on the homepage. -->
   <Section
-    index="01"
+    index="03"
     label="Materials"
     heading="What do you need gone?"
     intro="If it fits on the trailer and it is legal to haul, it goes. Here is the shape of it."
@@ -195,7 +244,7 @@ const showTrust = hasVerifiedFacts();
        scale already carries the prices, so the ledger beneath only covers what
        else moves the number, with the volume point omitted as redundant. -->
   <Section
-    index="02"
+    index="04"
     label="Load size / Pricing"
     tone="white"
     scale="display"
@@ -254,40 +303,13 @@ const showTrust = hasVerifiedFacts();
     source="home-mid-load"
   />
 
-  <!-- 4. What Load Logic actually offers. Restores the original homepage's
-       clearest feature, a named service with a one-line explanation of what it
-       is for, in a ruled directory rather than fourteen equal cards.
-       This REPLACES the situations navigator: situations, a service directory
-       and a related-services rail were three ways of saying the same thing, and
-       the directory is the one that answers "what do you offer" directly. The
-       Situations component stays in the codebase for service and location pages. -->
-  <Section
-    index="03"
-    label="Service index"
-    heading="Junk removal services"
-    intro="Fourteen services across homes, rentals and small commercial property. Every one links through to what it covers and what it costs."
-    id="services"
-  >
-    <Image
-      slot="media"
-      src={imgServiceGarage}
-      alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
-      widths={[420, 760]}
-      sizes="(min-width: 900px) 42vw, 92vw"
-      loading="lazy"
-    />
-    <ServiceDirectory />
-  </Section>
-
-  <!-- 5. Proof. One job, shown rather than described, with the equipment that did
-       it. Replaces three sections that were all making the same point. -->
   {/* 04. Before and after, and nothing else. This section previously carried the
       slider, a full job-specification ledger, a second loaded-trailer photograph
       and the equipment table, which meant four different things all making the
       same point. The images make it on their own. The job record and the
       equipment components still exist and stay reusable elsewhere. */}
   <Section
-    index="04"
+    index="05"
     label="Before / After"
     tone="spruce"
     scale="display"
@@ -308,17 +330,48 @@ const showTrust = hasVerifiedFacts();
   <!-- 6. How it works. The original four steps, verbatim. A booking process on
        a homepage is for conversion clarity, not documentation: four steps can be
        taken in at a glance, where six read as a procedure. -->
-  {/* 05. The four steps as a horizontal banner. The supporting photograph is
+  {/* 06. The four steps as a horizontal banner. The supporting photograph is
       gone on purpose: the process itself is the visual, and an image beside it
-      was competing with the thing it was supposed to support. */}
+      was competing with the thing it was supposed to support.
+
+      The `quote` variant consolidates what used to be stated twice: these four
+      steps, and the numbered "what happens next" list that the closing CTA
+      rendered after the page had already finished. The closing CTA now passes
+      showSteps={false}. */}
   <Section
-    index="05"
+    index="06"
     label="Process"
     tone="sunk"
     weight="tight"
     heading="How it works"
   >
-    <HowItWorks variant="booking" layout="banner" />
+    <HowItWorks variant="quote" layout="banner" />
+  </Section>
+
+  {/* 07. Differentiators. Every claim here is one the project can already stand
+      behind; see the component for what is deliberately NOT claimed. */}
+  <Section
+    index="07"
+    label="Why Load Logic"
+    tone="sunk"
+    heading="Why choose Load Logic"
+  >
+    <WhyChoose />
+  </Section>
+
+  {/* 08. Reviews. Currently rendering PLACEHOLDER copy, clearly marked in the
+      component and in reviews.ts. The component prefers verified reviews and
+      switches to them automatically as soon as reviews.ts holds one, at which
+      point the placeholder notice disappears. No Review or AggregateRating
+      structured data is emitted while placeholders are showing. */}
+  <Section
+    index="08"
+    label="Reviews"
+    tone="white"
+    heading="What East Valley customers say"
+    width="wide"
+  >
+    <Testimonials />
   </Section>
 
   <!-- 05b. Second conversion break, after the work has been shown and the
@@ -334,7 +387,7 @@ const showTrust = hasVerifiedFacts();
   <!-- 7. Where we work. Real ZIP codes and plain anchors to every city, so the
        service-area relationships are crawlable without running the checker. -->
   <Section
-    index="06"
+    index="09"
     label="Service area"
     tone="sunk"
     scale="display"
@@ -356,25 +409,6 @@ const showTrust = hasVerifiedFacts();
     </div>
   </Section>
 
-  <!-- 8. Reviews. The section is built and positioned. It renders only when
-       reviews.ts holds an entry with `verified: true` and a source, and there is
-       currently no evidence any of the three stored testimonials came from a
-       real customer: no date, no platform beyond "direct", no link, and all
-       three first appeared in the commit that rebranded the starter template.
-       Publishing them would be inventing social proof, so the section stays
-       hidden until the business confirms them or supplies real ones. -->
-  {
-    showReviews && (
-      <Section
-        label="Reviews"
-        tone="white"
-        heading="What customers say"
-        width="wide"
-      >
-        <ReviewWall />
-      </Section>
-    )
-  }
   {
     showTrust && (
       <Section weight="tight" heading="The checkable bits">
@@ -384,12 +418,13 @@ const showTrust = hasVerifiedFacts();
   }
 
   <!-- 9. FAQ. Six questions with decision value, not a knowledge dump. -->
-  <Section index="07" label="FAQ" scale="utility" heading="Common questions" width="wide">
+  <Section index="10" label="FAQ" scale="utility" heading="Common questions" width="wide">
     <FaqBlock faqs={homeFaqs} />
   </Section>
 
   <!-- 10. Convert. Nothing educational below this. -->
   <FinalQuoteCta
+    showSteps={false}
     heading="Send a few photos and get a real number"
     body="Most quotes come back the same day. Same-day pickup is often possible when you get in touch early and the job fits an existing route."
     source="home-final"

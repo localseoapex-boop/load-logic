@@ -29,7 +29,7 @@ import { serviceProcess } from '../data/service-content';
 interface Props {
   /** `banner` lays the steps out horizontally across the page. */
   layout?: 'ledger' | 'banner';
-  variant?: 'booking' | 'compact' | 'full';
+  variant?: 'quote' | 'booking' | 'compact' | 'full';
 }
 
 const { variant = 'full', layout = 'ledger' } = Astro.props;
@@ -40,6 +40,40 @@ const { variant = 'full', layout = 'ledger' } = Astro.props;
  * accurate now that /quote is built, so the wording stands.
  */
 const bookingSteps = serviceProcess.map((step) => ({ title: step.title, text: step.text }));
+
+/**
+ * `quote` — the homepage's four steps.
+ *
+ * CONSOLIDATED, not newly written. The homepage previously stated the process
+ * twice: these four steps as `booking`, and again as the numbered "what happens
+ * next" list inside the closing CTA, which read as a second process after the
+ * page had already finished. This variant merges both into one, taking the
+ * step titles and framing from the original booking steps and folding in the
+ * two facts that only the closing list carried — that the estimate comes back
+ * with the soonest windows, and that the crew confirms the final price before
+ * anything is loaded.
+ *
+ * Written here rather than in service-content.ts because `serviceProcess` is
+ * also read by ServiceLayout, and the service pages are not in scope.
+ */
+const quoteSteps = [
+  {
+    title: 'Send photos',
+    text: 'Send photos of what needs to go, or describe it. Photos let us judge how much space the job takes and what kind of material is involved.',
+  },
+  {
+    title: 'Get your estimate',
+    text: 'We review what you sent and come back with an estimate based on the space it takes and the type of material.',
+  },
+  {
+    title: 'Pick a time',
+    text: 'Choose a window that works for the property. Same-day and next-day are often possible, depending on the route and the size of the job.',
+  },
+  {
+    title: 'We load and haul',
+    text: 'The crew confirms the final price before anything is loaded, then handles the lifting, loading, hauling and cleanup.',
+  },
+];
 
 /**
  * The compact set folds the disposal story into its final step, which is why
@@ -108,7 +142,13 @@ const fullSteps = [
 ];
 
 const steps =
-  variant === 'booking' ? bookingSteps : variant === 'compact' ? compactSteps : fullSteps;
+  variant === 'quote'
+    ? quoteSteps
+    : variant === 'booking'
+      ? bookingSteps
+      : variant === 'compact'
+        ? compactSteps
+        : fullSteps;
 ---
 
 <ol class:list={['steps', layout]} data-reveal>

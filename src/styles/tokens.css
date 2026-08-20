@@ -83,12 +83,18 @@
 
   /* Section rhythm. Varying these by section weight is what stops the page
      reading as one templated stack. Bottom runs slightly heavier than top. */
-  --sec-tight-t: clamp(var(--s6), 5vw, var(--s7));
-  --sec-tight-b: clamp(var(--s6), 6vw, var(--s7));
-  --sec-std-t: clamp(var(--s7), 8vw, var(--s9));
-  --sec-std-b: clamp(var(--s7), 9vw, var(--s10));
-  --sec-feature-t: clamp(var(--s8), 11vw, var(--s11));
-  --sec-feature-b: clamp(var(--s8), 12vw, var(--s11));
+  /* The LOWER bound of each clamp is the phone value. It was set one step too
+     generous: on a 390px screen the vw term never wins, so every section paid a
+     fixed 48px top and bottom regardless of its weight, and across a dozen
+     sections that was most of a screen of empty band. Dropping each floor one
+     step keeps the rhythm on a phone and leaves every larger width untouched,
+     because by ~600px the vw term has taken over. */
+  --sec-tight-t: clamp(var(--s5), 5vw, var(--s7));
+  --sec-tight-b: clamp(var(--s5), 6vw, var(--s7));
+  --sec-std-t: clamp(var(--s6), 8vw, var(--s9));
+  --sec-std-b: clamp(var(--s6), 9vw, var(--s10));
+  --sec-feature-t: clamp(var(--s7), 11vw, var(--s11));
+  --sec-feature-b: clamp(var(--s7), 12vw, var(--s11));
 
   /* ─────────────────────────── Widths ─────────────────────────── */
 

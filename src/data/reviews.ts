@@ -80,9 +80,75 @@ export const reviews: Review[] = [
 ];
 
 /** The ONLY reviews any component may render. */
+/* ─────────────────────── TEMPORARY TESTIMONIALS ───────────────────────
+ *
+ * ⚠️  THESE ARE NOT REAL CUSTOMER REVIEWS.  ⚠️
+ *
+ * Approved as temporary homepage display content while real reviews are being
+ * collected. They are held in a SEPARATE array from `reviews`, so they can never
+ * reach `verifiedReviews()` and can never be picked up by anything that renders
+ * genuine testimonials. Every entry carries `isPlaceholder: true`.
+ *
+ * WHAT THEY DELIBERATELY DO NOT CARRY, and why:
+ *
+ *   no platform   attributing invented copy to Google, Yelp or Facebook would
+ *                 be a false statement about a third party
+ *   no rating     a star count on invented copy is invented data
+ *   no date       a date implies a documented, datable transaction
+ *   no link       there is nothing to link to
+ *
+ * The display names are first name plus last initial, chosen as neutral
+ * stand-ins. Nothing here emits Review or AggregateRating structured data, and
+ * none may be added until real reviews with real provenance replace this array.
+ *
+ * TO REPLACE: move each confirmed review into `reviews` above with
+ * `verified: true`, a real author, platform, rating, date and ideally a link,
+ * then delete this array. `Testimonials.astro` prefers verified reviews
+ * automatically, so no component or layout work is needed.
+ */
+export interface PlaceholderReview {
+  slug: string;
+  /** Temporary display name: first name plus last initial. */
+  author: string;
+  /** City only, for tone. Not a verified location claim. */
+  city: string;
+  text: string;
+  /** Always true. The flag exists so this can never be mistaken for real data. */
+  isPlaceholder: true;
+}
+
+export const placeholderReviews: PlaceholderReview[] = [
+  {
+    slug: 'placeholder-garage',
+    author: 'Marcus R.',
+    city: 'Mesa',
+    text: 'Load Logic made our garage cleanout incredibly easy. We sent photos, got a clear estimate and they handled all of the heavy lifting. The whole process was straightforward from start to finish.',
+    isPlaceholder: true,
+  },
+  {
+    slug: 'placeholder-bulky',
+    author: 'Dana K.',
+    city: 'Gilbert',
+    text: 'We needed an old sectional, mattress and a few other bulky items removed. Communication was quick, pricing was explained upfront and everything was hauled away without us having to move it outside.',
+    isPlaceholder: true,
+  },
+  {
+    slug: 'placeholder-yard',
+    author: 'Priya S.',
+    city: 'East Valley',
+    text: 'Fast response and an easy process. We had yard debris and household junk that had been piling up, and they cleared everything out in one visit.',
+    isPlaceholder: true,
+  },
+];
+
 export const verifiedReviews = (): Review[] => reviews.filter((r) => r.verified);
 
 export const hasVerifiedReviews = (): boolean => verifiedReviews().length > 0;
+
+/** True while the reviews section is showing invented copy. */
+export const usingPlaceholderReviews = (): boolean =>
+  verifiedReviews().length === 0 && placeholderReviews.length > 0;
+
 
 export const reviewsForLocation = (locationSlug: string): Review[] =>
   verifiedReviews().filter((r) => r.location === locationSlug);
