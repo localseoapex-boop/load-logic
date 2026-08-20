@@ -7,7 +7,18 @@
  * data/services.ts and its page appears automatically.
  */
 import ServiceLayout from '../../../layouts/ServiceLayout.astro';
+import ServiceLayout2026 from '../../../layouts/ServiceLayout2026.astro';
 import { services } from '../../../data/services';
+
+/*
+ * Services already moved onto the redesigned template.
+ *
+ * The visual redesign is being reviewed on one representative page before it
+ * reaches the other thirteen, so the switch is per-slug rather than global.
+ * Rolling out means adding slugs here; reverting means removing them. When every
+ * service is listed, this set and the old ServiceLayout both go away.
+ */
+const REDESIGNED = new Set(['garage-cleanouts']);
 
 export function getStaticPaths() {
   return services.map((service) => ({
@@ -19,4 +30,10 @@ export function getStaticPaths() {
 const { service } = Astro.props;
 ---
 
-<ServiceLayout {service} />
+{
+  REDESIGNED.has(service.slug) ? (
+    <ServiceLayout2026 {service} />
+  ) : (
+    <ServiceLayout {service} />
+  )
+}

@@ -625,6 +625,33 @@ const HERO_BG = [
   },
 ];
 
+/*
+ * ─────────────── Service page heroes ───────────────
+ *
+ * One per service page, framed for the split hero: the photograph fills a tall
+ * column beside the type on desktop and becomes a band above it on a phone, so
+ * it is shot at 4:3 — square enough to survive the column crop, wide enough to
+ * survive the band crop. No text sits on it, so no reading zone is reserved.
+ */
+const SERVICE_HEROES = [
+  {
+    id: 'svc-garage-hero',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a garage cleanout in progress at an ordinary suburban home, the sectional garage door rolled fully up, ' +
+      'the garage behind still half full of stacked cardboard boxes, storage totes, an old dresser and a bicycle, ' +
+      'a group of items already carried out and set down on the concrete driveway in the foreground, ' +
+      'one working adult in a dark green work polo, jeans and work gloves photographed strictly from behind, ' +
+      'their back fully to the camera, carrying a box out toward the driveway, ' +
+      NO_FACE + ', ' +
+      'ordinary weekday, work half done, nothing tidied for a photograph',
+    env: true,
+  },
+];
+
+SHOTS.push(...SERVICE_HEROES);
+
 SHOTS.push(...HERO_BG);
 
 SHOTS.push(...HOMEPAGE_2026);
