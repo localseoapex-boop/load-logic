@@ -23,7 +23,7 @@ import { getMaterial } from '../data/materials';
 import { getDisposalRoute } from '../data/disposal';
 import { getVehicle } from '../data/equipment';
 import { formatDuration, type Job } from '../data/jobs';
-import { locationServiceUrl, serviceUrl } from '../lib/urls';
+import { cityUrl, serviceUrl } from '../lib/urls';
 
 interface Props {
   job: Job;
@@ -60,10 +60,16 @@ const totalVolume = load?.cubicYards ? load.cubicYards * loads : undefined;
       }
       <h3>{job.title}</h3>
       <p class="where">
-        {location && service && (
-          <a href={locationServiceUrl(location.slug, service.slug)}>
-            {service.name} in {location.city}, {location.region}
-          </a>
+        {/* Two links where there used to be one to a combined page: the service
+            goes to the service page, the city to the city page. */}
+        {service && <a href={serviceUrl(service.slug)}>{service.name}</a>}
+        {location && (
+          <>
+            {service && ' in '}
+            <a href={cityUrl(location.slug)}>
+              {location.city}, {location.region}
+            </a>
+          </>
         )}
       </p>
     </div>

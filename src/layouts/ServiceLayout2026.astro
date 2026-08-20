@@ -1,0 +1,829 @@
+---
+/**
+ * ServiceLayout2026.astro — the redesigned /services/[service] template.
+ *
+ * ─────────────────────────── Scope ───────────────────────────
+ *
+ * A VISUAL pass over the existing service page. Every section that ServiceLayout
+ * rendered is rendered here, in the same order, with the same data from the same
+ * sources. Nothing was added, nothing removed, and no copy was rewritten. What
+ * changed is how each block is presented, plus the CTA bands between them.
+ *
+ * Running alongside the old template on purpose: the route picks this one for a
+ * single slug so the design can be reviewed on one page before it reaches the
+ * other thirteen. Rolling it out means adding slugs to that set, and reverting
+ * means removing them.
+ *
+ * The old template stays because it still renders those thirteen pages, and it
+ * still loads legacy.css. This page never sees that stylesheet: it is served
+ * from its own static route file, so Astro bundles only this template's CSS with
+ * it. Nothing here is braced against legacy rules, and nothing needs to be —
+ * see pages/services/garage-cleanouts/index.astro for why the route is split.
+ *
+ * ────────────────────── What is reused from the homepage ──────────────────────
+ *
+ *   Section        numbered masthead, tone, scale, media slot
+ *   CtaBreak       the compact conversion band
+ *   HowItWorks     the four-step banner, reading the same serviceProcess data
+ *                  this page already displayed
+ *   QuoteCta       Get a Photo Quote + Call Now
+ *   FaqBlock       the native <details> accordion
+ *
+ * The hero is deliberately NOT the homepage hero. The homepage runs a full-bleed
+ * photographic background; this is a split — type on bone at the left, the
+ * photograph filling the right column to the viewport edge. Same system, clearly
+ * a different kind of page.
+ *
+ * ─────────────────────────── Schema ───────────────────────────
+ *
+ * Service, FAQPage and BreadcrumbList are emitted exactly as before, from the
+ * same builders. FaqBlock is passed schema={false} because this layout already
+ * emits the FAQPage node itself; two would be a duplicate.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Section from '../components/Section.astro';
+import CtaBreak from '../components/CtaBreak.astro';
+import QuoteCta from '../components/QuoteCta.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import FaqBlock from '../components/FaqBlock.astro';
+import { Image } from 'astro:assets';
+import { BUSINESS, SITE } from '../config/site';
+import type { Service } from '../data/services';
+import {
+  getServiceContent,
+  getServiceFaqs,
+  whyChoose,
+  serviceTrustBullets,
+} from '../data/service-content';
+import { relatedServices, locationsForService, subServicesForCategory } from '../lib/links';
+import { serviceUrl, cityUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
+
+import heroImg from '../assets/photos/services/svc-garage-hero.jpg';
+import packedImg from '../assets/photos/services/svc-garage.jpg';
+import clearedImg from '../assets/photos/before-after/ba-garage-after.jpg';
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+const content = getServiceContent(service.slug);
+const faqs = getServiceFaqs(service.slug);
+
+// These are the canonical Mesa service pages — title targets Mesa explicitly.
+const title = `${service.name} in Mesa, AZ`;
+const description = service.description;
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Services', href: '/services' },
+  { name: service.name },
+];
+
+const subServiceLinks = subServicesForCategory(service.slug).map((sub) => ({
+  label: sub.name,
+  href: subServiceUrl(service.slug, sub.slug),
+  description: sub.tagline,
+}));
+
+/* Cities linking to the city page, never to a per-city version of this one. */
+const areaLinks = locationsForService(service.slug).map((loc) => ({
+  label: `${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
+}));
+
+const relatedLinks = relatedServices(service.slug).map((s) => ({
+  label: s.name,
+  href: serviceUrl(s.slug),
+  description: s.tagline,
+}));
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  serviceType: service.name,
+  provider: { '@id': `${SITE.url}/#business` },
+  areaServed: BUSINESS.areaServed,
+  description: service.description,
+  url: absoluteUrl(serviceUrl(service.slug)),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+
+/** Lower-cased service name, as the existing final CTA copy used it. */
+const lowerName = service.name.toLowerCase();
+---
+
+<BaseLayout {title} {description}>
+  <div class="container container-wide crumbs">
+    <Breadcrumbs items={crumbs} />
+  </div>
+
+  {/* ── Hero. Split: type on bone at the left, photograph filling the right
+       column to the viewport edge. Same content as before — eyebrow, H1, the
+       tagline lede, the trust bullets — with the actions switched to the site's
+       two standard conversion actions. ── */}
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="hero-inner">
+        <p class="eyebrow">Junk Removal</p>
+        <h1>{service.name} in Mesa &amp; the East Valley</h1>
+        <p class="lede">{service.tagline}</p>
+        <div class="hero-cta">
+          <QuoteCta size="lg" source={`service-${service.slug}-hero`} />
+        </div>
+        <ul class="trust">
+          {serviceTrustBullets.map((b) => <li>{b}</li>)}
+        </ul>
+      </div>
+    </div>
+    <div class="hero-media">
+      <Image
+        src={heroImg}
+        alt="A worker carrying a box out of an open suburban garage stacked with cardboard boxes and storage totes"
+        widths={[600, 900, 1200]}
+        sizes="(min-width: 900px) 46vw, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+  </header>
+
+  {/* ── 01 Overview. No heading: the original section opened straight into the
+       intro line with no <h2>, and adding one would put a heading in the outline
+       that the page never had. The masthead carries the label instead. ── */}
+  <Section index="01" label="Overview" width="wide">
+    <div class="overview">
+      <p class="intro-line">{service.intro}</p>
+      <div class="copy">
+        {(content?.overview ?? []).map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </Section>
+
+  {/* ── 02 What we offer + common reasons ── */}
+  <Section index="02" label="Scope" tone="sunk" heading="What we offer" width="wide">
+    <div class="offer">
+      <ul class="ruled">
+        {service.features.map((f) => <li>{f}</li>)}
+      </ul>
+      {
+        content && content.reasons.length > 0 && (
+          <div class="reasons">
+            <h3>Common reasons customers call</h3>
+            <ul class="chips">
+              {content.reasons.map((r) => (
+                <li>{r}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </Section>
+
+  {/* ── 03 What we take, with the packed-garage photograph beside the heading ── */}
+  {
+    content && content.detailGroups.length > 0 && (
+      <Section index="03" label="Materials" heading="What we take" width="wide">
+        <Image
+          slot="media"
+          src={packedImg}
+          alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
+          widths={[420, 760]}
+          sizes="(min-width: 900px) 42vw, 92vw"
+          loading="lazy"
+        />
+        <ul class="groups">
+          {content.detailGroups.map((group) => (
+            <li>
+              <h3>{group.title}</h3>
+              <ul class="items">
+                {group.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+
+        {content.specialNote && (
+          <div class="special">
+            <h3>Items that need special handling</h3>
+            <p>{content.specialNote}</p>
+          </div>
+        )}
+      </Section>
+    )
+  }
+
+  <CtaBreak
+    heading={`Want to know what your ${lowerName.replace(/s$/, '')} will cost?`}
+    body="Send us a few photos and we'll help estimate the job."
+    source={`service-${service.slug}-mid-1`}
+  />
+
+  {/* ── 04 How it works. The same serviceProcess steps this page already
+       displayed, in the homepage's four-across banner. ── */}
+  <Section index="04" label="Process" tone="sunk" weight="tight" heading="How it works" width="wide">
+    <HowItWorks variant="booking" layout="banner" />
+  </Section>
+
+  {/* ── 05 Why choose Load Logic ── */}
+  <Section index="05" label="Why Load Logic" heading="Why choose Load Logic" width="wide">
+    <ul class="points">
+      {
+        whyChoose.map((w, i) => (
+          <li>
+            <span class="idx data" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <p>{w}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* ── 06 Problem / solution, with the cleared garage beside the heading ── */}
+  {
+    content && content.problems.length > 0 && (
+      <Section
+        index="06"
+        label="Hard parts"
+        tone="sunk"
+        heading="We solve the hard part"
+        width="wide"
+      >
+        <Image
+          slot="media"
+          src={clearedImg}
+          alt="A two-car garage completely empty with a clean swept concrete floor"
+          widths={[420, 760]}
+          sizes="(min-width: 900px) 42vw, 92vw"
+          loading="lazy"
+        />
+        <ul class="problems">
+          {content.problems.map((p) => (
+            <li>
+              <div class="side">
+                <h3>Problem</h3>
+                <p>{p.problem}</p>
+              </div>
+              <div class="side solution">
+                <h3>Solution</h3>
+                <p>{p.solution}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+
+  <CtaBreak
+    heading="Ready to get the garage back?"
+    source={`service-${service.slug}-mid-2`}
+    tone="spruce"
+  />
+
+  {/* ── Internal links. Same three groups, rendered inline rather than through
+       InternalLinks, which is shared with the location templates and is not
+       being restyled in this pass. ── */}
+  {/* No section heading here on purpose. These three groups carried their own
+      <h2>s on the original page; giving the block a wrapper heading would have
+      demoted them to <h3> and invented a heading the page never had. The
+      masthead index and label do the wayfinding instead. */}
+  <Section index="07" label="Where next" width="wide">
+    <div class="link-groups">
+      {
+        subServiceLinks.length > 0 && (
+          <div class="group">
+            <h2>{service.name} options</h2>
+            <ul>
+              {subServiceLinks.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                  {l.description && <span>{l.description}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+      <div class="group">
+        <h2>Available in these areas</h2>
+        <ul class="areas">
+          {areaLinks.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="group">
+        <h2>Related services</h2>
+        <ul>
+          {relatedLinks.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+              {l.description && <span>{l.description}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  {/* ── 08 FAQs. schema={false}: this layout emits the FAQPage node itself. ── */}
+  <Section
+    index="08"
+    label="FAQ"
+    tone="sunk"
+    scale="utility"
+    heading={`${service.name} FAQs`}
+    width="wide"
+  >
+    <FaqBlock faqs={faqs} schema={false} />
+  </Section>
+
+  {/* ── Final CTA. Existing heading and copy, restyled. ── */}
+  <section class="final on-spruce">
+    <div class="container container-wide final-inner">
+      <div>
+        <h2>Ready to clear it out?</h2>
+        <p>Get an upfront quote for {lowerName} in Mesa and the East Valley.</p>
+      </div>
+      <QuoteCta size="lg" source={`service-${service.slug}-final`} onDark />
+    </div>
+  </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />
+</BaseLayout>
+
+<style>
+  .crumbs {
+    padding-top: var(--s5);
+  }
+
+  /* ─────────────────────────── Hero ─────────────────────────── */
+
+  .hero {
+    display: grid;
+    background: var(--bone);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hero-inner {
+    padding-inline: var(--gutter);
+    padding-block: var(--s7) var(--s8);
+    max-width: 46rem;
+    margin-inline: auto;
+  }
+
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink-3);
+    margin-bottom: var(--s4);
+  }
+
+  h1 {
+    font-size: var(--d1);
+    letter-spacing: -0.03em;
+    line-height: 0.98;
+    max-width: 16ch;
+  }
+
+  .lede {
+    margin-top: var(--s5);
+    font-size: var(--t1);
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  .hero-cta {
+    margin-top: var(--s6);
+  }
+
+  /* The existing trust bullets, as a ruled operational rail rather than a row
+     of pills. */
+  .trust {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s7);
+    border-top: 1px solid var(--rule);
+    display: grid;
+    gap: 0;
+  }
+
+  .trust li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* On a phone the photograph leads, as it does on the homepage. Left in source
+     order it sat below the four trust bullets, which pushed the only image in
+     the hero almost entirely off the first screen. */
+  .hero-media {
+    order: -1;
+  }
+
+  .hero-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 55%;
+    aspect-ratio: 16 / 10;
+  }
+
+  @media (min-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Back to source order beside the type at desktop. */
+    .hero-media {
+      order: 0;
+    }
+
+    .hero-inner {
+      margin-inline: 0;
+      margin-inline-start: auto;
+      padding-block: var(--s9);
+      padding-inline-end: var(--s8);
+    }
+
+    .hero-media img {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+
+    .trust {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s6);
+    }
+
+    .trust li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+  }
+
+  /* ─────────────────────── 01 Overview ─────────────────────── */
+
+  .intro-line {
+    font-size: var(--d3);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+
+  .copy {
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .copy p {
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  @media (min-width: 900px) {
+    /* Long-form copy set against the intro line rather than beneath it, so the
+       section reads as two columns instead of one narrow stack. */
+    .overview {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--s9);
+      align-items: start;
+    }
+  }
+
+  /* ─────────────────────── 02 What we offer ─────────────────────── */
+
+  .ruled {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .ruled li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+    font-weight: 600;
+  }
+
+  .reasons h3 {
+    font-size: var(--t2);
+    margin-bottom: var(--s4);
+  }
+
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+
+  .chips li {
+    font-size: var(--t3);
+    padding: var(--s1) var(--s3);
+    border: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+  }
+
+  .reasons {
+    margin-top: var(--s7);
+  }
+
+  @media (min-width: 900px) {
+    .offer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s9);
+      align-items: start;
+    }
+
+    .reasons {
+      margin-top: 0;
+    }
+  }
+
+  /* ─────────────────────── 03 What we take ─────────────────────── */
+
+  .groups {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s6);
+    border-top: 2px solid var(--ink);
+    padding-top: var(--s5);
+  }
+
+  .groups > li h3 {
+    font-size: var(--d3);
+    letter-spacing: -0.02em;
+  }
+
+  .items {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s3);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .items li {
+    font-size: var(--t3);
+    color: var(--ink-2);
+    padding-block: var(--s2);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* The existing special-handling note, given the same hi-vis edge the homepage
+     uses for its heavy-material caveat. */
+  .special {
+    margin-top: var(--s7);
+    padding-inline-start: var(--s5);
+    border-inline-start: 3px solid var(--hi-vis);
+    max-width: 68ch;
+  }
+
+  .special h3 {
+    font-size: var(--t1);
+  }
+
+  .special p {
+    margin-top: var(--s3);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 700px) {
+    .groups {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .groups {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ─────────────────────── 05 Why choose ─────────────────────── */
+
+  .points {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .points li {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    column-gap: var(--s4);
+    align-items: baseline;
+    padding-block: var(--s4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .idx {
+    font-size: var(--t3);
+    font-weight: 700;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .points p {
+    color: var(--ink);
+    max-width: 60ch;
+  }
+
+  @media (min-width: 820px) {
+    .points {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    .points li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+  }
+
+  /* ─────────────────────── 06 Problem / solution ─────────────────────── */
+
+  .problems {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s6);
+    border-top: 2px solid var(--ink);
+    padding-top: var(--s5);
+  }
+
+  .problems > li {
+    display: grid;
+    gap: var(--s4);
+    padding-bottom: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .side h3 {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 700;
+  }
+
+  .side p {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+
+  /* The resolved half reads darker, so the pair has a direction. */
+  .solution h3 {
+    color: var(--spruce-2);
+  }
+
+  .solution p {
+    color: var(--ink);
+  }
+
+  @media (min-width: 800px) {
+    .problems > li {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s8);
+    }
+  }
+
+  /* ─────────────────────── 07 Internal links ─────────────────────── */
+
+  .link-groups {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  .group h2 {
+    font-size: var(--t2);
+    padding-bottom: var(--s3);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .group li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .group a {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .group a:hover {
+    color: var(--spruce-2);
+  }
+
+  .group span {
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* The area list is short labels, so it wraps as a grid rather than a column. */
+  .areas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--s5);
+  }
+
+  @media (min-width: 800px) {
+    .link-groups {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      gap: var(--s8);
+      align-items: start;
+    }
+
+    .areas {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ─────────────────────── Final CTA ─────────────────────── */
+
+  .final {
+    background: var(--spruce);
+    color: var(--on-spruce);
+    border-top: 4px solid var(--hi-vis);
+    padding-block: var(--sec-std-t) var(--sec-std-b);
+  }
+
+  .final h2 {
+    color: #fff;
+    font-size: var(--d2);
+    letter-spacing: -0.03em;
+    max-width: 18ch;
+  }
+
+  .final p {
+    margin-top: var(--s4);
+    color: var(--on-spruce-2);
+    max-width: 46ch;
+  }
+
+  .final-inner {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  @media (min-width: 860px) {
+    .final-inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--s9);
+    }
+  }
+</style>

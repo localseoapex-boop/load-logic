@@ -172,9 +172,23 @@ const SHOTS = [
     id: 'svc-garage',
     dir: 'services',
     ratio: '4:3',
+    /*
+     * env was false here, which is why the first version read Midwest: the
+     * Arizona environment line was never applied and the model filled the walls
+     * with timber. An Arizona garage is painted drywall or block over a bare
+     * concrete slab, and the door opens onto gravel rather than lawn, so those
+     * are now stated explicitly as well as inherited.
+     */
     scene:
-      'a packed suburban two-car garage full of storage totes, old shelving, bicycles and boxes stacked to the ceiling, nobody in frame',
-    env: false,
+      'the interior of a packed suburban two-car garage in Arizona, photographed from just inside the open roll-up door, ' +
+      'plain painted drywall walls and exposed ceiling framing, a bare grey concrete slab floor, no wood panelling anywhere, ' +
+      'full of stacked plastic storage totes, metal utility shelving, cardboard boxes, a bicycle, a folded stepladder and ' +
+      'general household overflow along both side walls, ' +
+      'through the open door behind the camera position the light is flat and bright off a concrete driveway and gravel yard, ' +
+      'muted desert palette of grey concrete, beige walls and dusty plastics, ' +
+      'nobody in frame, ordinary weekday, nothing tidied for a photograph',
+    env: true,
+    empty: true,
   },
   {
     id: 'svc-estate',
@@ -624,6 +638,33 @@ const HERO_BG = [
     empty: true,
   },
 ];
+
+/*
+ * ─────────────── Service page heroes ───────────────
+ *
+ * One per service page, framed for the split hero: the photograph fills a tall
+ * column beside the type on desktop and becomes a band above it on a phone, so
+ * it is shot at 4:3 — square enough to survive the column crop, wide enough to
+ * survive the band crop. No text sits on it, so no reading zone is reserved.
+ */
+const SERVICE_HEROES = [
+  {
+    id: 'svc-garage-hero',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a garage cleanout in progress at an ordinary suburban home, the sectional garage door rolled fully up, ' +
+      'the garage behind still half full of stacked cardboard boxes, storage totes, an old dresser and a bicycle, ' +
+      'a group of items already carried out and set down on the concrete driveway in the foreground, ' +
+      'one working adult in a dark green work polo, jeans and work gloves photographed strictly from behind, ' +
+      'their back fully to the camera, carrying a box out toward the driveway, ' +
+      NO_FACE + ', ' +
+      'ordinary weekday, work half done, nothing tidied for a photograph',
+    env: true,
+  },
+];
+
+SHOTS.push(...SERVICE_HEROES);
 
 SHOTS.push(...HERO_BG);
 

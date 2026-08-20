@@ -25,7 +25,7 @@ import {
   serviceTrustBullets,
 } from '../data/service-content';
 import { relatedServices, locationsForService, subServicesForCategory } from '../lib/links';
-import { serviceUrl, locationServiceUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
+import { serviceUrl, cityUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
 // Loads the pre-redesign stylesheet. This template still uses the old class
 // names and is rebuilt in a later phase; see src/styles/legacy.css.
 import '../styles/legacy.css';
@@ -55,10 +55,16 @@ const subServiceLinks = subServicesForCategory(service.slug).map((sub) => ({
   description: sub.tagline,
 }));
 
-// "Available in these areas" — every city that offers this service.
+/*
+ * "Available in these areas" — every city that offers this service, linking to
+ * that city's page rather than to a generated per-city version of this one.
+ *
+ * The service-in-city relationship still comes from the same resolver and is
+ * still published in /knowledge.json; only the destination changed.
+ */
 const areaLinks = locationsForService(service.slug).map((loc) => ({
-  label: `${service.name} in ${loc.city}, ${loc.region}`,
-  href: locationServiceUrl(loc.slug, service.slug),
+  label: `${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
 }));
 
 // "Related services" — curated siblings, backfilled.

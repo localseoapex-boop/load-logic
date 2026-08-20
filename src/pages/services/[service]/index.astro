@@ -10,10 +10,31 @@ import ServiceLayout from '../../../layouts/ServiceLayout.astro';
 import { services } from '../../../data/services';
 
 export function getStaticPaths() {
-  return services.map((service) => ({
-    params: { service: service.slug },
-    props: { service },
-  }));
+  /*
+   * Services already moved onto the redesigned template.
+   *
+   * Each has its own static route file (see
+   * pages/services/garage-cleanouts/index.astro) and is excluded here so the URL
+   * is generated exactly once. They live in separate page modules on purpose:
+   * importing both templates from one route put legacy.css into the redesigned
+   * page's bundle, because Astro decides a page's CSS from its module graph
+   * rather than from which template actually renders.
+   *
+   * Declared inside getStaticPaths, not above it: Astro hoists this function to
+   * the top of the module, so a const in the frontmatter is still in the
+   * temporal dead zone when it runs.
+   *
+   * When the last service migrates, delete those files, point this route at
+   * ServiceLayout2026, and remove ServiceLayout and legacy.css with it.
+   */
+  const REDESIGNED = new Set(['garage-cleanouts']);
+
+  return services
+    .filter((service) => !REDESIGNED.has(service.slug))
+    .map((service) => ({
+      params: { service: service.slug },
+      props: { service },
+    }));
 }
 
 const { service } = Astro.props;

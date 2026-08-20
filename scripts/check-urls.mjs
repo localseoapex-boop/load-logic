@@ -1,5 +1,17 @@
 /**
- * check-urls.mjs — guards the site's 175 existing URLs against silent loss.
+ * check-urls.mjs — guards the site's existing URLs against silent loss.
+ *
+ * BASELINE REWRITTEN 2026-08-20, deliberately. The city x service architecture
+ * was removed: /locations/[city]/[service] and its [subservice] child generated
+ * 144 URLs from 9 cities x 14 services, each asserting only that a service is
+ * available in a city — a fact that belongs in data, not in a page.
+ *
+ * Those 144 are NOT redirected, by decision. They were removed before the site
+ * had meaningful indexing, they carry no traffic or backlinks, and redirecting
+ * every one of them to a service page would assert an equivalence that was never
+ * true — the combined page and the service page were not the same thing. A
+ * request for an obsolete combination now returns a normal 404, which is the
+ * honest answer. Do not add a redirect layer back.
  *
  * A redesign is the easiest way to accidentally drop a route: a changed
  * getStaticPaths filter, a renamed slug, or a data field that stops resolving,
@@ -10,8 +22,9 @@
  *   node scripts/check-urls.mjs           compare dist against the baseline
  *   node scripts/check-urls.mjs --update  rewrite the baseline (deliberate changes only)
  *
- * Updating the baseline is a decision, not a formality. Any removed URL needs a
- * single-hop 301 before the baseline is rewritten.
+ * Updating the baseline is a decision, not a formality. A removed URL normally
+ * needs a single-hop 301 first; the city x service removal above is the
+ * documented exception, taken deliberately and before indexing.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';

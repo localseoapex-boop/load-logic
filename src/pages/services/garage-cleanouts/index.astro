@@ -1,0 +1,44 @@
+---
+/**
+ * /services/garage-cleanouts — the first service page on the 2026 template.
+ *
+ * ─────────────────── Why this is its own route file ───────────────────
+ *
+ * It exists to keep legacy.css off this page, and nothing else.
+ *
+ * The redesign is rolling out one service at a time, so for a while two template
+ * systems have to coexist. When the shared [service] route imported both, Astro
+ * put BOTH stylesheets in this page's bundle — the module graph is what decides
+ * the CSS, not which template actually renders — and legacy's unscoped rules
+ * loaded after base.css and reached into the new layout. `.hero h1` painted the
+ * headline white on bone; `.cta` put a green slab behind the buttons. Defending
+ * with specificity worked but left the new template permanently braced against a
+ * stylesheet it should never have seen, and twelve legacy selectors still
+ * matched somewhere in its tree.
+ *
+ * A static route file is the fix, because Astro bundles per page module. This
+ * page imports only ServiceLayout2026, so only the new system's CSS ships with
+ * it. The [service] route now excludes this slug from getStaticPaths, so there
+ * is exactly one page for the URL and no route collision.
+ *
+ * ─────────────────────────── Rollout ───────────────────────────
+ *
+ * Each service that moves over gets a sibling file like this one and is added to
+ * REDESIGNED in the [service] route. When the last one migrates, delete all of
+ * them, point the [service] route at ServiceLayout2026, and drop ServiceLayout
+ * and legacy.css with it — at which point the isolation is free rather than
+ * arranged.
+ */
+import ServiceLayout2026 from '../../../layouts/ServiceLayout2026.astro';
+import { services } from '../../../data/services';
+
+const service = services.find((s) => s.slug === 'garage-cleanouts');
+
+if (!service) {
+  throw new Error(
+    'services.ts no longer contains "garage-cleanouts", which this route renders.',
+  );
+}
+---
+
+<ServiceLayout2026 {service} />

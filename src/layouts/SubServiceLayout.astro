@@ -14,7 +14,7 @@ import { BUSINESS, SITE } from '../config/site';
 import type { Service } from '../data/services';
 import type { SubService } from '../data/subservices';
 import { subServicesForCategory, locationsForService } from '../lib/links';
-import { serviceUrl, subServiceUrl, locationSubServiceUrl, absoluteUrl } from '../lib/urls';
+import { serviceUrl, subServiceUrl, cityUrl, absoluteUrl } from '../lib/urls';
 // Loads the pre-redesign stylesheet. This template still uses the old class
 // names and is rebuilt in a later phase; see src/styles/legacy.css.
 import '../styles/legacy.css';
@@ -41,10 +41,16 @@ const siblingLinks = subServicesForCategory(service.slug)
   .filter((s) => s.slug !== subService.slug)
   .map((s) => ({ label: s.name, href: subServiceUrl(service.slug, s.slug), description: s.tagline }));
 
-// This sub-service in every city that offers the parent category (req #4 + #9).
+/*
+ * Every city that offers the parent category, linking to the city page.
+ *
+ * This previously pointed at /locations/[city]/[service]/[subservice], which no
+ * longer exists: those 18 URLs were the deepest layer of the city x service
+ * fan-out and said nothing the city page and this page do not already say.
+ */
 const areaLinks = locationsForService(service.slug).map((loc) => ({
-  label: `${subService.name} in ${loc.city}, ${loc.region}`,
-  href: locationSubServiceUrl(loc.slug, service.slug, subService.slug),
+  label: `${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
 }));
 
 const serviceSchema = {
