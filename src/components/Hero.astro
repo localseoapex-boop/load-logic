@@ -1,53 +1,65 @@
 ---
 /**
- * Hero.astro — art-directed photograph, then the message on solid ground.
+ * Hero.astro — the photograph IS the hero; everything else sits on it.
  *
  * ─────────────────────────── Composition ───────────────────────────
  *
- * The photograph runs full width and carries no text at all. Underneath it a
- * spruce block holds the message in two facing columns: the headline on the
- * left, the supporting line and both conversion actions on the right, with a
- * hi-vis rule marking the join. Keeping type off the photograph is the point —
- * the headline can be set at display size without fighting photographic detail,
- * and no generated subject ever sits behind text.
+ * One full-bleed background image with the message layered over it, a scrim in
+ * between, and the operating facts closing the block along the bottom edge.
+ * Previously the photograph was a band and the copy sat in a spruce block
+ * underneath — legible, but it read as two stacked pieces rather than as a hero.
  *
- * ──────────────────── Responsive art direction ────────────────────
+ * ─────────────────── Art direction, and why it is new ───────────────────
  *
- * TWO SOURCES, NOT ONE CROP. A 16:9 frame letterboxed into a phone leaves a hero
- * whose subject is a strip of driveway. The wide frame carries the environment —
- * house, driveway, truck and loaded trailer in context — and the tall frame
- * moves in on the loaded trailer itself. Two compositions of one scene, not two
- * crops of one file.
+ * The earlier hero pair could not be reused for this. Those frames were composed
+ * to sit ABOVE the copy, so the trailer landed dead centre, which is exactly
+ * where a left-aligned headline goes. Overlaying type would have meant a scrim
+ * heavy enough to destroy the photograph. The replacements are composed for
+ * text: on the wide frame the truck and trailer sit centre-right with the left
+ * third left as bare driveway and gravel; on the tall frame the subject sits in
+ * the upper half with plain swept concrete filling the lower half. Both are shot
+ * flat and overcast, because hard Arizona sun puts blown highlights precisely
+ * where white text has to stay readable.
  *
- * Served through a real <picture> with a `media` source rather than two <img>
- * elements toggled with display:none. The toggle is what this component used
- * before and it wastes bandwidth: browsers fetch both, so every phone was
- * downloading a desktop hero it would never display. getImage() builds the
- * optimised srcset for each source and the browser fetches exactly one.
+ * Still two sources, not one crop, served through a real <picture> with a media
+ * query. A 16:9 frame letterboxed into a phone leaves a hero whose subject is a
+ * strip of driveway.
  *
- * The <img> is the LCP element: eager, high fetchpriority, explicit dimensions
- * so its box is reserved before it loads.
+ * ─────────────────────────── The scrim ───────────────────────────
+ *
+ * Two near-black gradients, never a brand-coloured wash: one left-weighted for
+ * the reading column, one bottom-weighted for the facts rail. Both fall away
+ * toward the right and the middle, so the truck and the load are seen close to
+ * full contrast. This is what lets the photograph stay a photograph while the
+ * type stays legible.
+ *
+ * ─────────────────────────── Accessibility ───────────────────────────
+ *
+ * The image is decorative and carries alt="". Everything it communicates — the
+ * service, the city, the equipment, the price — is stated in the text laid over
+ * it, so describing it again would only make a screen reader repeat the hero.
+ *
+ * It remains the LCP element: eager, high fetchpriority, explicit dimensions so
+ * its box is reserved before it loads.
  */
 import { getImage } from 'astro:assets';
 import QuoteCta from './QuoteCta.astro';
-import heroWide from '../assets/photos/home/hero-drive-wide.jpg';
-import heroTall from '../assets/photos/home/hero-drive-tall.jpg';
+import heroWide from '../assets/photos/home/hero-bg-wide.jpg';
+import heroTall from '../assets/photos/home/hero-bg-tall.jpg';
 
 interface Props {
   eyebrow: string;
   heading: string;
   subhead: string;
-  /** Describes the work, never the company. See docs/image-art-direction.md. */
-  alt: string;
   /** Operating data. Every value must be a real, checkable fact. */
   facts: { label: string; value: string }[];
 }
 
-const { eyebrow, heading, subhead, alt, facts } = Astro.props;
+const { eyebrow, heading, subhead, facts } = Astro.props;
 
 const wide = await getImage({
   src: heroWide,
-  widths: [960, 1440, 1920],
+  widths: [1024, 1440, 1920],
   format: 'webp',
 });
 const tall = await getImage({
@@ -58,14 +70,14 @@ const tall = await getImage({
 ---
 
 <section class="hero">
-  <div class="media">
+  <div class="media" aria-hidden="true">
     <picture>
       <source media="(min-width: 768px)" srcset={wide.srcSet.attribute} sizes="100vw" />
       <img
         src={tall.src}
         srcset={tall.srcSet.attribute}
         sizes="100vw"
-        {alt}
+        alt=""
         width={tall.attributes.width}
         height={tall.attributes.height}
         loading="eager"
@@ -73,55 +85,105 @@ const tall = await getImage({
         decoding="async"
       />
     </picture>
+    <div class="scrim"></div>
   </div>
 
-  <div class="block">
-    <div class="container container-wide inner">
-      <div class="say">
-        <p class="eyebrow">{eyebrow}</p>
-        <h1>{heading}</h1>
-      </div>
+  <div class="container container-wide say">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{heading}</h1>
+    <p class="subhead">{subhead}</p>
+    <div class="actions">
+      <QuoteCta size="lg" source="hero" onDark />
+    </div>
+  </div>
 
-      <div class="act">
-        <p class="subhead">{subhead}</p>
-        <QuoteCta size="lg" source="hero" onDark />
-        <dl class="facts">
-          {
-            facts.map((fact) => (
-              <div>
-                <dt>{fact.label}</dt>
-                <dd class="data">{fact.value}</dd>
-              </div>
-            ))
-          }
-        </dl>
-      </div>
+  <div class="rail">
+    <div class="container container-wide">
+      <dl>
+        {
+          facts.map((fact) => (
+            <div>
+              <dt>{fact.label}</dt>
+              <dd class="data">{fact.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 </section>
 
 <style>
   .hero {
+    position: relative;
+    display: grid;
+    /* Content row, then the facts rail pinned to the bottom edge. */
+    grid-template-rows: 1fr auto;
+    /* dvh rather than vh: the iOS address bar must not resize the hero. */
+    min-height: min(94dvh, 680px);
+    isolation: isolate;
     background: var(--spruce);
+    color: #fff;
   }
 
-  /* ─── Photograph ─── */
+  /* ─── Background ─── */
 
-  .media img {
+  .media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* <picture> is display:inline by default, so a percentage height on the <img>
+     resolves against the picture box rather than against .media and the
+     background stopped short of the hero's bottom edge on tall viewports. */
+  .media picture {
     display: block;
     width: 100%;
-    /* dvh rather than vh: the iOS address bar must not resize the crop. */
-    height: min(54dvh, 400px);
+    height: 100%;
+  }
+
+  .media img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    object-position: center 56%;
+    /* The tall frame is already composed subject-up / concrete-down, and cover
+       on a phone crops width rather than height, so the whole vertical range is
+       in view and no offset is wanted. */
+    object-position: center center;
+  }
+
+  /* Near-black, never a brand-coloured wash. Heavy where the type is, gone
+     where the load is. */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to right,
+        rgb(8 14 11 / 0.86) 0%,
+        rgb(8 14 11 / 0.68) 30%,
+        rgb(8 14 11 / 0.26) 62%,
+        rgb(8 14 11 / 0.04) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.78) 0%,
+        rgb(8 14 11 / 0.34) 32%,
+        rgb(8 14 11 / 0.04) 64%,
+        rgb(8 14 11 / 0.08) 100%
+      );
   }
 
   /* ─── Message ─── */
 
-  .block {
-    border-top: 4px solid var(--hi-vis);
-    padding-block: var(--s7) var(--s8);
-    color: var(--on-spruce);
+  .say {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    padding-block: var(--s8) var(--s7);
+    max-width: var(--w-wide);
   }
 
   .eyebrow {
@@ -138,39 +200,65 @@ const tall = await getImage({
     color: #fff;
     font-size: var(--d0);
     letter-spacing: -0.035em;
-    line-height: 0.94;
-    max-width: 14ch;
+    line-height: 0.96;
+    max-width: 15ch;
+    /* Lifts the type off the photograph without a visible box. */
+    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
   }
 
   .subhead {
+    margin-top: var(--s5);
     font-size: var(--t1);
-    color: rgb(255 255 255 / 0.82);
-    max-width: 42ch;
-    margin-bottom: var(--s6);
+    color: rgb(255 255 255 / 0.9);
+    max-width: 46ch;
+    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
   }
 
-  .act {
+  .actions {
     margin-top: var(--s6);
   }
 
-  .facts {
+  /* The secondary button's dark treatment is transparent with a dim border,
+     which is right on a solid spruce block and too weak over a photograph: the
+     label sat on mid-tone driveway with almost nothing separating it. Scoped to
+     the hero so the button behaves normally everywhere else. No backdrop-filter
+     — this element scrolls, and blur on a scrolling layer costs repaints. */
+  .actions :global(.btn.dark.solid) {
+    background: rgb(8 14 11 / 0.55);
+    border-color: rgb(255 255 255 / 0.5);
+    color: #fff;
+  }
+
+  .actions :global(.btn.dark.solid:hover) {
+    background: rgb(8 14 11 / 0.74);
+    border-color: #fff;
+  }
+
+  /* ─── Operating facts ─── */
+
+  .rail {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(8 14 11 / 0.42);
+    padding-block: var(--s5);
+  }
+
+  .rail dl {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--s4) var(--s6);
-    margin-top: var(--s7);
-    padding-top: var(--s5);
-    border-top: 1px solid var(--rule-on-spruce);
   }
 
-  .facts dt {
+  dt {
     font-family: var(--font-data);
     font-size: var(--lbl);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--on-spruce-2);
+    color: rgb(255 255 255 / 0.72);
   }
 
-  .facts dd {
+  dd {
     margin-top: var(--s1);
     font-size: var(--t2);
     font-weight: 700;
@@ -178,31 +266,57 @@ const tall = await getImage({
   }
 
   @media (min-width: 768px) {
+    .hero {
+      min-height: min(82dvh, 660px);
+    }
+
     .media img {
-      height: min(58dvh, 540px);
-      object-position: center 54%;
+      /* The wide frame keeps its own horizon; centring it holds the driveway,
+         the trailer and the roofline all in shot. */
+      object-position: center 52%;
+    }
+
+    .say {
+      padding-block: var(--s9) var(--s8);
+    }
+
+    .rail dl {
+      grid-template-columns: repeat(4, auto);
+      justify-content: start;
+      gap: var(--s8);
+    }
+
+    .rail {
+      padding-block: var(--s6);
     }
   }
 
-  /* The two facing columns. Below this the block is one stack, which is the
-     right answer on a phone: headline, the line that supports it, then the
-     action, in reading order. */
-  @media (min-width: 900px) {
-    .inner {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: var(--s9);
-      align-items: end;
+  /* Below this the horizontal scrim would darken the whole frame, so it is
+     dropped and the vertical one does the work on its own. */
+  @media (max-width: 767px) {
+    /* The tall frame is composed subject-up, concrete-down, so the copy belongs
+       at the bottom of it. Centred, the headline and the CTAs landed straight
+       across the truck and the loaded trailer; pushed down, the upper band stays
+       photograph and the type sits on the plain driveway underneath it. */
+    .hero {
+      min-height: min(96dvh, 740px);
     }
 
-    .act {
-      margin-top: 0;
+    .say {
+      align-self: end;
+      padding-block: var(--s7) var(--s6);
     }
 
-    .facts {
-      grid-template-columns: repeat(4, auto);
-      justify-content: start;
-      gap: var(--s6);
+    .scrim {
+      background: linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.9) 0%,
+        rgb(8 14 11 / 0.72) 30%,
+        /* Eased off through the band the truck and trailer occupy, so the
+           subject is not flattened by the same scrim that protects the copy. */
+        rgb(8 14 11 / 0.34) 58%,
+        rgb(8 14 11 / 0.46) 100%
+      );
     }
   }
 </style>
