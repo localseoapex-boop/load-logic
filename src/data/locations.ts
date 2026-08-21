@@ -30,6 +30,13 @@ export interface Location {
   services?: string[];
   /** Unique opening paragraph for the city page. */
   intro?: string;
+  /**
+   * Extended local introduction, rendered in the city page's Local Introduction
+   * section beneath the shared Mesa-based paragraph. Written per city, or left
+   * unset — the section renders fine without it. Only verifiable local detail
+   * belongs here, never city-swapped filler; the accessNotes below are the model.
+   */
+  localIntro?: string;
   /** Recognizable local areas, woven into the city page for local relevance. */
   neighborhoods?: string[];
 

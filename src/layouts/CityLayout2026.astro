@@ -1,43 +1,54 @@
 ---
 /**
- * CityLayout2026.astro — the redesigned /locations/[city] template.
+ * CityLayout2026.astro — the /locations/[city] template.
  *
- * ─────────────────────────── Scope ───────────────────────────
+ * ─────────────────────────── Structure ───────────────────────────
  *
- * A VISUAL pass. Every section CityLayout rendered is rendered here, in the same
- * order, from the same data: the hero, the local paragraph and the neighborhood
- * line, the services available in the city, the nearby cities, and the closing
- * band. No copy was rewritten and nothing was added except the mid-page CTA's
- * two lines, which are conversion furniture rather than content.
+ * Thirteen sections in a fixed order, per the owner's city-page specification:
  *
- * Runs alongside the old template so one city can be reviewed before the rest
- * follow. The route split is what keeps legacy.css off this page — see
- * pages/locations/gilbert-az/index.astro.
+ *   hero → local introduction → services → process → why choose → CTA band →
+ *   what we haul → property types → pricing → reviews → areas + map → FAQs →
+ *   final CTA
  *
- * ─────────────── Why it is not the service template ───────────────
+ * One reusable template drives every city. Everything city-specific comes from
+ * locations.ts (intro, localIntro, neighborhoods, nearby, propertyMix,
+ * accessNotes) and from resolvers over the shared catalogs — there are no
+ * per-city page files and no city-swapped filler paragraphs.
  *
- * A city page answers "do you come here, and what can you do when you do".
- * A service page answers "what is this job and what does it cost". They share a
- * design system and should not share a composition, so three things are specific
- * to this one:
+ * ───────────────────── Where the local content comes from ─────────────────────
  *
- *   the hero establishes the PLACE — an ordinary East Valley street with the
- *   work incidental — rather than the job
+ * The differentiation rule for these pages: a section shows REAL local data or
+ * it shows shared content under a local heading, and nothing in between.
  *
- *   the local paragraph and the neighborhoods sit together as a single
- *   orientation block, the neighborhoods as a ruled index rather than a
- *   run-on line
+ *   intro          unique per city (hero lede)
+ *   accessNotes    operationally true local details, surfaced in the intro
+ *   propertyMix    which buyers dominate this market — drives Property Types
+ *   neighborhoods  real communities, listed in Areas We Serve
+ *   nearby         real sibling cities, linked and mapped
+ *   FAQs           shared answers from faqs.ts plus one genuinely local
+ *                  question generated from the neighborhoods/nearby data,
+ *                  plus any city-scoped entries via faqsForCity()
  *
- *   the nearby-cities list is paired with the coverage map, drawn from the real
- *   coordinates in locations.ts with this city marked. That map is the clearest
- *   "you are here" signal a local page can carry, and it is data, not decoration
+ * ─────────────────────────── CTA labels ───────────────────────────
+ *
+ * City pages use "Schedule Now" as the primary label at the owner's explicit
+ * instruction — the one sanctioned departure from the site-wide "Get a Photo
+ * Quote" lock. The DESTINATIONS never change: primary is /quote, secondary is
+ * tel:. See QuoteCta.astro.
+ *
+ * ─────────────────────────── Reviews ───────────────────────────
+ *
+ * The reviews section renders ONLY when reviews.ts holds verified entries. The
+ * homepage's approved placeholder testimonials are homepage-only display
+ * content; the owner's city-page rule is verified/real only, so this section
+ * stays hidden until real reviews exist and then appears on its own.
  *
  * ─────────────────────────── Honesty ───────────────────────────
  *
  * Nothing here claims an office, an address, a tenure or a customer count in
- * this city. Mesa is the home base and the local paragraph says so in the words
- * it already used. The hero photograph is Arizona suburban context, not a
- * photograph of the named city, and its alt text says so.
+ * this city. Mesa is the home base and the local paragraph says so. The hero
+ * photograph is Arizona suburban context, not a photograph of the named city,
+ * and its alt text never names one.
  */
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
@@ -45,11 +56,21 @@ import Section from '../components/Section.astro';
 import CtaBreak from '../components/CtaBreak.astro';
 import QuoteCta from '../components/QuoteCta.astro';
 import ServiceAreaMap from '../components/ServiceAreaMap.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import WhyChoose from '../components/WhyChoose.astro';
+import MaterialOverview from '../components/MaterialOverview.astro';
+import LoadSizeScale from '../components/LoadSizeScale.astro';
+import PropertyTypes from '../components/PropertyTypes.astro';
+import ReviewWall from '../components/ReviewWall.astro';
+import FaqBlock from '../components/FaqBlock.astro';
 import { Image, getImage } from 'astro:assets';
 import type { Location } from '../data/locations';
 import { getOffice, primaryOffice } from '../data/offices';
 import { servicesForLocation, nearbyCities } from '../lib/links';
 import { cityUrl, serviceUrl } from '../lib/urls';
+import { getFaq, faqsForCity } from '../data/faqs';
+import { getPropertyType, type PropertyType } from '../data/property-types';
+import { hasVerifiedReviews } from '../data/reviews';
 
 import { heroForCity } from '../data/city-images';
 import localImg from '../assets/photos/cities/ctx-suburb.jpg';
@@ -79,13 +100,77 @@ const serviceLinks = servicesForLocation(location).map((s) => ({
   description: s.tagline,
 }));
 
-const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
+const nearby = nearbyCities(location.slug);
+const nearbyLinks = nearby.map((loc) => ({
   label: `Junk removal in ${loc.city}, ${loc.region}`,
   href: cityUrl(loc.slug),
 }));
 
 /*
- * Hero from the regional library. Four concepts across nine cities, so the pages
+ * The buyers who dominate THIS market, from locations.ts propertyMix. Each city
+ * carries its own real mix — Tempe leads with renters and property managers,
+ * Scottsdale with realtors — so this section differs between cities because the
+ * data does, not because the copy was reshuffled. The fallback covers a future
+ * city added before its mix is researched.
+ */
+const propertyMix = (
+  location.propertyMix ?? ['homeowner', 'renter', 'landlord', 'realtor']
+)
+  .map(getPropertyType)
+  .filter((t): t is PropertyType => Boolean(t));
+
+/*
+ * The city FAQ set. Six real answers from the shared FAQ bank — the questions a
+ * city visitor actually asks: cost, what we take, whether things must be moved
+ * outside, heavy material, where it all goes, and how fast we can come. Then one
+ * question that is genuinely about THIS city, answered from the neighborhoods
+ * and nearby-city data, one whole-property question composed from established
+ * facts, and finally any city-scoped entries from faqs.ts.
+ *
+ * The generic questions are deliberately NOT retitled with the city name: the
+ * answers are not city-specific, and pretending otherwise is exactly the
+ * city-swapped filler these pages are built to avoid. The H2 carries the city.
+ */
+const sharedFaqSlugs = [
+  'how-is-pricing-determined',
+  'what-do-you-not-take',
+  'do-i-need-to-move-things-outside',
+  'do-you-take-heavy-material',
+  'where-does-it-go',
+  'how-quickly-can-you-come',
+];
+
+const areaAnswer = [
+  `We serve all of ${location.city}`,
+  location.neighborhoods && location.neighborhoods.length > 0
+    ? `, including ${location.neighborhoods.join(', ')}`
+    : '',
+  '. We also cover the nearby ',
+  nearby.map((n) => n.city).join(', '),
+  ' areas. If you are not sure about an address, send the ZIP code with your quote request and we will confirm before anything is scheduled.',
+].join('');
+
+const cityFaqs = [
+  ...sharedFaqSlugs
+    .map(getFaq)
+    .filter((f): f is NonNullable<ReturnType<typeof getFaq>> => Boolean(f))
+    .map((f) => ({ question: f.question, answer: f.answer })),
+  {
+    question: 'Can you clean out an entire property?',
+    answer:
+      'Yes. Whole-property work is a core part of what we do — estate cleanouts, foreclosure cleanouts, and hoarder cleanouts are all handled room by room. Anything larger than one trailer load is planned as multiple trips and quoted together, and you approve the price before anything is loaded.',
+  },
+  {
+    question: `What parts of ${location.city} do you serve?`,
+    answer: areaAnswer,
+  },
+  ...faqsForCity(location.slug).map((f) => ({ question: f.question, answer: f.answer })),
+];
+
+const showReviews = hasVerifiedReviews();
+
+/*
+ * Hero from the regional library. Five concepts across nine cities, so the pages
  * are related without being identical — and no frame claims to depict the named
  * city, which generated photography cannot honestly do.
  */
@@ -108,8 +193,7 @@ const heroTall = await getImage({
     <Breadcrumbs items={crumbs} />
   </div>
 
-  {/* ── Hero. Full-width photograph with the message on it. Same eyebrow, H1 and
-       lede the old hero carried; the actions become the site's two standard
+  {/* ── 1. Hero. Full-width photograph, H1, the city's unique value line, both
        conversion actions. ── */}
   <header class="hero">
     <div class="hero-media" aria-hidden="true" style={`--hero-focus: ${hero.focus}`}>
@@ -135,67 +219,66 @@ const heroTall = await getImage({
       <h1>{title}</h1>
       <p class="lede">{location.intro ?? description}</p>
       <div class="hero-cta">
-        <QuoteCta size="lg" source={`city-${location.slug}-hero`} onDark />
+        <QuoteCta size="lg" source={`city-${location.slug}-hero`} onDark label="Schedule Now" />
       </div>
     </div>
   </header>
 
-  {/* ── The local orientation block: the existing paragraph, and the existing
-       neighborhood list as a ruled index instead of a run-on line. ── */}
-  {/* The image sits in the block rather than in Section's `media` slot: that
-      slot only renders alongside a heading, and this section deliberately has
-      none — the original page opened straight into the paragraph. */}
-  <Section index="01" label={`In ${location.city}`} width="wide">
+  {/* ── 2. Local introduction. The shared who-we-are paragraph, any extended
+       local copy from the data, and the city's real access notes — the most
+       genuinely local information the project holds. ── */}
+  <Section
+    index="01"
+    label={`In ${location.city}`}
+    heading={`A Mesa-based junk removal crew serving ${location.city}`}
+    width="wide"
+  >
     <div class="local-row">
-    <div class="local">
-      <p class="local-lede">
-        Load Logic is a Mesa-based junk removal team serving {location.city} and the
-        surrounding East Valley. We bring the truck and the muscle, give you an
-        upfront price before we load, and clean up the area when the job is done —
-        no dumpster rental, no heavy lifting on your end.
-      </p>
+      <div class="local">
+        <p class="local-lede">
+          Load Logic is a Mesa-based junk removal team serving {location.city} and the
+          surrounding East Valley. We bring the truck and the muscle, give you an
+          upfront price before we load, and clean up the area when the job is done —
+          no dumpster rental, no heavy lifting on your end.
+        </p>
 
-      {
-        location.neighborhoods && location.neighborhoods.length > 0 && (
-          <div class="areas">
-            <p class="areas-label">
-              <strong>Areas we serve in {location.city}:</strong>
-            </p>
-            <ul class="areas-list">
-              {location.neighborhoods.map((n) => (
-                <li>{n}</li>
-              ))}
-            </ul>
-          </div>
-        )
-      }
-    </div>
+        {location.localIntro && <p class="local-more">{location.localIntro}</p>}
 
-    <figure class="local-media">
-      <Image
-        src={localImg}
-        alt="A quiet East Valley residential street of single storey stucco homes with tile roofs and gravel front yards"
-        widths={[420, 760, 1000]}
-        sizes="(min-width: 900px) 44vw, 92vw"
-        loading="lazy"
-      />
-    </figure>
+        {
+          location.accessNotes && location.accessNotes.length > 0 && (
+            <div class="access">
+              <p class="access-label">
+                <strong>Working in {location.city}:</strong>
+              </p>
+              <ul class="access-list">
+                {location.accessNotes.map((n) => (
+                  <li>{n.note}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </div>
+
+      <figure class="local-media">
+        <Image
+          src={localImg}
+          alt="A quiet East Valley residential street of single storey stucco homes with tile roofs and gravel front yards"
+          widths={[420, 760, 1000]}
+          sizes="(min-width: 900px) 44vw, 92vw"
+          loading="lazy"
+        />
+      </figure>
     </div>
   </Section>
 
-  <CtaBreak
-    heading={`Have junk to remove in ${location.city}?`}
-    body="Send us a few photos and we'll help estimate the job."
-    source={`city-${location.slug}-mid`}
-  />
-
-  {/* ── Services. Every service that reaches this city, each linking to its own
-       page. Never to a per-city version of it: those URLs are gone. ── */}
+  {/* ── 3. Services. Every service that reaches this city, each linking to its
+       own page. Never to a per-city version of it: those URLs are gone. ── */}
   <Section
     index="02"
     label="Service index"
     tone="sunk"
-    heading={`Services in ${location.city}`}
+    heading={`Junk removal services in ${location.city}`}
     width="wide"
   >
     <Image
@@ -214,7 +297,7 @@ const heroTall = await getImage({
               <span class="num data" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <span class="name">{s.label}</span>
+              <h3 class="name">{s.label}</h3>
               <span class="blurb">{s.description}</span>
               <span class="mark" aria-hidden="true">
                 &#8594;
@@ -226,9 +309,118 @@ const heroTall = await getImage({
     </ol>
   </Section>
 
-  {/* ── Nearby cities, paired with the coverage map. The links are the crawlable
-       half; the map is the picture of them, drawn from real coordinates. ── */}
-  <Section index="03" label="Coverage" heading="Nearby areas we serve" width="wide">
+  {/* ── 4. Process. The existing four steps in the existing banner, closing on
+       the conversion action. ── */}
+  <Section index="03" label="Process" weight="tight" heading="How it works" width="wide">
+    <HowItWorks variant="quote" layout="banner" />
+    <div class="process-cta">
+      <QuoteCta source={`city-${location.slug}-process`} label="Schedule Now" />
+    </div>
+  </Section>
+
+  {/* ── 5. Why choose Load Logic. The homepage's four supported differentiators,
+       unchanged — every claim is one the project can stand behind. ── */}
+  <Section index="04" label="Why Load Logic" tone="sunk" heading="Why choose Load Logic">
+    <WhyChoose />
+  </Section>
+
+  {/* ── 6. Mid-page CTA band. ── */}
+  <CtaBreak
+    heading="Ready to clear out your junk?"
+    body="Send us a few photos and we'll help estimate the job."
+    source={`city-${location.slug}-mid`}
+    tone="spruce"
+    ctaLabel="Schedule Now"
+  />
+
+  {/* ── 7. What we haul away. The eight material categories with recognisable
+       examples, from the same catalog the whole site reads. ── */}
+  <Section
+    index="05"
+    label="Materials"
+    heading="What we haul away"
+    intro="If it fits on the trailer and it is legal to haul, it goes. Here is the shape of it."
+    width="wide"
+  >
+    <MaterialOverview />
+  </Section>
+
+  {/* ── 8. Property types. This market's real buyer mix from locations.ts —
+       use cases, not another service list. ── */}
+  <Section
+    index="06"
+    label="Who we help"
+    tone="sunk"
+    heading={`Junk removal for every kind of property in ${location.city}`}
+    width="wide"
+  >
+    <PropertyTypes types={propertyMix} />
+  </Section>
+
+  {/* ── 9. Pricing. The load scale and starting prices from pricing.ts — the
+       single source of truth — with the same short honest framing the homepage
+       uses, and the depth on /pricing. ── */}
+  <Section
+    index="07"
+    label="Pricing"
+    tone="white"
+    heading={`Junk removal pricing in ${location.city}`}
+    intro="Price follows volume. Find the closest match and you have the starting figure for a job that size."
+    width="wide"
+  >
+    <LoadSizeScale layout="grid" />
+    <div class="price-notes">
+      <p class="price-lede">
+        Final pricing depends on volume, material, access and labor. Send us photos
+        for a more accurate quote.
+      </p>
+      <p class="price-heavy">
+        Concrete, dirt, tile and other dense materials are quoted separately based
+        on weight.
+      </p>
+      <p class="section-link">
+        <a href="/pricing">See full pricing details</a>
+      </p>
+      <div class="price-cta">
+        <QuoteCta source={`city-${location.slug}-pricing`} label="Schedule Now" />
+      </div>
+    </div>
+  </Section>
+
+  {/* ── 10. Reviews. Verified only — renders nothing until reviews.ts holds a
+       real, confirmed review, then appears on its own. The homepage's approved
+       placeholder testimonials are homepage-only and never shown here. ── */}
+  {
+    showReviews && (
+      <Section label="Reviews" heading="What customers say" width="wide">
+        <ReviewWall />
+      </Section>
+    )
+  }
+
+  {/* ── 11. Areas we serve. The city's real communities, the nearby cities as
+       crawlable links, and the coverage map drawn from real coordinates with
+       this city marked. ── */}
+  <Section
+    index="08"
+    label="Coverage"
+    heading={`Areas we serve around ${location.city}`}
+    width="wide"
+  >
+    {
+      location.neighborhoods && location.neighborhoods.length > 0 && (
+        <div class="areas">
+          <p class="areas-label">
+            <strong>Areas we serve in {location.city}:</strong>
+          </p>
+          <ul class="areas-list">
+            {location.neighborhoods.map((n) => (
+              <li>{n}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
     <div class="area-cols">
       <ul class="nearby">
         {
@@ -245,14 +437,34 @@ const heroTall = await getImage({
     </div>
   </Section>
 
-  {/* ── Closing band. Existing heading and copy. ── */}
+  {/* ── 12. FAQs. Real answers from the shared bank plus the genuinely local
+       serve-area question. FaqBlock emits the FAQPage schema from the same
+       array it renders, so the two cannot diverge. ── */}
+  <Section
+    index="09"
+    label="FAQ"
+    tone="sunk"
+    scale="utility"
+    heading={`Junk removal FAQs in ${location.city}`}
+    width="wide"
+  >
+    <FaqBlock faqs={cityFaqs} />
+  </Section>
+
+  {/* ── 13. Final CTA. ── */}
   <section class="final on-spruce">
     <div class="container container-wide final-inner">
       <div>
         <h2>Need junk gone in {location.city}?</h2>
         <p>Call or send a few photos for a fast, upfront quote.</p>
       </div>
-      <QuoteCta size="lg" source={`city-${location.slug}-final`} onDark />
+      <QuoteCta
+        size="lg"
+        source={`city-${location.slug}-final`}
+        onDark
+        label="Schedule Now"
+        callLabel="Call Load Logic"
+      />
     </div>
   </section>
 </BaseLayout>
@@ -293,9 +505,8 @@ const heroTall = await getImage({
     height: 100%;
     object-fit: cover;
     /* The MOBILE default. The tall frames are composed subject-up / ground-down,
-       and the copy plate covers the lower half, so the crop has to favour the
-       top or the only thing left showing is sky. The per-concept focus below is
-       for the wide frames, which are composed differently. */
+       so the crop favours the top. The per-concept focus below is for the wide
+       frames, which are composed differently. */
     object-position: center 32%;
   }
 
@@ -389,22 +600,11 @@ const heroTall = await getImage({
 
   /* ── Mobile: the photograph leads, the copy sits under it ──
      Measured white-on-composite contrast behind the intro at 390px was 2.7:1 on
-     the brightest frame and below 4.5:1 on five of the nine cities — under WCAG
-     AA for body text. Two fixes were tried and rejected before this one.
-
-     A heavier scrim would have needed roughly 0.72 alpha to carry the brightest
-     frame, which is the point where the photograph stops being a photograph.
-
-     A translucent plate over the image fixed contrast but not composition: a 3:4
-     source in a 390px-wide container scales by HEIGHT, so the whole frame is
-     already visible and object-position has no vertical effect. The band left
-     above the plate could only ever show the top of the frame, which on these
-     images is sky.
-
-     So on a phone the hero splits: the photograph gets its own band, cropped to
-     show the subject, and the copy sits beneath it on solid spruce. Contrast is
-     no longer a gradient calculation, the whole image is visible rather than
-     dimmed, and not a word of copy changed. Desktop keeps the overlay. */
+     the brightest frame and below WCAG AA on five of the nine cities. A heavier
+     scrim would erase the photograph, and a copy plate could only ever leave sky
+     showing (a 3:4 source in a 390px container scales by height, so
+     object-position has no vertical travel). So on a phone the hero splits: the
+     photograph gets its own band, the copy sits beneath it on solid spruce. */
   @media (max-width: 767px) {
     .hero {
       display: block;
@@ -452,7 +652,7 @@ const heroTall = await getImage({
     }
   }
 
-  /* ─────────────────── 01 Local orientation ─────────────────── */
+  /* ─────────────────── 01 Local introduction ─────────────────── */
 
   .local-row {
     display: grid;
@@ -486,13 +686,20 @@ const heroTall = await getImage({
     text-wrap: pretty;
   }
 
-  /* The neighborhoods were a single line of names separated by middots. Same
-     names, set as a ruled index so they read as places rather than as a string. */
-  .areas {
-    margin-top: var(--s7);
+  .local-more {
+    margin-top: var(--s4);
+    color: var(--ink-2);
+    max-width: 58ch;
+    text-wrap: pretty;
   }
 
-  .areas-label {
+  /* The access notes: operationally true local detail, set as a small ruled
+     list in the data register so it reads as field knowledge, not marketing. */
+  .access {
+    margin-top: var(--s6);
+  }
+
+  .access-label {
     font-family: var(--font-data);
     font-size: var(--lbl);
     letter-spacing: 0.12em;
@@ -500,37 +707,24 @@ const heroTall = await getImage({
     color: var(--ink-3);
   }
 
-  .areas-label strong {
+  .access-label strong {
     font-weight: 700;
     color: var(--ink-3);
   }
 
-  .areas-list {
+  .access-list {
     list-style: none;
     padding: 0;
-    margin-top: var(--s4);
+    margin-top: var(--s3);
     border-top: 2px solid var(--ink);
-    display: grid;
   }
 
-  .areas-list li {
+  .access-list li {
     padding-block: var(--s3);
     border-bottom: 1px solid var(--rule);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--t1);
-    letter-spacing: -0.01em;
-  }
-
-  @media (min-width: 620px) {
-    .areas-list {
-      grid-template-columns: 1fr 1fr;
-      column-gap: var(--s8);
-    }
-
-    .areas-list li:nth-child(-n + 2) {
-      border-top: 0;
-    }
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 58ch;
   }
 
   /* ─────────────────── 02 Service directory ─────────────────── */
@@ -569,6 +763,7 @@ const heroTall = await getImage({
     transition: color var(--dur) var(--ease);
   }
 
+  /* An h3 for structure; sized as the row title it visually is. */
   .name {
     grid-area: name;
     font-family: var(--font-display);
@@ -640,7 +835,101 @@ const heroTall = await getImage({
     }
   }
 
-  /* ─────────────────── 03 Coverage ─────────────────── */
+  /* ─────────────────── 03 Process ─────────────────── */
+
+  .process-cta {
+    margin-top: var(--s6);
+  }
+
+  /* ─────────────────── 07 Pricing ─────────────────── */
+
+  .price-notes {
+    margin-top: var(--s7);
+    padding-top: var(--s6);
+    border-top: 2px solid var(--ink);
+    max-width: 62ch;
+  }
+
+  .price-lede {
+    font-size: var(--t1);
+    color: var(--ink);
+  }
+
+  .price-heavy {
+    margin-top: var(--s4);
+    padding-inline-start: var(--s4);
+    border-inline-start: 3px solid var(--hi-vis);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .section-link {
+    margin-top: var(--s5);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .section-link a {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--spruce-2);
+  }
+
+  .section-link a::after {
+    content: ' \2192';
+  }
+
+  .price-cta {
+    margin-top: var(--s5);
+  }
+
+  /* ─────────────────── 08 Areas we serve ─────────────────── */
+
+  /* The city's own communities, then the wider coverage beneath. */
+  .areas {
+    margin-bottom: var(--s7);
+  }
+
+  .areas-label {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .areas-label strong {
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  .areas-list {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s4);
+    border-top: 2px solid var(--ink);
+    display: grid;
+  }
+
+  .areas-list li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--t1);
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 620px) {
+    .areas-list {
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: var(--s8);
+    }
+
+    .areas-list li:nth-child(-n + 3) {
+      border-top: 0;
+    }
+  }
 
   .area-cols {
     display: grid;

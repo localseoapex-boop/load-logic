@@ -25,9 +25,11 @@ interface Props {
   source: string;
   /** `bone` sits inside the light run; `spruce` marks a heavier transition. */
   tone?: 'bone' | 'spruce';
+  /** Passed through to QuoteCta. City pages use "Schedule Now". */
+  ctaLabel?: string;
 }
 
-const { heading, body, source, tone = 'bone' } = Astro.props;
+const { heading, body, source, tone = 'bone', ctaLabel } = Astro.props;
 ---
 
 <section class:list={['break', tone, { 'on-spruce': tone === 'spruce' }]}>
@@ -37,7 +39,7 @@ const { heading, body, source, tone = 'bone' } = Astro.props;
       {body && <p class="body">{body}</p>}
     </div>
     <div class="action">
-      <QuoteCta {source} onDark={tone === 'spruce'} />
+      <QuoteCta {source} onDark={tone === 'spruce'} label={ctaLabel} />
     </div>
   </div>
 </section>
