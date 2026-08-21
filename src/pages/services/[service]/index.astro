@@ -1,43 +1,38 @@
 ---
 /**
- * /services/[service] — one page per category (moved into a folder so sub-service
- * routes can nest beneath it at /services/[service]/[subservice]).
+ * /services/[service] — one page per service category.
  *
  * getStaticPaths() fans out over the services catalog. Add a category to
- * data/services.ts and its page appears automatically.
+ * data/services.ts, register its photography in data/service-images.ts, and its
+ * page appears automatically.
+ *
+ * ─────────────── The rollout scaffolding is gone ───────────────
+ *
+ * While the redesign was landing service by service, this route rendered the old
+ * ServiceLayout and each migrated service had its own static route file. That
+ * existed for one reason: a route importing both templates ships both
+ * stylesheets, because Astro decides a page's CSS from its module graph rather
+ * than from which template renders, and legacy.css then reached into the new
+ * layout.
+ *
+ * All fourteen have migrated, so there is nothing left to keep apart. This route
+ * imports only ServiceLayout2026, the per-service files are deleted, and no
+ * service page loads legacy.css.
+ *
+ * legacy.css itself stays: the location templates, the sub-service template and
+ * the blog still depend on it.
  */
-import ServiceLayout from '../../../layouts/ServiceLayout.astro';
+import ServiceLayout2026 from '../../../layouts/ServiceLayout2026.astro';
 import { services } from '../../../data/services';
 
 export function getStaticPaths() {
-  /*
-   * Services already moved onto the redesigned template.
-   *
-   * Each has its own static route file (see
-   * pages/services/garage-cleanouts/index.astro) and is excluded here so the URL
-   * is generated exactly once. They live in separate page modules on purpose:
-   * importing both templates from one route put legacy.css into the redesigned
-   * page's bundle, because Astro decides a page's CSS from its module graph
-   * rather than from which template actually renders.
-   *
-   * Declared inside getStaticPaths, not above it: Astro hoists this function to
-   * the top of the module, so a const in the frontmatter is still in the
-   * temporal dead zone when it runs.
-   *
-   * When the last service migrates, delete those files, point this route at
-   * ServiceLayout2026, and remove ServiceLayout and legacy.css with it.
-   */
-  const REDESIGNED = new Set(['garage-cleanouts']);
-
-  return services
-    .filter((service) => !REDESIGNED.has(service.slug))
-    .map((service) => ({
-      params: { service: service.slug },
-      props: { service },
-    }));
+  return services.map((service) => ({
+    params: { service: service.slug },
+    props: { service },
+  }));
 }
 
 const { service } = Astro.props;
 ---
 
-<ServiceLayout {service} />
+<ServiceLayout2026 {service} />

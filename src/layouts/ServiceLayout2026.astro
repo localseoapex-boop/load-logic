@@ -47,7 +47,7 @@ import CtaBreak from '../components/CtaBreak.astro';
 import QuoteCta from '../components/QuoteCta.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import FaqBlock from '../components/FaqBlock.astro';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { BUSINESS, SITE } from '../config/site';
 import type { Service } from '../data/services';
 import {
@@ -59,9 +59,7 @@ import {
 import { relatedServices, locationsForService, subServicesForCategory } from '../lib/links';
 import { serviceUrl, cityUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
 
-import heroImg from '../assets/photos/services/svc-garage-hero.jpg';
-import packedImg from '../assets/photos/services/svc-garage.jpg';
-import clearedImg from '../assets/photos/before-after/ba-garage-after.jpg';
+import { imagesForService } from '../data/service-images';
 
 interface Props {
   service: Service;
@@ -70,6 +68,20 @@ interface Props {
 const { service } = Astro.props;
 const content = getServiceContent(service.slug);
 const faqs = getServiceFaqs(service.slug);
+
+/*
+ * Per-service photography. `hero` is required; `support` and `outcome` are
+ * optional, and the sections they sit in render without them. Three images suit
+ * a garage cleanout and would pad a mattress removal, so this is a deliberate
+ * per-service decision rather than a template constant.
+ */
+const images = imagesForService(service.slug);
+
+if (!images) {
+  throw new Error(
+    `No imagery registered for "${service.slug}". Add it to data/service-images.ts before moving this service onto ServiceLayout2026.`,
+  );
+}
 
 // These are the canonical Mesa service pages — title targets Mesa explicitly.
 const title = `${service.name} in Mesa, AZ`;
@@ -119,8 +131,115 @@ const faqSchema = {
   })),
 };
 
+/*
+ * Hero backgrounds, art directed per breakpoint.
+ *
+ * Two sources rather than one crop. The 4:3 frame suits the tall container a
+ * phone gives the hero; a 16:9 frame suits the wide one a desktop gives it, and
+ * is composed so the left third stays quiet where the copy sits. Serving one
+ * file to both would either letterbox the subject on a phone or crop half its
+ * height away on a desktop.
+ */
+const heroWideSrc = images.heroWide ?? images.hero;
+
+const heroWide = await getImage({
+  src: heroWideSrc.src,
+  widths: [1024, 1440, 1920],
+  format: 'webp',
+});
+const heroTall = await getImage({
+  src: images.hero.src,
+  widths: [480, 780, 1024],
+  format: 'webp',
+});
+
 /** Lower-cased service name, as the existing final CTA copy used it. */
 const lowerName = service.name.toLowerCase();
+
+/*
+ * Mid-page CTA copy, per service.
+ *
+ * The only new prose in this template. It is kept here rather than in
+ * service-content.ts because it is conversion furniture, not service content —
+ * nothing in it describes the service, and none of it appears in schema.
+ *
+ * One line each, phrased as the question the visitor is already asking at that
+ * point in the page. The fallback covers any service not listed so a new
+ * service never ships with an empty band.
+ */
+const CTA_COPY: Record<string, { ask: string; body: string }> = {
+  'junk-removal': {
+    ask: 'Not sure how much you have?',
+    body: 'Send a few photos and we will size the job for you.',
+  },
+  'furniture-removal': {
+    ask: 'Want to know what your furniture pickup will cost?',
+    body: 'Send a photo of the pieces and we will come back with a price.',
+  },
+  'appliance-removal': {
+    ask: 'Have an appliance ready to go?',
+    body: 'Send us a photo and we will confirm the price and the pickup window.',
+  },
+  'garage-cleanouts': {
+    ask: 'Want to know what your garage cleanout will cost?',
+    body: "Send us a few photos and we'll help estimate the job.",
+  },
+  'estate-cleanouts': {
+    ask: 'Not sure how large the cleanout is?',
+    body: 'Send a few photos of the rooms and we will estimate it from there.',
+  },
+  'hot-tub-removal': {
+    ask: 'Have a hot tub that needs to go?',
+    body: 'Send a photo of the spa and the access to it and we will quote the job.',
+  },
+  'construction-debris-removal': {
+    ask: 'Have debris piled up from a project?',
+    body: 'Send a photo of the pile and we will tell you what it takes to clear it.',
+  },
+  'yard-waste-removal': {
+    ask: 'Have a pile ready to go?',
+    body: 'Send us a photo and we will come back with a price.',
+  },
+  'mattress-removal': {
+    ask: 'Just need a mattress gone?',
+    body: 'Send a photo and we will confirm the price before we come out.',
+  },
+  'shed-removal': {
+    ask: 'Have a shed that needs to come down?',
+    body: 'Send photos of the shed and what is still inside it.',
+  },
+  'hoarder-cleanouts': {
+    ask: 'Not sure where to start?',
+    body: 'Send a few photos when you are ready and we will take it from there.',
+  },
+  'office-cleanouts': {
+    ask: 'Clearing an office or a suite?',
+    body: 'Send photos of the space and we will quote the whole clearance.',
+  },
+  'foreclosure-cleanouts': {
+    ask: 'Need a property cleared quickly?',
+    body: 'Send photos of what is left behind and we will price the clearance.',
+  },
+  'same-day-junk-removal': {
+    ask: 'Need it gone today?',
+    body: 'Send photos early and we will tell you what we can fit in.',
+  },
+};
+
+const cta = CTA_COPY[service.slug] ?? {
+  ask: `Want to know what your ${lowerName} will cost?`,
+  body: 'Send us a few photos and we will help estimate the job.',
+};
+
+/** Closing mid-page band: short, and specific to the outcome, not the service. */
+const CTA_SECOND: Record<string, string> = {
+  'garage-cleanouts': 'Ready to get the garage back?',
+  'yard-waste-removal': 'Ready to get the yard back?',
+  'office-cleanouts': 'Ready to hand the space back?',
+  'shed-removal': 'Ready to get the footprint back?',
+};
+
+const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
 ---
 
 <BaseLayout {title} {description}>
@@ -128,33 +247,44 @@ const lowerName = service.name.toLowerCase();
     <Breadcrumbs items={crumbs} />
   </div>
 
-  {/* ── Hero. Split: type on bone at the left, photograph filling the right
-       column to the viewport edge. Same content as before — eyebrow, H1, the
-       tagline lede, the trust bullets — with the actions switched to the site's
-       two standard conversion actions. ── */}
+  {/* ── Hero. A full-width photographic background with the message layered
+       over it. The content is unchanged from the split version it replaces —
+       eyebrow, H1, the tagline lede, both conversion actions and the existing
+       trust bullets — only the composition changed. ── */}
   <header class="hero">
-    <div class="hero-copy">
-      <div class="hero-inner">
-        <p class="eyebrow">Junk Removal</p>
-        <h1>{service.name} in Mesa &amp; the East Valley</h1>
-        <p class="lede">{service.tagline}</p>
-        <div class="hero-cta">
-          <QuoteCta size="lg" source={`service-${service.slug}-hero`} />
-        </div>
+    <div class="hero-media" aria-hidden="true">
+      <picture>
+        <source media="(min-width: 768px)" srcset={heroWide.srcSet.attribute} sizes="100vw" />
+        <img
+          src={heroTall.src}
+          srcset={heroTall.srcSet.attribute}
+          sizes="100vw"
+          alt=""
+          width={heroTall.attributes.width}
+          height={heroTall.attributes.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div class="scrim"></div>
+    </div>
+
+    <div class="container container-wide hero-inner">
+      <p class="eyebrow">Junk Removal</p>
+      <h1>{service.name} in Mesa &amp; the East Valley</h1>
+      <p class="lede">{service.tagline}</p>
+      <div class="hero-cta">
+        <QuoteCta size="lg" source={`service-${service.slug}-hero`} onDark />
+      </div>
+    </div>
+
+    <div class="trust-rail">
+      <div class="container container-wide">
         <ul class="trust">
           {serviceTrustBullets.map((b) => <li>{b}</li>)}
         </ul>
       </div>
-    </div>
-    <div class="hero-media">
-      <Image
-        src={heroImg}
-        alt="A worker carrying a box out of an open suburban garage stacked with cardboard boxes and storage totes"
-        widths={[600, 900, 1200]}
-        sizes="(min-width: 900px) 46vw, 100vw"
-        loading="eager"
-        fetchpriority="high"
-      />
     </div>
   </header>
 
@@ -195,14 +325,16 @@ const lowerName = service.name.toLowerCase();
   {
     content && content.detailGroups.length > 0 && (
       <Section index="03" label="Materials" heading="What we take" width="wide">
-        <Image
-          slot="media"
-          src={packedImg}
-          alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
-          widths={[420, 760]}
-          sizes="(min-width: 900px) 42vw, 92vw"
-          loading="lazy"
-        />
+        {images.support && (
+          <Image
+            slot="media"
+            src={images.support.src}
+            alt={images.support.alt}
+            widths={[420, 760]}
+            sizes="(min-width: 900px) 42vw, 92vw"
+            loading="lazy"
+          />
+        )}
         <ul class="groups">
           {content.detailGroups.map((group) => (
             <li>
@@ -227,8 +359,8 @@ const lowerName = service.name.toLowerCase();
   }
 
   <CtaBreak
-    heading={`Want to know what your ${lowerName.replace(/s$/, '')} will cost?`}
-    body="Send us a few photos and we'll help estimate the job."
+    heading={cta.ask}
+    body={cta.body}
     source={`service-${service.slug}-mid-1`}
   />
 
@@ -264,14 +396,16 @@ const lowerName = service.name.toLowerCase();
         heading="We solve the hard part"
         width="wide"
       >
-        <Image
-          slot="media"
-          src={clearedImg}
-          alt="A two-car garage completely empty with a clean swept concrete floor"
-          widths={[420, 760]}
-          sizes="(min-width: 900px) 42vw, 92vw"
-          loading="lazy"
-        />
+        {images.outcome && (
+          <Image
+            slot="media"
+            src={images.outcome.src}
+            alt={images.outcome.alt}
+            widths={[420, 760]}
+            sizes="(min-width: 900px) 42vw, 92vw"
+            loading="lazy"
+          />
+        )}
         <ul class="problems">
           {content.problems.map((p) => (
             <li>
@@ -291,7 +425,7 @@ const lowerName = service.name.toLowerCase();
   }
 
   <CtaBreak
-    heading="Ready to get the garage back?"
+    heading={ctaSecond}
     source={`service-${service.slug}-mid-2`}
     tone="spruce"
   />
@@ -376,19 +510,70 @@ const lowerName = service.name.toLowerCase();
     padding-top: var(--s5);
   }
 
-  /* ─────────────────────────── Hero ─────────────────────────── */
+  /* ─────────────────────────── Hero ───────────────────────────
+     A full-width photograph with the message on it. Two scrims: one weighted to
+     the left where the copy sits, one to the bottom under the trust rail, both
+     falling away toward the subject so the photograph stays a photograph rather
+     than becoming a dark block with text on it. */
 
   .hero {
+    position: relative;
     display: grid;
-    background: var(--bone);
-    border-bottom: 1px solid var(--rule);
+    grid-template-rows: 1fr auto;
+    min-height: min(78dvh, 560px);
+    isolation: isolate;
+    background: var(--spruce);
+    color: #fff;
+  }
+
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* <picture> is display:inline by default, so a percentage height on the <img>
+     would resolve against the picture box rather than against .hero-media. */
+  .hero-media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 55%;
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to right,
+        rgb(8 14 11 / 0.84) 0%,
+        rgb(8 14 11 / 0.66) 32%,
+        rgb(8 14 11 / 0.26) 64%,
+        rgb(8 14 11 / 0.06) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.72) 0%,
+        rgb(8 14 11 / 0.3) 30%,
+        rgb(8 14 11 / 0.04) 62%,
+        rgb(8 14 11 / 0.1) 100%
+      );
   }
 
   .hero-inner {
-    padding-inline: var(--gutter);
-    padding-block: var(--s7) var(--s8);
-    max-width: 46rem;
-    margin-inline: auto;
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    padding-block: var(--s8) var(--s7);
+    max-width: var(--w-wide);
   }
 
   .eyebrow {
@@ -397,7 +582,7 @@ const lowerName = service.name.toLowerCase();
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--ink-3);
+    color: var(--hi-vis);
     margin-bottom: var(--s4);
   }
 
@@ -406,88 +591,102 @@ const lowerName = service.name.toLowerCase();
     letter-spacing: -0.03em;
     line-height: 0.98;
     max-width: 16ch;
+    color: #fff;
+    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
   }
 
   .lede {
     margin-top: var(--s5);
     font-size: var(--t1);
-    color: var(--ink-2);
+    color: rgb(255 255 255 / 0.9);
     max-width: 46ch;
+    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
   }
 
   .hero-cta {
     margin-top: var(--s6);
   }
 
-  /* The existing trust bullets, as a ruled operational rail rather than a row
-     of pills. */
+  /* The secondary button's dark treatment is transparent with a dim border,
+     which is right on a solid block and too weak over a photograph — the label
+     sits on mid-tone driveway with almost nothing separating it. Scoped to the
+     hero so the button behaves normally everywhere else. No backdrop-filter:
+     this layer scrolls, and blur on a scrolling layer costs repaints. */
+  .hero-cta :global(.btn.dark.solid) {
+    background: rgb(8 14 11 / 0.55);
+    border-color: rgb(255 255 255 / 0.5);
+    color: #fff;
+  }
+
+  .hero-cta :global(.btn.dark.solid:hover) {
+    background: rgb(8 14 11 / 0.74);
+    border-color: #fff;
+  }
+
+  /* The existing trust bullets, kept and moved to a rail along the bottom edge
+     so they read as operating facts over the photograph rather than as a list
+     floating on it. */
+  .trust-rail {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(8 14 11 / 0.4);
+    padding-block: var(--s4);
+  }
+
   .trust {
     list-style: none;
     padding: 0;
-    margin-top: var(--s7);
-    border-top: 1px solid var(--rule);
+    margin: 0;
     display: grid;
-    gap: 0;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s2) var(--s6);
   }
 
   .trust li {
-    padding-block: var(--s3);
-    border-bottom: 1px solid var(--rule);
     font-size: var(--t3);
-    color: var(--ink-2);
+    color: rgb(255 255 255 / 0.86);
   }
 
-  /* On a phone the photograph leads, as it does on the homepage. Left in source
-     order it sat below the four trust bullets, which pushed the only image in
-     the hero almost entirely off the first screen. */
-  .hero-media {
-    order: -1;
-  }
-
-  .hero-media img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 55%;
-    aspect-ratio: 16 / 10;
-  }
-
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .hero {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
-      align-items: stretch;
-    }
-
-    .hero-copy {
-      display: flex;
-      align-items: center;
-    }
-
-    /* Back to source order beside the type at desktop. */
-    .hero-media {
-      order: 0;
-    }
-
-    .hero-inner {
-      margin-inline: 0;
-      margin-inline-start: auto;
-      padding-block: var(--s9);
-      padding-inline-end: var(--s8);
+      min-height: min(74dvh, 600px);
     }
 
     .hero-media img {
-      aspect-ratio: auto;
-      min-height: 100%;
+      object-position: center 58%;
+    }
+
+    .hero-inner {
+      padding-block: var(--s9) var(--s8);
     }
 
     .trust {
-      grid-template-columns: 1fr 1fr;
-      column-gap: var(--s6);
+      grid-template-columns: repeat(4, auto);
+      justify-content: start;
+      gap: var(--s8);
     }
 
-    .trust li:nth-child(-n + 2) {
-      border-top: 0;
+    .trust-rail {
+      padding-block: var(--s5);
+    }
+  }
+
+  /* Below the breakpoint the left-weighted gradient would darken the whole
+     narrow frame, so the vertical one carries it alone. */
+  @media (max-width: 767px) {
+    .scrim {
+      background: linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.88) 0%,
+        rgb(8 14 11 / 0.7) 32%,
+        rgb(8 14 11 / 0.36) 62%,
+        rgb(8 14 11 / 0.46) 100%
+      );
+    }
+
+    .hero-inner {
+      align-self: end;
     }
   }
 
