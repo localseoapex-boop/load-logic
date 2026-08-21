@@ -3,14 +3,31 @@
  * /locations/[city] — dynamic route generating ONE page per city.
  *
  * getStaticPaths() fans out over the locations catalog. Add a city to
- * data/locations.ts and its page (plus its location-service pages) appears.
+ * data/locations.ts and its page appears; register a hero concept for it in
+ * data/city-images.ts or it falls back to the regional street frame.
+ *
+ * ─────────────── The rollout scaffolding is gone ───────────────
+ *
+ * While the redesign was landing, Gilbert had its own static route file. That
+ * existed for one reason: a route importing both templates ships both
+ * stylesheets, because Astro decides a page's CSS from its module graph rather
+ * than from which template renders, and legacy.css then reached into the new
+ * layout.
+ *
+ * Every city has migrated, so there is nothing left to keep apart. This route
+ * imports only CityLayout2026 and no city page loads legacy.css.
+ *
+ * legacy.css itself stays: the sub-service template and the blog still need it.
+ *
+ * Mesa is still excluded. serviceAreaLocations drops the home-market city, so
+ * /locations/mesa-az is never generated — the homepage is Mesa's page. The
+ * coverage map still shows Mesa as the home base, as a label rather than a link,
+ * so nothing points at a URL that does not exist.
  */
-import CityLayout from '../../../layouts/CityLayout.astro';
+import CityLayout2026 from '../../../layouts/CityLayout2026.astro';
 import { serviceAreaLocations } from '../../../lib/links';
 
 export function getStaticPaths() {
-  // serviceAreaLocations excludes the home-market city (Mesa), so no
-  // /locations/mesa-az page is ever generated.
   return serviceAreaLocations.map((location) => ({
     params: { city: location.slug },
     props: { location },
@@ -20,4 +37,4 @@ export function getStaticPaths() {
 const { location } = Astro.props;
 ---
 
-<CityLayout {location} />
+<CityLayout2026 {location} />

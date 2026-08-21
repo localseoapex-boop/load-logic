@@ -664,6 +664,191 @@ const HERO_BG_FRAMING =
   'and the left third is deliberately quiet and uncluttered — open ground, plain wall or plain floor with nothing important in it, ' +
   'flat even overcast light with no blown highlights and no deep shadows';
 
+/*
+ * ─────────────── City page heroes ───────────────
+ *
+ * A city page is a local landing page, so its hero establishes the PLACE rather
+ * than the job: an ordinary East Valley residential street, with the work
+ * present but incidental. Deliberately no landmarks, no readable signage and
+ * nothing that would imply an office in that city — Mesa is the home base, and
+ * these frames are Arizona suburban context, not a claim about a specific town.
+ *
+ * Two crops, as on the service pages: 16:9 for the wide hero with the left third
+ * kept quiet for the copy, 3:4 for the tall crop a phone gives it.
+ */
+const CITY_HEROES = [
+  {
+    id: 'city-bg-desertedge-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    /*
+     * Second framing. The first put the staged items on the LEFT, which is the
+     * one part of the frame this hero system reserves for the headline, and the
+     * desert edge never appeared. Both are stated positionally now rather than
+     * descriptively.
+     */
+    scene:
+      'an Arizona stucco home standing at the outer edge of a suburban development, positioned in the RIGHT HALF of ' +
+      'the picture, with open undeveloped desert scrub and low distant hills filling the background behind and to the ' +
+      'right of it, ' +
+      'low water landscaping of decorative gravel, creosote and a barrel cactus, a plain concrete driveway, ' +
+      'a worn armchair, a small side table and two cardboard boxes set out for collection on the driveway close to the ' +
+      'house on the RIGHT, ' +
+      'the entire LEFT HALF of the picture is nothing but empty gravel ground and open desert with no objects in it at all, ' +
+      'no signs, no plaques, no house numbers, no lettering, no landmarks, no recognisable mountain peaks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-desertedge-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an Arizona stucco home on the outer edge of a suburban development where the ' +
+      'street meets open desert, low water landscaping of decorative gravel, creosote and a barrel cactus, ' +
+      'low desert hills visible beyond the house in the upper part of the frame, ' +
+      'in the upper half a few household items set out on the driveway for collection: a worn armchair, a small table ' +
+      'and two boxes, ' +
+      'the lower half of the frame is plain empty driveway and gravel with nothing on it, ' +
+      'absolutely no signs, no plaques, no house numbers, no lettering anywhere, no landmarks, no recognisable peaks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+
+  {
+    id: 'city-bg-driveway-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'an ordinary Arizona suburban home with a wide concrete driveway, stucco walls and a tile roof, ' +
+      'gravel xeriscape front yard with desert shrubs, ' +
+      'toward the right of frame a household pickup staged on the driveway: stacked cardboard boxes, ' +
+      'two storage totes and a folded rug set out together ready for collection, ' +
+      'the whole left third of the picture is open driveway and gravel with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-driveway-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an ordinary Arizona suburban home, stucco walls and a tile roof above, ' +
+      'gravel xeriscape front yard, a wide concrete driveway, ' +
+      'in the upper half a household pickup staged on the driveway: stacked cardboard boxes, two storage totes ' +
+      'and a folded rug set out ready for collection, ' +
+      'the lower half of the frame is plain empty driveway and sidewalk with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-xeriscape-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'a newer Arizona suburban property with clean pale stucco, a low tile roof and a crisp xeriscape front yard ' +
+      'of raked decorative gravel, young agave and small ornamental boulders, a paver walkway, ' +
+      'toward the right of frame an old sofa and a broken office chair set out at the edge of the driveway for collection, ' +
+      'the whole left third of the picture is open gravel and paving with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-xeriscape-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of a newer Arizona suburban property, clean pale stucco and a low tile roof above, ' +
+      'a crisp xeriscape front yard of raked decorative gravel with young agave and ornamental boulders, ' +
+      'in the upper half an old sofa and a broken office chair set out at the edge of the driveway for collection, ' +
+      'the lower half of the frame is plain raked gravel and paving with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-mature-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    /*
+     * Third framing. Version one put a small plaque beside the front door;
+     * version two, prompted hard against signs, produced three of them — naming
+     * a thing is a reliable way to summon it. So the fix is compositional rather
+     * than negative: the entry is out of shot entirely, the garage door and the
+     * yard carry the frame, and there is no doorway left for a plaque to sit
+     * beside.
+     */
+    scene:
+      'an older established Arizona residential property photographed square on to the closed garage door and the ' +
+      'gravel front yard, the front entry completely out of shot, ' +
+      'weathered stucco and a low pitched tile roof, mature landscaping with a large shade tree overhanging from the ' +
+      'left and grown shrubs along the yard, ' +
+      'toward the right of frame a chest of drawers, a bagged mattress and a few boxes set out on the driveway for collection, ' +
+      'the whole left third of the picture is open driveway and shaded gravel with nothing in it, ' +
+      'plain unbroken stucco wall surfaces, no doorway, no porch, no wall fittings of any kind, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-mature-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an older established Arizona residential property, weathered stucco and a ' +
+      'low tile roof, mature landscaping with a large shade tree and grown citrus above, ' +
+      'in the upper half a chest of drawers, a bagged mattress and a few boxes set out on the driveway for collection, ' +
+      'the lower half of the frame is plain empty driveway with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+
+  {
+    id: 'city-bg-eastvalley-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'a quiet ordinary residential street in an Arizona East Valley suburb, single storey stucco houses with ' +
+      'tile roofs set back behind gravel xeriscape front yards, desert shrubs and a young palm, wide concrete ' +
+      'driveways and a clean sidewalk, ' +
+      'on one driveway toward the right of frame a small group of household items set out for collection: ' +
+      'a worn armchair, a few stacked boxes and a rolled carpet, ' +
+      'the whole left third of the picture is open street, sidewalk and gravel yard with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-eastvalley-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of a quiet ordinary residential street in an Arizona East Valley suburb, ' +
+      'a single storey stucco house with a tile roof behind a gravel xeriscape front yard, desert shrubs and a palm, ' +
+      'a wide concrete driveway with a small group of household items set out for collection in the upper half: ' +
+      'a worn armchair, a few stacked boxes and a rolled carpet, ' +
+      'the lower half of the frame is plain empty driveway and sidewalk with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+];
+
+SHOTS.push(...CITY_HEROES);
+
 const SERVICE_HERO_BG = [
   {
     id: 'svc-bg-junk-removal',

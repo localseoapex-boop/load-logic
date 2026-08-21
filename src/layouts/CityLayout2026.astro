@@ -1,0 +1,720 @@
+---
+/**
+ * CityLayout2026.astro — the redesigned /locations/[city] template.
+ *
+ * ─────────────────────────── Scope ───────────────────────────
+ *
+ * A VISUAL pass. Every section CityLayout rendered is rendered here, in the same
+ * order, from the same data: the hero, the local paragraph and the neighborhood
+ * line, the services available in the city, the nearby cities, and the closing
+ * band. No copy was rewritten and nothing was added except the mid-page CTA's
+ * two lines, which are conversion furniture rather than content.
+ *
+ * Runs alongside the old template so one city can be reviewed before the rest
+ * follow. The route split is what keeps legacy.css off this page — see
+ * pages/locations/gilbert-az/index.astro.
+ *
+ * ─────────────── Why it is not the service template ───────────────
+ *
+ * A city page answers "do you come here, and what can you do when you do".
+ * A service page answers "what is this job and what does it cost". They share a
+ * design system and should not share a composition, so three things are specific
+ * to this one:
+ *
+ *   the hero establishes the PLACE — an ordinary East Valley street with the
+ *   work incidental — rather than the job
+ *
+ *   the local paragraph and the neighborhoods sit together as a single
+ *   orientation block, the neighborhoods as a ruled index rather than a
+ *   run-on line
+ *
+ *   the nearby-cities list is paired with the coverage map, drawn from the real
+ *   coordinates in locations.ts with this city marked. That map is the clearest
+ *   "you are here" signal a local page can carry, and it is data, not decoration
+ *
+ * ─────────────────────────── Honesty ───────────────────────────
+ *
+ * Nothing here claims an office, an address, a tenure or a customer count in
+ * this city. Mesa is the home base and the local paragraph says so in the words
+ * it already used. The hero photograph is Arizona suburban context, not a
+ * photograph of the named city, and its alt text says so.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Section from '../components/Section.astro';
+import CtaBreak from '../components/CtaBreak.astro';
+import QuoteCta from '../components/QuoteCta.astro';
+import ServiceAreaMap from '../components/ServiceAreaMap.astro';
+import { Image, getImage } from 'astro:assets';
+import type { Location } from '../data/locations';
+import { getOffice, primaryOffice } from '../data/offices';
+import { servicesForLocation, nearbyCities } from '../lib/links';
+import { cityUrl, serviceUrl } from '../lib/urls';
+
+import { heroForCity } from '../data/city-images';
+import localImg from '../assets/photos/cities/ctx-suburb.jpg';
+import serviceImg from '../assets/photos/loads/load-side.jpg';
+
+interface Props {
+  location: Location;
+}
+
+const { location } = Astro.props;
+const office = getOffice(location.officeId) ?? primaryOffice;
+const cityState = `${location.city}, ${location.region}`;
+
+const title = `Junk Removal in ${cityState}`;
+const description = `Junk removal and cleanouts in ${cityState} — furniture, appliances, mattresses, garages, estates, and construction debris, with upfront pricing.`;
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Areas We Serve', href: '/locations' },
+  { name: cityState },
+];
+
+/* Services this city offers -> the ONE canonical page for each service. */
+const serviceLinks = servicesForLocation(location).map((s) => ({
+  label: s.name,
+  href: serviceUrl(s.slug),
+  description: s.tagline,
+}));
+
+const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
+  label: `Junk removal in ${loc.city}, ${loc.region}`,
+  href: cityUrl(loc.slug),
+}));
+
+/*
+ * Hero from the regional library. Four concepts across nine cities, so the pages
+ * are related without being identical — and no frame claims to depict the named
+ * city, which generated photography cannot honestly do.
+ */
+const hero = heroForCity(location.slug);
+
+const heroWide = await getImage({
+  src: hero.wide,
+  widths: [1024, 1440, 1920],
+  format: 'webp',
+});
+const heroTall = await getImage({
+  src: hero.tall,
+  widths: [480, 780, 1024],
+  format: 'webp',
+});
+---
+
+<BaseLayout {title} {description}>
+  <div class="container container-wide crumbs">
+    <Breadcrumbs items={crumbs} />
+  </div>
+
+  {/* ── Hero. Full-width photograph with the message on it. Same eyebrow, H1 and
+       lede the old hero carried; the actions become the site's two standard
+       conversion actions. ── */}
+  <header class="hero">
+    <div class="hero-media" aria-hidden="true" style={`--hero-focus: ${hero.focus}`}>
+      <picture>
+        <source media="(min-width: 768px)" srcset={heroWide.srcSet.attribute} sizes="100vw" />
+        <img
+          src={heroTall.src}
+          srcset={heroTall.srcSet.attribute}
+          sizes="100vw"
+          alt=""
+          width={heroTall.attributes.width}
+          height={heroTall.attributes.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div class="scrim"></div>
+    </div>
+
+    <div class="container container-wide hero-inner">
+      <p class="eyebrow">Serving {cityState}</p>
+      <h1>{title}</h1>
+      <p class="lede">{location.intro ?? description}</p>
+      <div class="hero-cta">
+        <QuoteCta size="lg" source={`city-${location.slug}-hero`} onDark />
+      </div>
+    </div>
+  </header>
+
+  {/* ── The local orientation block: the existing paragraph, and the existing
+       neighborhood list as a ruled index instead of a run-on line. ── */}
+  {/* The image sits in the block rather than in Section's `media` slot: that
+      slot only renders alongside a heading, and this section deliberately has
+      none — the original page opened straight into the paragraph. */}
+  <Section index="01" label={`In ${location.city}`} width="wide">
+    <div class="local-row">
+    <div class="local">
+      <p class="local-lede">
+        Load Logic is a Mesa-based junk removal team serving {location.city} and the
+        surrounding East Valley. We bring the truck and the muscle, give you an
+        upfront price before we load, and clean up the area when the job is done —
+        no dumpster rental, no heavy lifting on your end.
+      </p>
+
+      {
+        location.neighborhoods && location.neighborhoods.length > 0 && (
+          <div class="areas">
+            <p class="areas-label">
+              <strong>Areas we serve in {location.city}:</strong>
+            </p>
+            <ul class="areas-list">
+              {location.neighborhoods.map((n) => (
+                <li>{n}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+
+    <figure class="local-media">
+      <Image
+        src={localImg}
+        alt="A quiet East Valley residential street of single storey stucco homes with tile roofs and gravel front yards"
+        widths={[420, 760, 1000]}
+        sizes="(min-width: 900px) 44vw, 92vw"
+        loading="lazy"
+      />
+    </figure>
+    </div>
+  </Section>
+
+  <CtaBreak
+    heading={`Have junk to remove in ${location.city}?`}
+    body="Send us a few photos and we'll help estimate the job."
+    source={`city-${location.slug}-mid`}
+  />
+
+  {/* ── Services. Every service that reaches this city, each linking to its own
+       page. Never to a per-city version of it: those URLs are gone. ── */}
+  <Section
+    index="02"
+    label="Service index"
+    tone="sunk"
+    heading={`Services in ${location.city}`}
+    width="wide"
+  >
+    <Image
+      slot="media"
+      src={serviceImg}
+      alt="An open utility trailer with mesh side rails loaded with boxes and household junk, hitched to a pickup truck on a driveway"
+      widths={[420, 760]}
+      sizes="(min-width: 900px) 42vw, 92vw"
+      loading="lazy"
+    />
+    <ol class="directory">
+      {
+        serviceLinks.map((s, i) => (
+          <li>
+            <a href={s.href}>
+              <span class="num data" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="name">{s.label}</span>
+              <span class="blurb">{s.description}</span>
+              <span class="mark" aria-hidden="true">
+                &#8594;
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  {/* ── Nearby cities, paired with the coverage map. The links are the crawlable
+       half; the map is the picture of them, drawn from real coordinates. ── */}
+  <Section index="03" label="Coverage" heading="Nearby areas we serve" width="wide">
+    <div class="area-cols">
+      <ul class="nearby">
+        {
+          nearbyLinks.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="area-map">
+        <ServiceAreaMap highlight={location.slug} />
+      </div>
+    </div>
+  </Section>
+
+  {/* ── Closing band. Existing heading and copy. ── */}
+  <section class="final on-spruce">
+    <div class="container container-wide final-inner">
+      <div>
+        <h2>Need junk gone in {location.city}?</h2>
+        <p>Call or send a few photos for a fast, upfront quote.</p>
+      </div>
+      <QuoteCta size="lg" source={`city-${location.slug}-final`} onDark />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .crumbs {
+    padding-top: var(--s5);
+  }
+
+  /* ─────────────────────────── Hero ─────────────────────────── */
+
+  .hero {
+    position: relative;
+    display: grid;
+    min-height: min(70dvh, 520px);
+    isolation: isolate;
+    background: var(--spruce);
+    color: #fff;
+  }
+
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* <picture> is display:inline by default, so a percentage height on the <img>
+     would resolve against the picture box rather than against .hero-media. */
+  .hero-media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The MOBILE default. The tall frames are composed subject-up / ground-down,
+       and the copy plate covers the lower half, so the crop has to favour the
+       top or the only thing left showing is sky. The per-concept focus below is
+       for the wide frames, which are composed differently. */
+    object-position: center 32%;
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to right,
+        rgb(8 14 11 / 0.84) 0%,
+        rgb(8 14 11 / 0.64) 34%,
+        rgb(8 14 11 / 0.24) 66%,
+        rgb(8 14 11 / 0.06) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.62) 0%,
+        rgb(8 14 11 / 0.24) 34%,
+        rgb(8 14 11 / 0.04) 64%,
+        rgb(8 14 11 / 0.12) 100%
+      );
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    padding-block: var(--s8);
+    max-width: var(--w-wide);
+  }
+
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--hi-vis);
+    margin-bottom: var(--s4);
+  }
+
+  h1 {
+    font-size: var(--d1);
+    letter-spacing: -0.03em;
+    line-height: 0.98;
+    max-width: 15ch;
+    color: #fff;
+    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
+  }
+
+  .lede {
+    margin-top: var(--s5);
+    font-size: var(--t1);
+    color: rgb(255 255 255 / 0.9);
+    max-width: 52ch;
+    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
+  }
+
+  .hero-cta {
+    margin-top: var(--s6);
+  }
+
+  /* The secondary button is transparent with a dim border, which is right on a
+     solid block and too weak over a photograph. Scoped to the hero. */
+  .hero-cta :global(.btn.dark.solid) {
+    background: rgb(8 14 11 / 0.55);
+    border-color: rgb(255 255 255 / 0.5);
+    color: #fff;
+  }
+
+  .hero-cta :global(.btn.dark.solid:hover) {
+    background: rgb(8 14 11 / 0.74);
+    border-color: #fff;
+  }
+
+  @media (min-width: 768px) {
+    .hero {
+      min-height: min(66dvh, 540px);
+    }
+
+    /* Per-concept, from city-images.ts: the wide frames place their subject at
+       different heights and a shared value loses it on some of them. */
+    .hero-media img {
+      object-position: var(--hero-focus, center 58%);
+    }
+
+    .hero-inner {
+      padding-block: var(--s9);
+    }
+  }
+
+  /* ── Mobile: the photograph leads, the copy sits under it ──
+     Measured white-on-composite contrast behind the intro at 390px was 2.7:1 on
+     the brightest frame and below 4.5:1 on five of the nine cities — under WCAG
+     AA for body text. Two fixes were tried and rejected before this one.
+
+     A heavier scrim would have needed roughly 0.72 alpha to carry the brightest
+     frame, which is the point where the photograph stops being a photograph.
+
+     A translucent plate over the image fixed contrast but not composition: a 3:4
+     source in a 390px-wide container scales by HEIGHT, so the whole frame is
+     already visible and object-position has no vertical effect. The band left
+     above the plate could only ever show the top of the frame, which on these
+     images is sky.
+
+     So on a phone the hero splits: the photograph gets its own band, cropped to
+     show the subject, and the copy sits beneath it on solid spruce. Contrast is
+     no longer a gradient calculation, the whole image is visible rather than
+     dimmed, and not a word of copy changed. Desktop keeps the overlay. */
+  @media (max-width: 767px) {
+    .hero {
+      display: block;
+      min-height: 0;
+    }
+
+    .hero-media {
+      position: relative;
+      inset: auto;
+      height: auto;
+    }
+
+    .hero-media picture,
+    .hero-media img {
+      height: auto;
+    }
+
+    .hero-media img {
+      aspect-ratio: 4 / 3;
+      object-position: center 62%;
+    }
+
+    /* The gradient is only needed where type sits on the image, and none does
+       now. A light foot keeps the band from butting hard into the block. */
+    .scrim {
+      background: linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.35) 0%,
+        rgb(8 14 11 / 0.06) 26%,
+        rgb(8 14 11 / 0) 55%
+      );
+    }
+
+    .hero-inner {
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+      padding-block: var(--s7) var(--s8);
+      border-top: 3px solid var(--hi-vis);
+    }
+
+    .hero-inner h1,
+    .hero-inner .lede {
+      text-shadow: none;
+    }
+  }
+
+  /* ─────────────────── 01 Local orientation ─────────────────── */
+
+  .local-row {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  .local-media {
+    margin: 0;
+  }
+
+  .local-media :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--r-flat);
+  }
+
+  @media (min-width: 900px) {
+    .local-row {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--s9);
+      align-items: start;
+    }
+  }
+
+  .local-lede {
+    font-size: var(--t1);
+    color: var(--ink);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  /* The neighborhoods were a single line of names separated by middots. Same
+     names, set as a ruled index so they read as places rather than as a string. */
+  .areas {
+    margin-top: var(--s7);
+  }
+
+  .areas-label {
+    font-family: var(--font-data);
+    font-size: var(--lbl);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .areas-label strong {
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  .areas-list {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s4);
+    border-top: 2px solid var(--ink);
+    display: grid;
+  }
+
+  .areas-list li {
+    padding-block: var(--s3);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--t1);
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 620px) {
+    .areas-list {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    .areas-list li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+  }
+
+  /* ─────────────────── 02 Service directory ─────────────────── */
+
+  .directory {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .directory li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .directory a {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 1.25rem;
+    grid-template-areas:
+      'num name mark'
+      'num blurb blurb';
+    column-gap: var(--s3);
+    align-items: baseline;
+    padding-block: var(--s4);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background var(--dur) var(--ease);
+  }
+
+  .num {
+    grid-area: num;
+    font-size: var(--t3);
+    font-weight: 700;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+
+  .blurb {
+    grid-area: blurb;
+    display: block;
+    margin-top: var(--s1);
+    font-size: var(--t3);
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  .mark {
+    grid-area: mark;
+    justify-self: end;
+    color: var(--rule-strong);
+    font-size: var(--t2);
+    transition:
+      transform var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  @media (hover: hover) {
+    .directory a:hover {
+      background: var(--bone);
+    }
+
+    .directory a:hover .num,
+    .directory a:hover .mark {
+      color: var(--ink);
+    }
+
+    .directory a:hover .mark {
+      transform: translateX(3px);
+    }
+  }
+
+  .directory a:focus-visible {
+    outline: 2px solid var(--spruce-2);
+    outline-offset: -2px;
+  }
+
+  @media (min-width: 900px) {
+    .directory {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    .directory li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+
+    .directory a {
+      grid-template-columns: 3rem minmax(0, 1fr) 1.5rem;
+      column-gap: var(--s4);
+      padding-inline: var(--s3);
+      margin-inline: calc(var(--s3) * -1);
+    }
+
+    .name {
+      font-size: var(--d3);
+    }
+  }
+
+  /* ─────────────────── 03 Coverage ─────────────────── */
+
+  .area-cols {
+    display: grid;
+    gap: var(--s7);
+  }
+
+  .nearby {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .nearby li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .nearby a {
+    display: block;
+    padding-block: var(--s4);
+    font-family: var(--font-display);
+    font-size: var(--d3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .nearby a:hover {
+      color: var(--spruce-2);
+    }
+  }
+
+  @media (min-width: 900px) {
+    .area-cols {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: var(--s8);
+      align-items: start;
+    }
+  }
+
+  /* ─────────────────── Final CTA ─────────────────── */
+
+  .final {
+    background: var(--spruce);
+    color: var(--on-spruce);
+    border-top: 4px solid var(--hi-vis);
+    padding-block: var(--sec-std-t) var(--sec-std-b);
+  }
+
+  .final h2 {
+    color: #fff;
+    font-size: var(--d2);
+    letter-spacing: -0.03em;
+    max-width: 18ch;
+  }
+
+  .final p {
+    margin-top: var(--s4);
+    color: var(--on-spruce-2);
+    max-width: 46ch;
+  }
+
+  .final-inner {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  @media (min-width: 860px) {
+    .final-inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--s9);
+    }
+  }
+</style>
