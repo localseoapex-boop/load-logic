@@ -51,8 +51,7 @@ import { getOffice, primaryOffice } from '../data/offices';
 import { servicesForLocation, nearbyCities } from '../lib/links';
 import { cityUrl, serviceUrl } from '../lib/urls';
 
-import heroWideSrc from '../assets/photos/cities/city-bg-eastvalley-wide.jpg';
-import heroTallSrc from '../assets/photos/cities/city-bg-eastvalley-tall.jpg';
+import { heroForCity } from '../data/city-images';
 import localImg from '../assets/photos/cities/ctx-suburb.jpg';
 import serviceImg from '../assets/photos/loads/load-side.jpg';
 
@@ -85,14 +84,20 @@ const nearbyLinks = nearbyCities(location.slug).map((loc) => ({
   href: cityUrl(loc.slug),
 }));
 
-/* Two crops of one scene, as on the service pages. */
+/*
+ * Hero from the regional library. Four concepts across nine cities, so the pages
+ * are related without being identical — and no frame claims to depict the named
+ * city, which generated photography cannot honestly do.
+ */
+const hero = heroForCity(location.slug);
+
 const heroWide = await getImage({
-  src: heroWideSrc,
+  src: hero.wide,
   widths: [1024, 1440, 1920],
   format: 'webp',
 });
 const heroTall = await getImage({
-  src: heroTallSrc,
+  src: hero.tall,
   widths: [480, 780, 1024],
   format: 'webp',
 });
@@ -107,7 +112,7 @@ const heroTall = await getImage({
        lede the old hero carried; the actions become the site's two standard
        conversion actions. ── */}
   <header class="hero">
-    <div class="hero-media" aria-hidden="true">
+    <div class="hero-media" aria-hidden="true" style={`--hero-focus: ${hero.focus}`}>
       <picture>
         <source media="(min-width: 768px)" srcset={heroWide.srcSet.attribute} sizes="100vw" />
         <img
@@ -287,7 +292,9 @@ const heroTall = await getImage({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 58%;
+    /* Per-concept, from city-images.ts: the frames place their subject at
+       different heights and a shared value loses it on some of them. */
+    object-position: var(--hero-focus, center 58%);
   }
 
   .scrim {

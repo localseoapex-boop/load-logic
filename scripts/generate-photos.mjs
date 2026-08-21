@@ -678,6 +678,93 @@ const HERO_BG_FRAMING =
  */
 const CITY_HEROES = [
   {
+    id: 'city-bg-driveway-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'an ordinary Arizona suburban home with a wide concrete driveway, stucco walls and a tile roof, ' +
+      'gravel xeriscape front yard with desert shrubs, ' +
+      'toward the right of frame a household pickup staged on the driveway: stacked cardboard boxes, ' +
+      'two storage totes and a folded rug set out together ready for collection, ' +
+      'the whole left third of the picture is open driveway and gravel with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-driveway-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an ordinary Arizona suburban home, stucco walls and a tile roof above, ' +
+      'gravel xeriscape front yard, a wide concrete driveway, ' +
+      'in the upper half a household pickup staged on the driveway: stacked cardboard boxes, two storage totes ' +
+      'and a folded rug set out ready for collection, ' +
+      'the lower half of the frame is plain empty driveway and sidewalk with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-xeriscape-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'a newer Arizona suburban property with clean pale stucco, a low tile roof and a crisp xeriscape front yard ' +
+      'of raked decorative gravel, young agave and small ornamental boulders, a paver walkway, ' +
+      'toward the right of frame an old sofa and a broken office chair set out at the edge of the driveway for collection, ' +
+      'the whole left third of the picture is open gravel and paving with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-xeriscape-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of a newer Arizona suburban property, clean pale stucco and a low tile roof above, ' +
+      'a crisp xeriscape front yard of raked decorative gravel with young agave and ornamental boulders, ' +
+      'in the upper half an old sofa and a broken office chair set out at the edge of the driveway for collection, ' +
+      'the lower half of the frame is plain raked gravel and paving with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-mature-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'an older established Arizona residential property with weathered stucco, a low pitched tile roof and ' +
+      'mature landscaping: a large shade tree, grown citrus and older shrubs softening the gravel yard, ' +
+      'toward the right of frame a chest of drawers, a bagged mattress and a few boxes set out on the driveway for collection, ' +
+      'the whole left third of the picture is open driveway and shaded gravel with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-mature-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an older established Arizona residential property, weathered stucco and a ' +
+      'low tile roof, mature landscaping with a large shade tree and grown citrus above, ' +
+      'in the upper half a chest of drawers, a bagged mattress and a few boxes set out on the driveway for collection, ' +
+      'the lower half of the frame is plain empty driveway with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+
+  {
     id: 'city-bg-eastvalley-wide',
     dir: 'cities',
     ratio: '16:9',
