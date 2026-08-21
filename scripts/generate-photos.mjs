@@ -649,6 +649,198 @@ const HERO_BG = [
  */
 const SERVICE_HEROES = [
   {
+    id: 'svc-hero-junk',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a general junk removal pickup at an ordinary suburban home, ' +
+      'a mixed pile of household items set out on the concrete driveway: a broken office chair, bagged clutter, ' +
+      'a small table, stacked cardboard boxes and a rolled carpet, ' +
+      OPEN_TRAILER + ' backed in beside the pile with a partial load already on the deck, ' +
+      NOT_A_BOX_TRUCK + ', nobody in frame, ' +
+      'ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-hottub',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'an old worn out hot tub on a back patio of a suburban home, being taken apart for removal, ' +
+      'the side access panels removed and leaning against it, the shell empty and stained, the cover folded on the ground, ' +
+      'a reciprocating saw and a pry bar set on the concrete beside it, gravel and desert planting beyond the patio, ' +
+      'nobody in frame, work part done, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-construction',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'renovation debris stacked on a driveway outside a suburban home mid remodel, ' +
+      'broken sheets of drywall, offcut lumber, torn out laminate flooring, a rolled up underlay and a bucket of tile fragments, ' +
+      'the debris sorted into rough piles rather than scattered, the open garage behind, ' +
+      'nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-yard',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a yard waste pile on the gravel front yard of a suburban Arizona home, ' +
+      'cut palm fronds, trimmed branches, dried brush and bagged clippings heaped together beside the driveway, ' +
+      'desert planting and a stucco wall behind, loppers resting on the pile, ' +
+      'nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-mattress',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'an old mattress and its box spring carried out of a house and standing upright against the garage wall on the driveway, ' +
+      'the mattress visibly worn and sagging, a bed frame leaning beside it, ' +
+      'nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-shed',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a small old backyard storage shed being taken down at a suburban home, ' +
+      'the shed doors open and the contents already cleared out, two wall panels unbolted and leaning on the gravel beside it, ' +
+      'a cordless drill and a stack of removed roof sheets on the ground, ' +
+      'nobody in frame, work part done, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-hoarder',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a heavily cluttered but ordinary domestic hallway and living room during a careful cleanout, ' +
+      'stacked boxes, bags and household belongings along the walls with a clear walking path opened down the middle, ' +
+      'a few boxes already labelled and set aside for keeping, daylight from a window at the end, ' +
+      'clean and dry, not squalid, no rubbish on the floor, no pests, no damage, ' +
+      'respectful and matter of fact, nobody in frame',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-office',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a small commercial office suite being cleared out, ' +
+      'office desks pulled away from the walls, stacked task chairs, a dismantled cubicle partition leaning flat, ' +
+      'empty metal shelving and a few packed boxes on the carpet tiles, suspended ceiling and blinds, ' +
+      'nobody in frame, ordinary weekday, practical and unstaged',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-foreclosure',
+    dir: 'services',
+    ratio: '4:3',
+    /*
+     * The first version came back derelict — water-stained walls, litter across
+     * the floor, gloomy light. That reads as blight rather than as a property
+     * being cleared, and it was the only frame in the set that looked grim. A
+     * vacant house waiting on a cleanout is usually just empty and bright.
+     */
+    scene:
+      'a bright empty room in a vacant single family house being cleared of the contents left behind, ' +
+      'clean painted walls and a clean tiled floor, plenty of daylight through large uncovered windows, ' +
+      'a few leftover pieces gathered together near the doorway ready to be carried out: a sofa, a dining chair and several boxes, ' +
+      'the rest of the floor completely clear and swept, no litter, no stains, no damage, no damp, ' +
+      'matter of fact and unstaged, nobody in frame',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-sameday',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a small household pickup staged and ready to go on a suburban driveway, ' +
+      'a few bulky items set out together beside ' + OPEN_TRAILER + ' that is already partly loaded, ' +
+      NOT_A_BOX_TRUCK + ', ' +
+      'the load neat and ready rather than mid chaos, nobody in frame, ' +
+      'ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-mattress',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a worn mattress and box spring set out flat on a concrete driveway ready for collection, ' +
+      'plastic mattress bags folded beside them, nobody in frame, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hoarder',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a domestic room part way through a careful cleanout, boxes and household belongings sorted into groups along one wall, ' +
+      'a cleared area of bare floor in the foreground where items have already been removed, ' +
+      'clean and dry, not squalid, respectful and matter of fact, nobody in frame',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-furniture',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a furniture removal in progress outside an ordinary suburban home, ' +
+      'a worn three seat sofa and a wooden chest of drawers set down on the concrete driveway in the foreground, ' +
+      'the front door of the house open behind them, ' +
+      'one working adult in a dark green work polo, jeans and work gloves photographed strictly from behind with their back fully to the camera, ' +
+      'carrying the end of a dining chair toward the driveway, ' +
+      NO_FACE + ', ' +
+      'ordinary weekday, work half done, nothing tidied for a photograph',
+    env: true,
+  },
+  {
+    id: 'svc-hero-appliance',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'an appliance removal outside an ordinary suburban home, ' +
+      'an old white refrigerator with its doors taped shut and a top loading washing machine standing together on the concrete driveway, ' +
+      'water and power lines already disconnected and coiled, the open garage behind them, ' +
+      'a heavy duty appliance dolly leaning beside them, ' +
+      'nobody in frame, ' +
+      'ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-hero-estate',
+    dir: 'services',
+    ratio: '4:3',
+    scene:
+      'a full property cleanout in progress inside an ordinary older home, ' +
+      'a living room with mixed household contents part sorted: packed cardboard boxes stacked along one wall, ' +
+      'an old armchair, a side table, framed pictures leaning against the skirting and bagged soft furnishings, ' +
+      'daylight through a window with the curtains taken down, bare floor showing where furniture has already gone, ' +
+      'nobody in frame, respectful and matter of fact, not squalid and not staged',
+    env: false,
+    empty: true,
+  },
+  {
     id: 'svc-garage-hero',
     dir: 'services',
     ratio: '4:3',

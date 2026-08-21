@@ -59,9 +59,7 @@ import {
 import { relatedServices, locationsForService, subServicesForCategory } from '../lib/links';
 import { serviceUrl, cityUrl, subServiceUrl, absoluteUrl } from '../lib/urls';
 
-import heroImg from '../assets/photos/services/svc-garage-hero.jpg';
-import packedImg from '../assets/photos/services/svc-garage.jpg';
-import clearedImg from '../assets/photos/before-after/ba-garage-after.jpg';
+import { imagesForService } from '../data/service-images';
 
 interface Props {
   service: Service;
@@ -70,6 +68,20 @@ interface Props {
 const { service } = Astro.props;
 const content = getServiceContent(service.slug);
 const faqs = getServiceFaqs(service.slug);
+
+/*
+ * Per-service photography. `hero` is required; `support` and `outcome` are
+ * optional, and the sections they sit in render without them. Three images suit
+ * a garage cleanout and would pad a mattress removal, so this is a deliberate
+ * per-service decision rather than a template constant.
+ */
+const images = imagesForService(service.slug);
+
+if (!images) {
+  throw new Error(
+    `No imagery registered for "${service.slug}". Add it to data/service-images.ts before moving this service onto ServiceLayout2026.`,
+  );
+}
 
 // These are the canonical Mesa service pages — title targets Mesa explicitly.
 const title = `${service.name} in Mesa, AZ`;
@@ -121,6 +133,91 @@ const faqSchema = {
 
 /** Lower-cased service name, as the existing final CTA copy used it. */
 const lowerName = service.name.toLowerCase();
+
+/*
+ * Mid-page CTA copy, per service.
+ *
+ * The only new prose in this template. It is kept here rather than in
+ * service-content.ts because it is conversion furniture, not service content —
+ * nothing in it describes the service, and none of it appears in schema.
+ *
+ * One line each, phrased as the question the visitor is already asking at that
+ * point in the page. The fallback covers any service not listed so a new
+ * service never ships with an empty band.
+ */
+const CTA_COPY: Record<string, { ask: string; body: string }> = {
+  'junk-removal': {
+    ask: 'Not sure how much you have?',
+    body: 'Send a few photos and we will size the job for you.',
+  },
+  'furniture-removal': {
+    ask: 'Want to know what your furniture pickup will cost?',
+    body: 'Send a photo of the pieces and we will come back with a price.',
+  },
+  'appliance-removal': {
+    ask: 'Have an appliance ready to go?',
+    body: 'Send us a photo and we will confirm the price and the pickup window.',
+  },
+  'garage-cleanouts': {
+    ask: 'Want to know what your garage cleanout will cost?',
+    body: "Send us a few photos and we'll help estimate the job.",
+  },
+  'estate-cleanouts': {
+    ask: 'Not sure how large the cleanout is?',
+    body: 'Send a few photos of the rooms and we will estimate it from there.',
+  },
+  'hot-tub-removal': {
+    ask: 'Have a hot tub that needs to go?',
+    body: 'Send a photo of the spa and the access to it and we will quote the job.',
+  },
+  'construction-debris-removal': {
+    ask: 'Have debris piled up from a project?',
+    body: 'Send a photo of the pile and we will tell you what it takes to clear it.',
+  },
+  'yard-waste-removal': {
+    ask: 'Have a pile ready to go?',
+    body: 'Send us a photo and we will come back with a price.',
+  },
+  'mattress-removal': {
+    ask: 'Just need a mattress gone?',
+    body: 'Send a photo and we will confirm the price before we come out.',
+  },
+  'shed-removal': {
+    ask: 'Have a shed that needs to come down?',
+    body: 'Send photos of the shed and what is still inside it.',
+  },
+  'hoarder-cleanouts': {
+    ask: 'Not sure where to start?',
+    body: 'Send a few photos when you are ready and we will take it from there.',
+  },
+  'office-cleanouts': {
+    ask: 'Clearing an office or a suite?',
+    body: 'Send photos of the space and we will quote the whole clearance.',
+  },
+  'foreclosure-cleanouts': {
+    ask: 'Need a property cleared quickly?',
+    body: 'Send photos of what is left behind and we will price the clearance.',
+  },
+  'same-day-junk-removal': {
+    ask: 'Need it gone today?',
+    body: 'Send photos early and we will tell you what we can fit in.',
+  },
+};
+
+const cta = CTA_COPY[service.slug] ?? {
+  ask: `Want to know what your ${lowerName} will cost?`,
+  body: 'Send us a few photos and we will help estimate the job.',
+};
+
+/** Closing mid-page band: short, and specific to the outcome, not the service. */
+const CTA_SECOND: Record<string, string> = {
+  'garage-cleanouts': 'Ready to get the garage back?',
+  'yard-waste-removal': 'Ready to get the yard back?',
+  'office-cleanouts': 'Ready to hand the space back?',
+  'shed-removal': 'Ready to get the footprint back?',
+};
+
+const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
 ---
 
 <BaseLayout {title} {description}>
@@ -148,8 +245,8 @@ const lowerName = service.name.toLowerCase();
     </div>
     <div class="hero-media">
       <Image
-        src={heroImg}
-        alt="A worker carrying a box out of an open suburban garage stacked with cardboard boxes and storage totes"
+        src={images.hero.src}
+        alt={images.hero.alt}
         widths={[600, 900, 1200]}
         sizes="(min-width: 900px) 46vw, 100vw"
         loading="eager"
@@ -195,14 +292,16 @@ const lowerName = service.name.toLowerCase();
   {
     content && content.detailGroups.length > 0 && (
       <Section index="03" label="Materials" heading="What we take" width="wide">
-        <Image
-          slot="media"
-          src={packedImg}
-          alt="A packed suburban garage filled with storage totes, shelving, bicycles and boxes"
-          widths={[420, 760]}
-          sizes="(min-width: 900px) 42vw, 92vw"
-          loading="lazy"
-        />
+        {images.support && (
+          <Image
+            slot="media"
+            src={images.support.src}
+            alt={images.support.alt}
+            widths={[420, 760]}
+            sizes="(min-width: 900px) 42vw, 92vw"
+            loading="lazy"
+          />
+        )}
         <ul class="groups">
           {content.detailGroups.map((group) => (
             <li>
@@ -227,8 +326,8 @@ const lowerName = service.name.toLowerCase();
   }
 
   <CtaBreak
-    heading={`Want to know what your ${lowerName.replace(/s$/, '')} will cost?`}
-    body="Send us a few photos and we'll help estimate the job."
+    heading={cta.ask}
+    body={cta.body}
     source={`service-${service.slug}-mid-1`}
   />
 
@@ -264,14 +363,16 @@ const lowerName = service.name.toLowerCase();
         heading="We solve the hard part"
         width="wide"
       >
-        <Image
-          slot="media"
-          src={clearedImg}
-          alt="A two-car garage completely empty with a clean swept concrete floor"
-          widths={[420, 760]}
-          sizes="(min-width: 900px) 42vw, 92vw"
-          loading="lazy"
-        />
+        {images.outcome && (
+          <Image
+            slot="media"
+            src={images.outcome.src}
+            alt={images.outcome.alt}
+            widths={[420, 760]}
+            sizes="(min-width: 900px) 42vw, 92vw"
+            loading="lazy"
+          />
+        )}
         <ul class="problems">
           {content.problems.map((p) => (
             <li>
@@ -291,7 +392,7 @@ const lowerName = service.name.toLowerCase();
   }
 
   <CtaBreak
-    heading="Ready to get the garage back?"
+    heading={ctaSecond}
     source={`service-${service.slug}-mid-2`}
     tone="spruce"
   />
