@@ -1,30 +1,70 @@
 ---
 /**
- * SiteHeader.astro — brand, primary nav, and the two conversion actions.
+ * SiteHeader.astro — brand, navigation directories, and conversion actions.
  *
  * MOBILE IS THE POINT HERE. The old header stacked into three rows and consumed
  * 170px before the hero began, on the device most visitors arrive with. This one
  * is a single 64px bar at every width: mark and wordmark left, "Call Now" and a
  * menu trigger right. Nav links move into a disclosure panel.
  *
- * The mobile panel is a <details> element, so it opens and closes with zero
- * JavaScript and remains operable if scripting fails. The only script is a tiny
- * listener that closes the panel on navigation and on Escape.
+ * The outer mobile panel remains a native <details> element. Small scripts add
+ * mutually exclusive subdirectories, desktop disclosure controls, Escape focus
+ * restoration, and viewport scroll containment.
  *
  * Links come from NAV_LINKS so the menu is edited in one place, and the active
  * link is marked with aria-current for both users and crawlers.
  */
 import { SITE, BUSINESS, NAV_LINKS } from '../config/site';
+import { getService, type Service } from '../data/services';
 import { primaryQuoteAction } from '../data/quote-actions';
+import { serviceAreaLocations } from '../lib/links';
+import { cityUrl, serviceUrl } from '../lib/urls';
 import Button from './Button.astro';
 import BrandMark from './BrandMark.astro';
 
 const currentPath = Astro.url.pathname;
 const quote = primaryQuoteAction();
 
-/** A link is active when it is the homepage exactly, or a section prefix match. */
-const isActive = (href: string) =>
-  href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+const normalizePath = (href: string) => href === '/' ? href : href.replace(/\/$/, '');
+const isExact = (href: string) => normalizePath(currentPath) === normalizePath(href);
+const isSectionActive = (href: string) =>
+  href !== '/' && (isExact(href) || currentPath.startsWith(`${normalizePath(href)}/`));
+
+const resolveServices = (slugs: string[]): Service[] =>
+  slugs.map((slug) => getService(slug)).filter((service): service is Service => Boolean(service));
+
+/** Presentational groups only. Every item retains its canonical /services/* URL. */
+const serviceGroups = [
+  {
+    label: 'Full-service removal',
+    services: resolveServices([
+      'junk-removal',
+      'furniture-removal',
+      'appliance-removal',
+      'mattress-removal',
+      'same-day-junk-removal',
+    ]),
+  },
+  {
+    label: 'Property cleanouts',
+    services: resolveServices([
+      'garage-cleanouts',
+      'estate-cleanouts',
+      'hoarder-cleanouts',
+      'office-cleanouts',
+      'foreclosure-cleanouts',
+    ]),
+  },
+  {
+    label: 'Outdoor & project work',
+    services: resolveServices([
+      'hot-tub-removal',
+      'construction-debris-removal',
+      'yard-waste-removal',
+      'shed-removal',
+    ]),
+  },
+] as const;
 ---
 
 <header class="site-header">
@@ -35,15 +75,82 @@ const isActive = (href: string) =>
     </a>
 
     <nav class="desktop-nav" aria-label="Primary">
-      <ul>
+      <ul class="primary-links">
         {
-          NAV_LINKS.map((link) => (
-            <li>
-              <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
-                {link.label}
-              </a>
-            </li>
-          ))
+          NAV_LINKS.map((link) => {
+            const dropdown = link.href === '/services' ? 'services' : link.href === '/locations' ? 'areas' : undefined;
+            const panelId = dropdown ? `${dropdown}-desktop-panel` : undefined;
+
+            return (
+              <li class:list={['nav-item', { 'has-dropdown': dropdown }]} data-desktop-dropdown={dropdown}>
+                <div class="nav-link-row">
+                  <a
+                    class:list={{ 'section-active': isSectionActive(link.href) }}
+                    href={link.href}
+                    aria-current={isExact(link.href) ? 'page' : undefined}
+                  >
+                    {link.label}
+                  </a>
+                  {dropdown && (
+                    <button
+                      class="dropdown-toggle"
+                      type="button"
+                      aria-label={`Toggle ${link.label} links`}
+                      aria-expanded="false"
+                      aria-controls={panelId}
+                    >
+                      <span class="chevron" aria-hidden="true"></span>
+                    </button>
+                  )}
+                </div>
+
+                {dropdown === 'services' && (
+                  <div id={panelId} class="dropdown-panel services-dropdown" hidden>
+                    <div class="service-columns">
+                      {serviceGroups.map((group, groupIndex) => (
+                        <section class="directory-group" aria-labelledby={`desktop-service-group-${groupIndex}`}>
+                          <p class="directory-label" id={`desktop-service-group-${groupIndex}`}>{group.label}</p>
+                          <ul class="directory-list">
+                            {group.services.map((service) => (
+                              <li>
+                                <a href={serviceUrl(service.slug)} aria-current={isExact(serviceUrl(service.slug)) ? 'page' : undefined}>
+                                  {service.name}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </section>
+                      ))}
+                    </div>
+                    <a class="directory-footer" href="/services" aria-current={isExact('/services') ? 'page' : undefined}>
+                      View All Services <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                )}
+
+                {dropdown === 'areas' && (
+                  <div id={panelId} class="dropdown-panel areas-dropdown" hidden>
+                    <a class="mesa-link" href="/" aria-current={isExact('/') ? 'page' : undefined}>
+                      <span>Mesa, AZ</span>
+                      <span class="home-base">Home Base</span>
+                    </a>
+                    <ul class="city-directory">
+                      {serviceAreaLocations.map((location) => (
+                        <li>
+                          <a href={cityUrl(location.slug)} aria-current={isExact(cityUrl(location.slug)) ? 'page' : undefined}>
+                            {location.city}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <a class="directory-footer" href="/locations" aria-current={isExact('/locations') ? 'page' : undefined}>
+                      View All Areas <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                )}
+              </li>
+            );
+          })
         }
       </ul>
     </nav>
@@ -58,25 +165,76 @@ const isActive = (href: string) =>
       </div>
 
       <details class="menu">
-        <summary aria-label="Menu">
+        <summary aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu-panel">
           <span class="bars" aria-hidden="true"></span>
           <span class="menu-text">Menu</span>
         </summary>
-        <div class="panel">
-          <nav aria-label="Primary mobile">
-            <ul>
-              {
-                NAV_LINKS.map((link) => (
-                  <li>
-                    <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
-                      {link.label}
+        <div class="panel" id="mobile-menu-panel">
+          <div class="panel-scroll">
+            <nav aria-label="Primary mobile">
+              <ul class="mobile-primary-links">
+                <li><a href="/" aria-current={isExact('/') ? 'page' : undefined}>Home</a></li>
+
+                <li class="mobile-group" data-mobile-group>
+                  <div class="mobile-group-row">
+                    <a class:list={{ 'section-active': isSectionActive('/services') }} href="/services" aria-current={isExact('/services') ? 'page' : undefined}>Services</a>
+                    <button type="button" aria-label="Toggle Services links" aria-expanded="false" aria-controls="services-mobile-panel">
+                      <span class="chevron" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                  <div class="mobile-subpanel" id="services-mobile-panel" hidden>
+                    {serviceGroups.map((group, groupIndex) => (
+                      <section class="mobile-directory-group" aria-labelledby={`mobile-service-group-${groupIndex}`}>
+                        <p class="directory-label" id={`mobile-service-group-${groupIndex}`}>{group.label}</p>
+                        <ul class="mobile-directory-list">
+                          {group.services.map((service) => (
+                            <li>
+                              <a href={serviceUrl(service.slug)} aria-current={isExact(serviceUrl(service.slug)) ? 'page' : undefined}>{service.name}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ))}
+                    <a class="mobile-view-all" href="/services" aria-current={isExact('/services') ? 'page' : undefined}>
+                      View All Services <span aria-hidden="true">→</span>
                     </a>
-                  </li>
-                ))
-              }
-            </ul>
-          </nav>
-          <Button href={quote.href} variant="primary" full>{quote.label}</Button>
+                  </div>
+                </li>
+
+                <li><a href="/pricing" aria-current={isExact('/pricing') ? 'page' : undefined}>Pricing</a></li>
+
+                <li class="mobile-group" data-mobile-group>
+                  <div class="mobile-group-row">
+                    <a class:list={{ 'section-active': isSectionActive('/locations') }} href="/locations" aria-current={isExact('/locations') ? 'page' : undefined}>Areas We Serve</a>
+                    <button type="button" aria-label="Toggle Areas We Serve links" aria-expanded="false" aria-controls="areas-mobile-panel">
+                      <span class="chevron" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                  <div class="mobile-subpanel" id="areas-mobile-panel" hidden>
+                    <a class="mobile-mesa-link" href="/" aria-current={isExact('/') ? 'page' : undefined}>
+                      <span>Mesa, AZ</span>
+                      <span class="home-base">Home Base</span>
+                    </a>
+                    <ul class="mobile-directory-list">
+                      {serviceAreaLocations.map((location) => (
+                        <li>
+                          <a href={cityUrl(location.slug)} aria-current={isExact(cityUrl(location.slug)) ? 'page' : undefined}>{location.city}</a>
+                        </li>
+                      ))}
+                    </ul>
+                    <a class="mobile-view-all" href="/locations" aria-current={isExact('/locations') ? 'page' : undefined}>
+                      View All Areas <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                </li>
+
+                <li><a href="/blog" aria-current={isExact('/blog') ? 'page' : undefined}>Blog</a></li>
+              </ul>
+            </nav>
+            <div class="tablet-quote">
+              <Button href={quote.href} variant="primary" full>{quote.label}</Button>
+            </div>
+          </div>
         </div>
       </details>
     </div>
@@ -84,21 +242,130 @@ const isActive = (href: string) =>
 </header>
 
 <script>
-  // The panel is a <details>, so open/close already works without this. These
-  // two listeners only add the conveniences a native disclosure does not give:
-  // close on Escape, and close when a link inside is followed.
-  const menu = document.querySelector('.menu');
-  if (menu instanceof HTMLDetailsElement) {
-    menu.addEventListener('click', (event) => {
-      if (event.target instanceof HTMLAnchorElement) menu.open = false;
+  const desktopDropdowns = Array.from(document.querySelectorAll<HTMLElement>('[data-desktop-dropdown]'));
+
+  const closeDesktopDropdown = (item: HTMLElement) => {
+    const toggle = item.querySelector<HTMLButtonElement>('.dropdown-toggle');
+    const panel = item.querySelector<HTMLElement>('.dropdown-panel');
+    if (!toggle || !panel) return;
+    item.classList.remove('is-open');
+    delete item.dataset.pinned;
+    toggle.setAttribute('aria-expanded', 'false');
+    panel.hidden = true;
+  };
+
+  const openDesktopDropdown = (item: HTMLElement, pinned = false) => {
+    desktopDropdowns.forEach((other) => {
+      if (other !== item) closeDesktopDropdown(other);
     });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && menu.open) {
-        menu.open = false;
-        menu.querySelector('summary')?.focus();
+    const toggle = item.querySelector<HTMLButtonElement>('.dropdown-toggle');
+    const panel = item.querySelector<HTMLElement>('.dropdown-panel');
+    if (!toggle || !panel) return;
+    item.classList.add('is-open');
+    if (pinned) item.dataset.pinned = 'true';
+    toggle.setAttribute('aria-expanded', 'true');
+    panel.hidden = false;
+  };
+
+  desktopDropdowns.forEach((item) => {
+    const toggle = item.querySelector<HTMLButtonElement>('.dropdown-toggle');
+    let closeTimer: number | undefined;
+    const cancelClose = () => closeTimer && window.clearTimeout(closeTimer);
+    const scheduleClose = () => {
+      cancelClose();
+      if (item.dataset.pinned === 'true') return;
+      closeTimer = window.setTimeout(() => closeDesktopDropdown(item), 180);
+    };
+
+    item.addEventListener('pointerenter', () => {
+      cancelClose();
+      openDesktopDropdown(item, item.dataset.pinned === 'true');
+    });
+    item.addEventListener('pointerleave', scheduleClose);
+    item.addEventListener('focusin', () => {
+      cancelClose();
+      openDesktopDropdown(item, item.dataset.pinned === 'true');
+    });
+    item.addEventListener('focusout', () => {
+      window.setTimeout(() => {
+        if (!item.contains(document.activeElement)) closeDesktopDropdown(item);
+      });
+    });
+    toggle?.addEventListener('click', () => {
+      if (item.dataset.pinned === 'true') closeDesktopDropdown(item);
+      else openDesktopDropdown(item, true);
+    });
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!(event.target instanceof Node)) return;
+    desktopDropdowns.forEach((item) => {
+      if (!item.contains(event.target)) closeDesktopDropdown(item);
+    });
+  });
+
+  const menu = document.querySelector<HTMLDetailsElement>('.menu');
+  const mobileGroups = Array.from(document.querySelectorAll<HTMLElement>('[data-mobile-group]'));
+
+  const closeMobileGroup = (group: HTMLElement) => {
+    const toggle = group.querySelector<HTMLButtonElement>('.mobile-group-row button');
+    const panel = group.querySelector<HTMLElement>('.mobile-subpanel');
+    if (!toggle || !panel) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    panel.hidden = true;
+  };
+
+  mobileGroups.forEach((group) => {
+    const toggle = group.querySelector<HTMLButtonElement>('.mobile-group-row button');
+    const panel = group.querySelector<HTMLElement>('.mobile-subpanel');
+    toggle?.addEventListener('click', () => {
+      if (!panel) return;
+      const shouldOpen = panel.hidden;
+      mobileGroups.forEach(closeMobileGroup);
+      if (shouldOpen) {
+        panel.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
       }
     });
+  });
+
+  const closeMobileMenu = (restoreFocus = false) => {
+    if (!menu) return;
+    menu.open = false;
+    mobileGroups.forEach(closeMobileGroup);
+    document.body.classList.remove('nav-open');
+    const summary = menu.querySelector<HTMLElement>(':scope > summary');
+    summary?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) summary?.focus();
+  };
+
+  if (menu) {
+    menu.addEventListener('toggle', () => {
+      const summary = menu.querySelector<HTMLElement>(':scope > summary');
+      summary?.setAttribute('aria-expanded', String(menu.open));
+      document.body.classList.toggle('nav-open', menu.open);
+      if (!menu.open) mobileGroups.forEach(closeMobileGroup);
+    });
+    menu.addEventListener('click', (event) => {
+      if (event.target instanceof HTMLAnchorElement) closeMobileMenu();
+    });
   }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    const openDesktop = desktopDropdowns.find((item) => item.classList.contains('is-open'));
+    if (openDesktop) {
+      const toggle = openDesktop.querySelector<HTMLButtonElement>('.dropdown-toggle');
+      /* Move focus while the panel still exists, then close it. Focusing the
+         toggle first intentionally lets focusin run before the final close. */
+      toggle?.focus();
+      closeDesktopDropdown(openDesktop);
+      return;
+    }
+
+    if (menu?.open) closeMobileMenu(true);
+  });
 </script>
 
 <style>
@@ -144,32 +411,195 @@ const isActive = (href: string) =>
 
   .desktop-nav {
     display: none;
-    margin-inline-start: auto;
   }
 
-  .desktop-nav ul {
+  .primary-links {
     display: flex;
+    align-items: center;
     gap: var(--s6);
     list-style: none;
     padding: 0;
   }
 
-  .desktop-nav a {
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-link-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .desktop-nav .nav-link-row > a {
     font-size: var(--t3);
     font-weight: 500;
     color: var(--ink-2);
     text-decoration: none;
     padding-block: var(--s2);
+    white-space: nowrap;
   }
 
-  .desktop-nav a:hover {
+  .desktop-nav .nav-link-row > a:hover,
+  .desktop-nav .nav-link-row > a.section-active,
+  .desktop-nav .nav-link-row > a[aria-current='page'] {
     color: var(--ink);
   }
 
-  /* Active state is a rule under the link, not a colour change alone. */
-  .desktop-nav a[aria-current='page'] {
-    color: var(--ink);
+  .desktop-nav .nav-link-row > a.section-active,
+  .desktop-nav .nav-link-row > a[aria-current='page'] {
     box-shadow: inset 0 -2px 0 var(--hi-vis);
+  }
+
+  .dropdown-toggle {
+    width: 28px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    margin-inline-end: -8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  [aria-expanded='true'] .chevron {
+    transform: rotate(225deg) translate(-1px, -1px);
+  }
+
+  .dropdown-panel {
+    position: absolute;
+    top: calc(100% + 14px);
+    z-index: var(--z-overlay);
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* Bridges the visual gap so moving from trigger to panel does not close it. */
+  .dropdown-panel::before {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 15px;
+    content: '';
+  }
+
+  .services-dropdown {
+    left: calc(-1 * var(--s9));
+    width: min(780px, calc(100vw - (2 * var(--gutter))));
+    padding: var(--s5) var(--s5) 0;
+  }
+
+  .service-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s6);
+    padding-bottom: var(--s5);
+  }
+
+  .areas-dropdown {
+    left: -200px;
+    width: min(520px, calc(100vw - (2 * var(--gutter))));
+    padding: var(--s5) var(--s5) 0;
+  }
+
+  .directory-label {
+    margin-bottom: var(--s3);
+    color: var(--ink-2);
+    font-family: var(--font-display);
+    font-size: var(--lbl);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .directory-list,
+  .city-directory {
+    display: grid;
+    list-style: none;
+    padding: 0;
+  }
+
+  .directory-list li + li,
+  .city-directory li:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
+  }
+
+  .directory-list a,
+  .city-directory a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: var(--ink);
+    font-size: var(--t3);
+    font-weight: 550;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  .directory-list a:hover,
+  .city-directory a:hover,
+  .directory-list a[aria-current='page'],
+  .city-directory a[aria-current='page'] {
+    color: var(--spruce-2);
+  }
+
+  .mesa-link {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    margin-bottom: var(--s3);
+    padding: 0 var(--s3);
+    background: var(--bone-2);
+    border-left: 3px solid var(--hi-vis);
+    color: var(--ink);
+    font-size: var(--t3);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .home-base {
+    color: var(--ink-2);
+    font-size: var(--lbl);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .city-directory {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--s5);
+    padding-bottom: var(--s5);
+  }
+
+  .directory-footer {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--rule);
+    color: var(--spruce-2);
+    font-size: var(--t3);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .directory-footer:hover {
+    color: var(--spruce-3);
   }
 
   /* ─── Actions ─── */
@@ -187,6 +617,7 @@ const isActive = (href: string) =>
     line-height: 1.15;
     text-decoration: none;
     text-align: right;
+    white-space: nowrap;
   }
 
   .phone-label {
@@ -285,28 +716,41 @@ const isActive = (href: string) =>
   }
 
   .panel {
-    position: absolute;
+    position: fixed;
     inset-inline: 0;
     top: 64px;
+    /* Clears the 64px action bar plus its top border. */
+    bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    overflow: hidden;
     background: var(--bone);
     border-bottom: 1px solid var(--rule);
-    padding: var(--s4) var(--gutter) var(--s6);
     box-shadow: var(--shadow-float);
   }
 
-  .panel ul {
-    list-style: none;
-    padding: 0;
-    margin-bottom: var(--s5);
+  .panel-scroll {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--s4) var(--gutter) var(--s6);
   }
 
-  .panel li + li {
+  .mobile-primary-links,
+  .mobile-directory-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .mobile-primary-links > li + li {
     border-top: 1px solid var(--rule);
   }
 
-  .panel a {
-    display: block;
-    padding: var(--s4) 0;
+  .mobile-primary-links > li > a,
+  .mobile-group-row > a {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
     font-family: var(--font-display);
     font-size: var(--d3);
     font-weight: 600;
@@ -314,8 +758,95 @@ const isActive = (href: string) =>
     text-decoration: none;
   }
 
-  .panel a[aria-current='page'] {
+  .mobile-primary-links a[aria-current='page'],
+  .mobile-primary-links a.section-active {
     color: var(--spruce-2);
+  }
+
+  .mobile-group-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 48px;
+    align-items: center;
+  }
+
+  .mobile-group-row button {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .mobile-subpanel {
+    padding: var(--s3) 0 var(--s5) var(--s4);
+    border-left: 1px solid var(--rule-strong);
+  }
+
+  .mobile-directory-group + .mobile-directory-group {
+    margin-top: var(--s5);
+  }
+
+  .mobile-directory-list li + li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .mobile-directory-list a {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    color: var(--ink);
+    font-size: var(--t3);
+    font-weight: 550;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .mobile-directory-list a:hover,
+  .mobile-directory-list a[aria-current='page'] {
+    color: var(--spruce-2);
+  }
+
+  .mobile-mesa-link {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    margin-bottom: var(--s3);
+    padding: 0 var(--s3);
+    background: var(--bone-2);
+    border-left: 3px solid var(--hi-vis);
+    color: var(--ink);
+    font-size: var(--t3);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .mobile-view-all {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--s3);
+    border-top: 1px solid var(--rule-strong);
+    color: var(--spruce-2);
+    font-size: var(--t3);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .tablet-quote {
+    display: none;
+    margin-top: var(--s5);
+  }
+
+  :global(body.nav-open) {
+    overflow: hidden;
   }
 
   /* ─── Breakpoints ─── */
@@ -324,12 +855,19 @@ const isActive = (href: string) =>
     .phone {
       display: flex;
     }
+
+    .panel {
+      bottom: 0;
+    }
+
+    .tablet-quote {
+      display: block;
+    }
   }
 
   @media (min-width: 1024px) {
     .desktop-nav {
       display: block;
-      margin-inline-start: 0;
     }
 
     .quote-btn {
@@ -349,12 +887,20 @@ const isActive = (href: string) =>
    * returns.
    */
   @media (min-width: 1024px) and (max-width: 1200px) {
-    .bar {
+    .bar,
+    .primary-links {
       gap: var(--s5);
     }
 
-    .desktop-nav ul {
-      gap: var(--s5);
+    .services-dropdown {
+      left: calc(-1 * var(--s8));
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1100px) {
+    .bar,
+    .primary-links {
+      gap: var(--s4);
     }
   }
 </style>
