@@ -678,6 +678,46 @@ const HERO_BG_FRAMING =
  */
 const CITY_HEROES = [
   {
+    id: 'city-bg-desertedge-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    /*
+     * Second framing. The first put the staged items on the LEFT, which is the
+     * one part of the frame this hero system reserves for the headline, and the
+     * desert edge never appeared. Both are stated positionally now rather than
+     * descriptively.
+     */
+    scene:
+      'an Arizona stucco home standing at the outer edge of a suburban development, positioned in the RIGHT HALF of ' +
+      'the picture, with open undeveloped desert scrub and low distant hills filling the background behind and to the ' +
+      'right of it, ' +
+      'low water landscaping of decorative gravel, creosote and a barrel cactus, a plain concrete driveway, ' +
+      'a worn armchair, a small side table and two cardboard boxes set out for collection on the driveway close to the ' +
+      'house on the RIGHT, ' +
+      'the entire LEFT HALF of the picture is nothing but empty gravel ground and open desert with no objects in it at all, ' +
+      'no signs, no plaques, no house numbers, no lettering, no landmarks, no recognisable mountain peaks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-desertedge-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of an Arizona stucco home on the outer edge of a suburban development where the ' +
+      'street meets open desert, low water landscaping of decorative gravel, creosote and a barrel cactus, ' +
+      'low desert hills visible beyond the house in the upper part of the frame, ' +
+      'in the upper half a few household items set out on the driveway for collection: a worn armchair, a small table ' +
+      'and two boxes, ' +
+      'the lower half of the frame is plain empty driveway and gravel with nothing on it, ' +
+      'absolutely no signs, no plaques, no house numbers, no lettering anywhere, no landmarks, no recognisable peaks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+
+  {
     id: 'city-bg-driveway-wide',
     dir: 'cities',
     ratio: '16:9',
@@ -739,12 +779,22 @@ const CITY_HEROES = [
     id: 'city-bg-mature-wide',
     dir: 'cities',
     ratio: '16:9',
+    /*
+     * Third framing. Version one put a small plaque beside the front door;
+     * version two, prompted hard against signs, produced three of them — naming
+     * a thing is a reliable way to summon it. So the fix is compositional rather
+     * than negative: the entry is out of shot entirely, the garage door and the
+     * yard carry the frame, and there is no doorway left for a plaque to sit
+     * beside.
+     */
     scene:
-      'an older established Arizona residential property with weathered stucco, a low pitched tile roof and ' +
-      'mature landscaping: a large shade tree, grown citrus and older shrubs softening the gravel yard, ' +
+      'an older established Arizona residential property photographed square on to the closed garage door and the ' +
+      'gravel front yard, the front entry completely out of shot, ' +
+      'weathered stucco and a low pitched tile roof, mature landscaping with a large shade tree overhanging from the ' +
+      'left and grown shrubs along the yard, ' +
       'toward the right of frame a chest of drawers, a bagged mattress and a few boxes set out on the driveway for collection, ' +
       'the whole left third of the picture is open driveway and shaded gravel with nothing in it, ' +
-      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'plain unbroken stucco wall surfaces, no doorway, no porch, no wall fittings of any kind, ' +
       HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
     env: true,
     empty: true,

@@ -3,7 +3,7 @@
  *
  * ─────────────────── A regional library, not a photo per city ───────────────────
  *
- * There are four concepts, not nine. That is a truthfulness constraint before it
+ * There are five concepts, not nine. That is a truthfulness constraint before it
  * is an economy: generated photography cannot depict a named town, so producing
  * nine "city" frames would only produce nine indistinguishable Arizona suburbs
  * while implying each one is somewhere specific. Four distinct residential
@@ -28,6 +28,8 @@ import xeriscapeWide from '../assets/photos/cities/city-bg-xeriscape-wide.jpg';
 import xeriscapeTall from '../assets/photos/cities/city-bg-xeriscape-tall.jpg';
 import matureWide from '../assets/photos/cities/city-bg-mature-wide.jpg';
 import matureTall from '../assets/photos/cities/city-bg-mature-tall.jpg';
+import desertEdgeWide from '../assets/photos/cities/city-bg-desertedge-wide.jpg';
+import desertEdgeTall from '../assets/photos/cities/city-bg-desertedge-tall.jpg';
 
 export interface CityHero {
   wide: ImageMetadata;
@@ -44,7 +46,7 @@ export interface CityHero {
   focus: string;
 }
 
-/** The library. Four residential situations across the East Valley. */
+/** The library. Five residential situations across the East Valley. */
 export const cityHeroes = {
   street: {
     wide: streetWide,
@@ -71,6 +73,14 @@ export const cityHeroes = {
     alt: 'A chest of drawers, a wrapped mattress and boxes set out on the driveway of an older East Valley home',
     focus: 'center 58%',
   },
+  desertEdge: {
+    wide: desertEdgeWide,
+    tall: desertEdgeTall,
+    alt: 'An armchair, a side table and boxes set out for collection outside a home on the desert edge of an East Valley neighbourhood',
+    /* Items sit low-left in this frame; the crop keeps them under the copy
+       rather than behind the headline. */
+    focus: 'center 62%',
+  },
 } satisfies Record<string, CityHero>;
 
 export type CityHeroKey = keyof typeof cityHeroes;
@@ -90,7 +100,10 @@ const assignment: Record<string, CityHeroKey> = {
   'apache-junction-az': 'driveway',
   'tempe-az': 'xeriscape',
   'san-tan-valley-az': 'xeriscape',
-  'gold-canyon-az': 'xeriscape',
+  /* Gold Canyon sits where the development actually meets open desert, so it
+     takes the desert-edge frame. It also breaks up the one concept that was
+     carrying three cities: nothing is on more than two now. */
+  'gold-canyon-az': 'desertEdge',
   'scottsdale-az': 'mature',
   'ahwatukee-az': 'mature',
 };

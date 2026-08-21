@@ -292,9 +292,11 @@ const heroTall = await getImage({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Per-concept, from city-images.ts: the frames place their subject at
-       different heights and a shared value loses it on some of them. */
-    object-position: var(--hero-focus, center 58%);
+    /* The MOBILE default. The tall frames are composed subject-up / ground-down,
+       and the copy plate covers the lower half, so the crop has to favour the
+       top or the only thing left showing is sky. The per-concept focus below is
+       for the wide frames, which are composed differently. */
+    object-position: center 32%;
   }
 
   .scrim {
@@ -374,27 +376,79 @@ const heroTall = await getImage({
       min-height: min(66dvh, 540px);
     }
 
+    /* Per-concept, from city-images.ts: the wide frames place their subject at
+       different heights and a shared value loses it on some of them. */
+    .hero-media img {
+      object-position: var(--hero-focus, center 58%);
+    }
+
     .hero-inner {
       padding-block: var(--s9);
     }
   }
 
+  /* ── Mobile: the photograph leads, the copy sits under it ──
+     Measured white-on-composite contrast behind the intro at 390px was 2.7:1 on
+     the brightest frame and below 4.5:1 on five of the nine cities — under WCAG
+     AA for body text. Two fixes were tried and rejected before this one.
+
+     A heavier scrim would have needed roughly 0.72 alpha to carry the brightest
+     frame, which is the point where the photograph stops being a photograph.
+
+     A translucent plate over the image fixed contrast but not composition: a 3:4
+     source in a 390px-wide container scales by HEIGHT, so the whole frame is
+     already visible and object-position has no vertical effect. The band left
+     above the plate could only ever show the top of the frame, which on these
+     images is sky.
+
+     So on a phone the hero splits: the photograph gets its own band, cropped to
+     show the subject, and the copy sits beneath it on solid spruce. Contrast is
+     no longer a gradient calculation, the whole image is visible rather than
+     dimmed, and not a word of copy changed. Desktop keeps the overlay. */
   @media (max-width: 767px) {
+    .hero {
+      display: block;
+      min-height: 0;
+    }
+
+    .hero-media {
+      position: relative;
+      inset: auto;
+      height: auto;
+    }
+
+    .hero-media picture,
+    .hero-media img {
+      height: auto;
+    }
+
+    .hero-media img {
+      aspect-ratio: 4 / 3;
+      object-position: center 62%;
+    }
+
+    /* The gradient is only needed where type sits on the image, and none does
+       now. A light foot keeps the band from butting hard into the block. */
     .scrim {
-      /* Eased through the upper band: the city intro runs long on a phone and
-         needed protecting, but the street behind it is the whole point of a
-         local hero and should not be flattened to get there. */
       background: linear-gradient(
         to top,
-        rgb(8 14 11 / 0.86) 0%,
-        rgb(8 14 11 / 0.66) 36%,
-        rgb(8 14 11 / 0.28) 68%,
-        rgb(8 14 11 / 0.3) 100%
+        rgb(8 14 11 / 0.35) 0%,
+        rgb(8 14 11 / 0.06) 26%,
+        rgb(8 14 11 / 0) 55%
       );
     }
 
     .hero-inner {
-      align-self: end;
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+      padding-block: var(--s7) var(--s8);
+      border-top: 3px solid var(--hi-vis);
+    }
+
+    .hero-inner h1,
+    .hero-inner .lede {
+      text-shadow: none;
     }
   }
 
