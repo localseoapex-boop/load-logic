@@ -47,7 +47,7 @@ import CtaBreak from '../components/CtaBreak.astro';
 import QuoteCta from '../components/QuoteCta.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import FaqBlock from '../components/FaqBlock.astro';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { BUSINESS, SITE } from '../config/site';
 import type { Service } from '../data/services';
 import {
@@ -130,6 +130,28 @@ const faqSchema = {
     acceptedAnswer: { '@type': 'Answer', text: f.answer },
   })),
 };
+
+/*
+ * Hero backgrounds, art directed per breakpoint.
+ *
+ * Two sources rather than one crop. The 4:3 frame suits the tall container a
+ * phone gives the hero; a 16:9 frame suits the wide one a desktop gives it, and
+ * is composed so the left third stays quiet where the copy sits. Serving one
+ * file to both would either letterbox the subject on a phone or crop half its
+ * height away on a desktop.
+ */
+const heroWideSrc = images.heroWide ?? images.hero;
+
+const heroWide = await getImage({
+  src: heroWideSrc.src,
+  widths: [1024, 1440, 1920],
+  format: 'webp',
+});
+const heroTall = await getImage({
+  src: images.hero.src,
+  widths: [480, 780, 1024],
+  format: 'webp',
+});
 
 /** Lower-cased service name, as the existing final CTA copy used it. */
 const lowerName = service.name.toLowerCase();
@@ -225,33 +247,44 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     <Breadcrumbs items={crumbs} />
   </div>
 
-  {/* ── Hero. Split: type on bone at the left, photograph filling the right
-       column to the viewport edge. Same content as before — eyebrow, H1, the
-       tagline lede, the trust bullets — with the actions switched to the site's
-       two standard conversion actions. ── */}
+  {/* ── Hero. A full-width photographic background with the message layered
+       over it. The content is unchanged from the split version it replaces —
+       eyebrow, H1, the tagline lede, both conversion actions and the existing
+       trust bullets — only the composition changed. ── */}
   <header class="hero">
-    <div class="hero-copy">
-      <div class="hero-inner">
-        <p class="eyebrow">Junk Removal</p>
-        <h1>{service.name} in Mesa &amp; the East Valley</h1>
-        <p class="lede">{service.tagline}</p>
-        <div class="hero-cta">
-          <QuoteCta size="lg" source={`service-${service.slug}-hero`} />
-        </div>
+    <div class="hero-media" aria-hidden="true">
+      <picture>
+        <source media="(min-width: 768px)" srcset={heroWide.srcSet.attribute} sizes="100vw" />
+        <img
+          src={heroTall.src}
+          srcset={heroTall.srcSet.attribute}
+          sizes="100vw"
+          alt=""
+          width={heroTall.attributes.width}
+          height={heroTall.attributes.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div class="scrim"></div>
+    </div>
+
+    <div class="container container-wide hero-inner">
+      <p class="eyebrow">Junk Removal</p>
+      <h1>{service.name} in Mesa &amp; the East Valley</h1>
+      <p class="lede">{service.tagline}</p>
+      <div class="hero-cta">
+        <QuoteCta size="lg" source={`service-${service.slug}-hero`} onDark />
+      </div>
+    </div>
+
+    <div class="trust-rail">
+      <div class="container container-wide">
         <ul class="trust">
           {serviceTrustBullets.map((b) => <li>{b}</li>)}
         </ul>
       </div>
-    </div>
-    <div class="hero-media">
-      <Image
-        src={images.hero.src}
-        alt={images.hero.alt}
-        widths={[600, 900, 1200]}
-        sizes="(min-width: 900px) 46vw, 100vw"
-        loading="eager"
-        fetchpriority="high"
-      />
     </div>
   </header>
 
@@ -477,19 +510,70 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     padding-top: var(--s5);
   }
 
-  /* ─────────────────────────── Hero ─────────────────────────── */
+  /* ─────────────────────────── Hero ───────────────────────────
+     A full-width photograph with the message on it. Two scrims: one weighted to
+     the left where the copy sits, one to the bottom under the trust rail, both
+     falling away toward the subject so the photograph stays a photograph rather
+     than becoming a dark block with text on it. */
 
   .hero {
+    position: relative;
     display: grid;
-    background: var(--bone);
-    border-bottom: 1px solid var(--rule);
+    grid-template-rows: 1fr auto;
+    min-height: min(78dvh, 560px);
+    isolation: isolate;
+    background: var(--spruce);
+    color: #fff;
+  }
+
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* <picture> is display:inline by default, so a percentage height on the <img>
+     would resolve against the picture box rather than against .hero-media. */
+  .hero-media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 55%;
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to right,
+        rgb(8 14 11 / 0.84) 0%,
+        rgb(8 14 11 / 0.66) 32%,
+        rgb(8 14 11 / 0.26) 64%,
+        rgb(8 14 11 / 0.06) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.72) 0%,
+        rgb(8 14 11 / 0.3) 30%,
+        rgb(8 14 11 / 0.04) 62%,
+        rgb(8 14 11 / 0.1) 100%
+      );
   }
 
   .hero-inner {
-    padding-inline: var(--gutter);
-    padding-block: var(--s7) var(--s8);
-    max-width: 46rem;
-    margin-inline: auto;
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    padding-block: var(--s8) var(--s7);
+    max-width: var(--w-wide);
   }
 
   .eyebrow {
@@ -498,7 +582,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--ink-3);
+    color: var(--hi-vis);
     margin-bottom: var(--s4);
   }
 
@@ -507,88 +591,102 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     letter-spacing: -0.03em;
     line-height: 0.98;
     max-width: 16ch;
+    color: #fff;
+    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
   }
 
   .lede {
     margin-top: var(--s5);
     font-size: var(--t1);
-    color: var(--ink-2);
+    color: rgb(255 255 255 / 0.9);
     max-width: 46ch;
+    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
   }
 
   .hero-cta {
     margin-top: var(--s6);
   }
 
-  /* The existing trust bullets, as a ruled operational rail rather than a row
-     of pills. */
+  /* The secondary button's dark treatment is transparent with a dim border,
+     which is right on a solid block and too weak over a photograph — the label
+     sits on mid-tone driveway with almost nothing separating it. Scoped to the
+     hero so the button behaves normally everywhere else. No backdrop-filter:
+     this layer scrolls, and blur on a scrolling layer costs repaints. */
+  .hero-cta :global(.btn.dark.solid) {
+    background: rgb(8 14 11 / 0.55);
+    border-color: rgb(255 255 255 / 0.5);
+    color: #fff;
+  }
+
+  .hero-cta :global(.btn.dark.solid:hover) {
+    background: rgb(8 14 11 / 0.74);
+    border-color: #fff;
+  }
+
+  /* The existing trust bullets, kept and moved to a rail along the bottom edge
+     so they read as operating facts over the photograph rather than as a list
+     floating on it. */
+  .trust-rail {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(8 14 11 / 0.4);
+    padding-block: var(--s4);
+  }
+
   .trust {
     list-style: none;
     padding: 0;
-    margin-top: var(--s7);
-    border-top: 1px solid var(--rule);
+    margin: 0;
     display: grid;
-    gap: 0;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s2) var(--s6);
   }
 
   .trust li {
-    padding-block: var(--s3);
-    border-bottom: 1px solid var(--rule);
     font-size: var(--t3);
-    color: var(--ink-2);
+    color: rgb(255 255 255 / 0.86);
   }
 
-  /* On a phone the photograph leads, as it does on the homepage. Left in source
-     order it sat below the four trust bullets, which pushed the only image in
-     the hero almost entirely off the first screen. */
-  .hero-media {
-    order: -1;
-  }
-
-  .hero-media img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 55%;
-    aspect-ratio: 16 / 10;
-  }
-
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .hero {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
-      align-items: stretch;
-    }
-
-    .hero-copy {
-      display: flex;
-      align-items: center;
-    }
-
-    /* Back to source order beside the type at desktop. */
-    .hero-media {
-      order: 0;
-    }
-
-    .hero-inner {
-      margin-inline: 0;
-      margin-inline-start: auto;
-      padding-block: var(--s9);
-      padding-inline-end: var(--s8);
+      min-height: min(74dvh, 600px);
     }
 
     .hero-media img {
-      aspect-ratio: auto;
-      min-height: 100%;
+      object-position: center 58%;
+    }
+
+    .hero-inner {
+      padding-block: var(--s9) var(--s8);
     }
 
     .trust {
-      grid-template-columns: 1fr 1fr;
-      column-gap: var(--s6);
+      grid-template-columns: repeat(4, auto);
+      justify-content: start;
+      gap: var(--s8);
     }
 
-    .trust li:nth-child(-n + 2) {
-      border-top: 0;
+    .trust-rail {
+      padding-block: var(--s5);
+    }
+  }
+
+  /* Below the breakpoint the left-weighted gradient would darken the whole
+     narrow frame, so the vertical one carries it alone. */
+  @media (max-width: 767px) {
+    .scrim {
+      background: linear-gradient(
+        to top,
+        rgb(8 14 11 / 0.88) 0%,
+        rgb(8 14 11 / 0.7) 32%,
+        rgb(8 14 11 / 0.36) 62%,
+        rgb(8 14 11 / 0.46) 100%
+      );
+    }
+
+    .hero-inner {
+      align-self: end;
     }
   }
 

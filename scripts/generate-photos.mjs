@@ -647,6 +647,195 @@ const HERO_BG = [
  * it is shot at 4:3 — square enough to survive the column crop, wide enough to
  * survive the band crop. No text sits on it, so no reading zone is reserved.
  */
+/*
+ * ─────────────── Service page background heroes ───────────────
+ *
+ * The 4:3 service heroes were framed to sit BESIDE the copy in a split layout.
+ * As a full-width background they lose about half their height to the crop and
+ * the subject gets cut, so these are shot 16:9 specifically to be a background:
+ * the subject sits centre-right and the left third is deliberately quiet, which
+ * is where the headline, the intro and the buttons land.
+ *
+ * The 4:3 originals are kept and serve the mobile crop, where a tall container
+ * suits them far better than a letterboxed 16:9 strip would.
+ */
+const HERO_BG_FRAMING =
+  'composed as a wide background photograph: the subject sits in the centre and right of the frame, ' +
+  'and the left third is deliberately quiet and uncluttered — open ground, plain wall or plain floor with nothing important in it, ' +
+  'flat even overcast light with no blown highlights and no deep shadows';
+
+const SERVICE_HERO_BG = [
+  {
+    id: 'svc-bg-junk-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a general junk removal pickup at an ordinary suburban home, a mixed pile of household items set out on the ' +
+      'concrete driveway toward the right of frame: a broken office chair, bagged clutter, a small table and stacked boxes, ' +
+      OPEN_TRAILER + ' backed in beside the pile with a partial load on the deck, ' + NOT_A_BOX_TRUCK + ', ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-furniture-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a furniture removal outside an ordinary suburban home, a worn three seat sofa, a chest of drawers and a dining ' +
+      'chair set out together on the concrete driveway toward the right of frame, the open garage behind them, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-appliance-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'an appliance removal outside an ordinary suburban home, an old white refrigerator with its doors taped shut and ' +
+      'a top loading washer standing together on the driveway toward the right of frame, an appliance dolly beside them, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-estate-cleanouts',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a full property cleanout in an ordinary older home, a wide living room with packed cardboard boxes stacked along ' +
+      'the right hand wall, an old armchair and a side table, framed pictures leaning against the skirting, ' +
+      'bare floor across the left of the room, ' +
+      HERO_BG_FRAMING + ', nobody in frame, respectful and matter of fact',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-hot-tub-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'an old worn out hot tub on the back patio of a suburban home toward the right of frame, side access panels ' +
+      'removed and leaning against it, the shell empty and stained, a wide sweep of clean patio concrete across the left, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-construction-debris-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'renovation debris stacked on a driveway outside a suburban home mid remodel, broken drywall sheets, offcut ' +
+      'lumber, torn out laminate flooring and a bucket of tile fragments sorted into rough piles toward the right of frame, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-yard-waste-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a yard waste pile on the gravel yard of a suburban Arizona home toward the right of frame, cut palm fronds, ' +
+      'trimmed branches and dried brush heaped beside the driveway, a wide clean concrete driveway across the left, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-mattress-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'an old mattress and its box spring standing upright against the garage wall on a driveway toward the right of ' +
+      'frame, a bed frame leaning beside them, a wide empty apron of clean concrete across the left, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-shed-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a small old backyard storage shed being taken down at a suburban home toward the right of frame, doors open and ' +
+      'the contents cleared out, two wall panels unbolted and leaning on the gravel, open gravel yard across the left, ' +
+      HERO_BG_FRAMING + ', nobody in frame, work part done, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-hoarder-cleanouts',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a heavily cluttered but ordinary domestic living room during a careful cleanout, stacked boxes, bags and ' +
+      'belongings along the right hand wall, a clear swept walking path and bare floor across the left, ' +
+      'clean and dry, not squalid, no rubbish on the floor, no pests, no damage, ' +
+      HERO_BG_FRAMING + ', nobody in frame, respectful and matter of fact',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-office-cleanouts',
+    dir: 'services',
+    ratio: '16:9',
+    /*
+     * The first version came back as a furnished office still in use, which
+     * says "office" but not "cleanout". The clearance has to be legible: things
+     * pulled apart, stacked and grouped, and floor showing where they used to be.
+     */
+    scene:
+      'a small commercial office part way through being cleared out, ' +
+      'desks unbolted and tipped on their sides, task chairs stacked in a group, cubicle partitions taken down and leaning flat against a wall, ' +
+      'empty metal shelving pulled away from the wall and a few packed boxes, all grouped toward the right of frame, ' +
+      'a wide area of bare carpet tile across the left where furniture has already been removed, ' +
+      'suspended ceiling and window blinds, the room clearly being emptied rather than in use, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-foreclosure-cleanouts',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a bright empty room in a vacant single family house being cleared, clean painted walls and a clean tiled floor, ' +
+      'a leftover sofa, a dining chair and several boxes gathered toward the right of frame, ' +
+      'the rest of the floor completely clear and swept, no litter, no stains, no damage, ' +
+      HERO_BG_FRAMING + ', nobody in frame, matter of fact and unstaged',
+    env: false,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-same-day-junk-removal',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a small household pickup staged and ready to go on a suburban driveway, a few bulky items set out beside ' +
+      OPEN_TRAILER + ' which is already partly loaded, positioned toward the right of frame, ' + NOT_A_BOX_TRUCK + ', ' +
+      'a wide clean driveway across the left, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'svc-bg-garage-cleanouts',
+    dir: 'services',
+    ratio: '16:9',
+    scene:
+      'a garage cleanout in progress at an ordinary suburban home, the sectional garage door rolled fully up, ' +
+      'the garage still half full of stacked cardboard boxes, storage totes, an old dresser and a bicycle, ' +
+      'a group of items already carried out and set down on the concrete driveway, ' +
+      'a wide empty apron of clean concrete driveway across the left of the picture, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, work half done',
+    env: true,
+    empty: true,
+  },
+];
+
 const SERVICE_HEROES = [
   {
     id: 'svc-hero-junk',
@@ -856,6 +1045,7 @@ const SERVICE_HEROES = [
   },
 ];
 
+SHOTS.push(...SERVICE_HERO_BG);
 SHOTS.push(...SERVICE_HEROES);
 
 SHOTS.push(...HERO_BG);
