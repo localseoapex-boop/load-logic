@@ -1,0 +1,31 @@
+---
+/**
+ * /locations/gilbert-az — the first city page on the 2026 template.
+ *
+ * ─────────────────── Why this is its own route file ───────────────────
+ *
+ * The same reason the service pages needed one: Astro decides a page's CSS from
+ * its module graph, not from which template renders. A [city] route importing
+ * both templates would ship legacy.css with this page too, and legacy's
+ * unscoped rules would reach into the new layout — on the service pages that
+ * silently painted a headline white on bone and put a green slab behind the
+ * buttons.
+ *
+ * This page imports only CityLayout2026, so only the new system's CSS ships with
+ * it, and no specificity hacks are needed to defend the template. The [city]
+ * route excludes this slug from getStaticPaths, so the URL is generated once.
+ *
+ * When the remaining cities migrate, delete this file, point the [city] route at
+ * CityLayout2026, and CityLayout goes with it.
+ */
+import CityLayout2026 from '../../../layouts/CityLayout2026.astro';
+import { locations } from '../../../data/locations';
+
+const location = locations.find((l) => l.slug === 'gilbert-az');
+
+if (!location) {
+  throw new Error('locations.ts no longer contains "gilbert-az", which this route renders.');
+}
+---
+
+<CityLayout2026 {location} />

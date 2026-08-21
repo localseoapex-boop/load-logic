@@ -9,12 +9,29 @@ import CityLayout from '../../../layouts/CityLayout.astro';
 import { serviceAreaLocations } from '../../../lib/links';
 
 export function getStaticPaths() {
+  /*
+   * Cities already moved onto the redesigned template.
+   *
+   * Each has its own static route file (see pages/locations/gilbert-az) and is
+   * excluded here so the URL is generated exactly once. They live in separate
+   * page modules on purpose: importing both templates from one route would put
+   * legacy.css into the redesigned page's bundle, because Astro decides a page's
+   * CSS from its module graph rather than from which template renders.
+   *
+   * Declared inside getStaticPaths, not above it: Astro hoists this function to
+   * the top of the module, so a const in the frontmatter is still in the
+   * temporal dead zone when it runs.
+   */
+  const REDESIGNED = new Set(['gilbert-az']);
+
   // serviceAreaLocations excludes the home-market city (Mesa), so no
   // /locations/mesa-az page is ever generated.
-  return serviceAreaLocations.map((location) => ({
-    params: { city: location.slug },
-    props: { location },
-  }));
+  return serviceAreaLocations
+    .filter((location) => !REDESIGNED.has(location.slug))
+    .map((location) => ({
+      params: { city: location.slug },
+      props: { location },
+    }));
 }
 
 const { location } = Astro.props;

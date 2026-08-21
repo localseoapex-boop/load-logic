@@ -26,6 +26,18 @@
 import { locations } from '../data/locations';
 import { serviceAreaLocations, isHomeCity } from '../lib/links';
 
+interface Props {
+  /**
+   * Slug of the city this map is being shown ON, if any. That city is marked as
+   * the current one so a visitor on a city page can find it immediately. The
+   * home base keeps its own marker either way — they are different facts and
+   * the map should not conflate them.
+   */
+  highlight?: string;
+}
+
+const { highlight } = Astro.props;
+
 /* Every place we go, including the home market. Mesa has no /locations page —
    the homepage is its page — but it must still appear on the map, because a
    coverage map missing the city the business is based in is simply wrong. */
@@ -88,6 +100,7 @@ const points = cities.map((c) => {
     slug: c.slug,
     city: c.city,
     isHome: isHomeCity(c.slug),
+    isCurrent: highlight === c.slug,
     x,
     y,
     label,
@@ -137,8 +150,17 @@ const names = points.map((p) => p.city).join(', ');
 
     {
       points.map((p) => (
-        <g class:list={['pin', { home: p.isHome }]}>
-          <circle cx={p.x} cy={p.y} r={p.isHome ? 9 : 5.5} />
+        <g
+          class:list={[
+            'pin',
+            { home: p.isHome, current: p.isCurrent, 'home-muted': p.isHome && Boolean(highlight) },
+          ]}
+        >
+          {/* The current city is drawn twice: a hi-vis halo under a solid dot, so
+              it outranks the home marker at a glance rather than merely differing
+              from it. */}
+          {p.isCurrent && <circle class="halo" cx={p.x} cy={p.y} r={14} />}
+          <circle cx={p.x} cy={p.y} r={p.isCurrent ? 8 : p.isHome ? 8 : 5.5} />
           <text
             x={p.x + p.label.dx}
             y={p.y + p.label.dy}
@@ -185,6 +207,23 @@ const names = points.map((p) => p.city).join(', ');
     letter-spacing: -0.01em;
   }
 
+  /* The city whose page this is, marked so it is found at a glance. Filled
+     rather than outlined, so it reads as "you are here" and not as a second
+     home base. */
+  .current circle {
+    fill: var(--ink);
+  }
+
+  .current .halo {
+    fill: var(--hi-vis);
+    stroke: none;
+  }
+
+  .current text {
+    fill: var(--ink);
+    font-weight: 700;
+  }
+
   /* The home base is the one thing on this map that should be read first. */
   .home circle {
     fill: var(--hi-vis);
@@ -195,5 +234,17 @@ const names = points.map((p) => p.city).join(', ');
   .home text {
     fill: var(--ink);
     font-weight: 700;
+  }
+
+  /* On a city page the home base is still shown, but it stops competing with the
+     city the visitor is actually on. */
+  .home-muted circle {
+    fill: var(--spruce);
+    stroke: none;
+  }
+
+  .home-muted text {
+    fill: var(--ink-2);
+    font-weight: 400;
   }
 </style>

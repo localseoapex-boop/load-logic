@@ -664,6 +664,54 @@ const HERO_BG_FRAMING =
   'and the left third is deliberately quiet and uncluttered — open ground, plain wall or plain floor with nothing important in it, ' +
   'flat even overcast light with no blown highlights and no deep shadows';
 
+/*
+ * ─────────────── City page heroes ───────────────
+ *
+ * A city page is a local landing page, so its hero establishes the PLACE rather
+ * than the job: an ordinary East Valley residential street, with the work
+ * present but incidental. Deliberately no landmarks, no readable signage and
+ * nothing that would imply an office in that city — Mesa is the home base, and
+ * these frames are Arizona suburban context, not a claim about a specific town.
+ *
+ * Two crops, as on the service pages: 16:9 for the wide hero with the left third
+ * kept quiet for the copy, 3:4 for the tall crop a phone gives it.
+ */
+const CITY_HEROES = [
+  {
+    id: 'city-bg-eastvalley-wide',
+    dir: 'cities',
+    ratio: '16:9',
+    scene:
+      'a quiet ordinary residential street in an Arizona East Valley suburb, single storey stucco houses with ' +
+      'tile roofs set back behind gravel xeriscape front yards, desert shrubs and a young palm, wide concrete ' +
+      'driveways and a clean sidewalk, ' +
+      'on one driveway toward the right of frame a small group of household items set out for collection: ' +
+      'a worn armchair, a few stacked boxes and a rolled carpet, ' +
+      'the whole left third of the picture is open street, sidewalk and gravel yard with nothing in it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+  {
+    id: 'city-bg-eastvalley-tall',
+    dir: 'cities',
+    ratio: '3:4',
+    scene:
+      'vertical portrait photograph of a quiet ordinary residential street in an Arizona East Valley suburb, ' +
+      'a single storey stucco house with a tile roof behind a gravel xeriscape front yard, desert shrubs and a palm, ' +
+      'a wide concrete driveway with a small group of household items set out for collection in the upper half: ' +
+      'a worn armchair, a few stacked boxes and a rolled carpet, ' +
+      'the lower half of the frame is plain empty driveway and sidewalk with nothing on it, ' +
+      'no readable signage of any kind, no street signs, no house numbers, no landmarks, ' +
+      'flat even overcast light with no blown highlights, nobody in frame, documentary and unstaged',
+    env: true,
+    empty: true,
+  },
+];
+
+SHOTS.push(...CITY_HEROES);
+
 const SERVICE_HERO_BG = [
   {
     id: 'svc-bg-junk-removal',
