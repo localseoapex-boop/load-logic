@@ -6,7 +6,9 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import IndexHero from '../../components/IndexHero.astro';
 import InternalLinks from '../../components/InternalLinks.astro';
+import heroImg from '../../assets/photos/cities/ctx-suburb.jpg';
 import { serviceAreaLocations } from '../../lib/links';
 import { cityUrl } from '../../lib/urls';
 
@@ -21,15 +23,32 @@ const links = serviceAreaLocations.map((loc) => ({
   title="Areas We Serve"
   description="Beyond our home base in Mesa, Load Logic Junk Removal serves the East Valley — Chandler, Gilbert, Tempe, Queen Creek, San Tan Valley, Apache Junction, Gold Canyon, Scottsdale, and Ahwatukee."
 >
-  <div class="container page">
+  <div class="container container-wide crumbs">
     <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Areas We Serve' }]} />
-    <header class="page-hero">
-      <h1>Areas We Serve</h1>
-      <p class="lede">
-        Load Logic is based in Mesa and serves the surrounding East Valley. Looking for Mesa junk
-        removal? That is right here on our <a href="/services">services</a> pages.
-      </p>
-    </header>
+  </div>
+
+  {/* Compact index masthead — see IndexHero.astro. This page is about the whole
+      service footprint, so the copy names the region, not the home city. */}
+  <IndexHero
+    eyebrow="Coverage"
+    heading="Junk Removal Service Areas"
+    lede="Load Logic serves communities across the Phoenix East Valley, from Tempe and Chandler out to Gold Canyon and San Tan Valley. Pick your city for local details."
+    image={heroImg}
+    focus="center 58%"
+  />
+
+  <div class="container page">
     <InternalLinks title="Surrounding cities we serve" links={links} />
   </div>
 </BaseLayout>
+
+<style>
+  .crumbs {
+    padding-top: var(--s5);
+    padding-bottom: var(--s4);
+  }
+
+  .page {
+    padding-block: var(--s7) var(--s8);
+  }
+</style>

@@ -7,7 +7,9 @@
  * a Markdown file automatically lists it here — no edits to this file.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import IndexHero from '../../components/IndexHero.astro';
 import { getCollection } from 'astro:content';
+import heroImg from '../../assets/photos/home/quote-photo.jpg';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
@@ -18,8 +20,18 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   title="Junk Removal Tips & Guides"
   description="Practical junk removal and cleanout tips from Load Logic — how to prepare for a pickup, what gets donated or recycled, and more."
 >
+  {/* Compact index masthead — see IndexHero.astro. The current H1 stays: it
+      matches the title tag and already carries the SEO intent. Editorial page,
+      so no hero CTA. */}
+  <IndexHero
+    eyebrow="Resources"
+    heading="Junk Removal Tips & Guides"
+    lede="Practical guidance from the crew: how to prepare for a pickup, what gets donated or recycled, what disposal actually costs, and advice for East Valley homes."
+    image={heroImg}
+    focus="center 50%"
+  />
+
   <section class="container blog-index">
-    <h1>Junk Removal Tips &amp; Guides</h1>
     <ul class="post-list">
       {
         posts.map((post) => (
@@ -48,10 +60,6 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   .blog-index {
     padding: 3rem 1rem;
     max-width: 760px;
-  }
-  .blog-index h1 {
-    font-size: 2.4rem;
-    margin-bottom: 2rem;
   }
   .post-list {
     list-style: none;
