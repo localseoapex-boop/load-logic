@@ -108,7 +108,7 @@ const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
     display: none;
     position: relative;
     isolation: isolate;
-    background: var(--bone-2);
+    background: var(--surface-alt-2);
   }
 
   .layer {
@@ -144,7 +144,7 @@ const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
     bottom: 0;
     left: var(--pos);
     width: 2px;
-    background: var(--hi-vis);
+    background: var(--accent);
     transform: translateX(-1px);
     pointer-events: none;
   }
@@ -157,7 +157,7 @@ const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
     width: 40px;
     height: 40px;
     transform: translate(-50%, -50%);
-    background: var(--hi-vis);
+    background: var(--accent);
     border-radius: var(--r-pill);
   }
 
@@ -174,7 +174,7 @@ const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
   /* Keyboard focus has to be visible even though the input itself is invisible. */
   .slider:focus-visible + .slider,
   .slider:focus-visible {
-    outline: 2px solid var(--hi-vis);
+    outline: 2px solid var(--accent);
     outline-offset: 4px;
     opacity: 0.01;
   }
@@ -195,12 +195,12 @@ const { before, after, beforeAlt, afterAlt, caption, id } = Astro.props;
   .tag-before {
     left: var(--s3);
     background: var(--ink);
-    color: var(--bone);
+    color: var(--surface-alt);
   }
 
   .tag-after {
     right: var(--s3);
-    background: var(--hi-vis);
+    background: var(--accent);
     color: var(--ink);
   }
 

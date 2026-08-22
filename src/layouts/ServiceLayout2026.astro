@@ -427,7 +427,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   <CtaBreak
     heading={ctaSecond}
     source={`service-${service.slug}-mid-2`}
-    tone="spruce"
+    tone="dark"
   />
 
   {/* ── Internal links. Same three groups, rendered inline rather than through
@@ -491,7 +491,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   </Section>
 
   {/* ── Final CTA. Existing heading and copy, restyled. ── */}
-  <section class="final on-spruce">
+  <section class="final on-dark">
     <div class="container container-wide final-inner">
       <div>
         <h2>Ready to clear it out?</h2>
@@ -522,7 +522,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     grid-template-rows: 1fr auto;
     min-height: min(78dvh, 560px);
     isolation: isolate;
-    background: var(--spruce);
+    background: var(--dark);
     color: #fff;
   }
 
@@ -554,17 +554,17 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     background:
       linear-gradient(
         to right,
-        rgb(8 14 11 / 0.84) 0%,
-        rgb(8 14 11 / 0.66) 32%,
-        rgb(8 14 11 / 0.26) 64%,
-        rgb(8 14 11 / 0.06) 100%
+        rgb(24 26 28 / 0.84) 0%,
+        rgb(24 26 28 / 0.66) 32%,
+        rgb(24 26 28 / 0.26) 64%,
+        rgb(24 26 28 / 0.06) 100%
       ),
       linear-gradient(
         to top,
-        rgb(8 14 11 / 0.72) 0%,
-        rgb(8 14 11 / 0.3) 30%,
-        rgb(8 14 11 / 0.04) 62%,
-        rgb(8 14 11 / 0.1) 100%
+        rgb(24 26 28 / 0.72) 0%,
+        rgb(24 26 28 / 0.3) 30%,
+        rgb(24 26 28 / 0.04) 62%,
+        rgb(24 26 28 / 0.1) 100%
       );
   }
 
@@ -582,17 +582,17 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--hi-vis);
+    color: var(--accent);
     margin-bottom: var(--s4);
   }
 
   h1 {
     font-size: var(--d1);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     line-height: 0.98;
     max-width: 16ch;
     color: #fff;
-    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
+    text-shadow: 0 2px 24px rgb(24 26 28 / 0.5);
   }
 
   .lede {
@@ -600,7 +600,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     font-size: var(--t1);
     color: rgb(255 255 255 / 0.9);
     max-width: 46ch;
-    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
+    text-shadow: 0 1px 16px rgb(24 26 28 / 0.55);
   }
 
   .hero-cta {
@@ -613,13 +613,13 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
      hero so the button behaves normally everywhere else. No backdrop-filter:
      this layer scrolls, and blur on a scrolling layer costs repaints. */
   .hero-cta :global(.btn.dark.solid) {
-    background: rgb(8 14 11 / 0.55);
+    background: rgb(24 26 28 / 0.55);
     border-color: rgb(255 255 255 / 0.5);
     color: #fff;
   }
 
   .hero-cta :global(.btn.dark.solid:hover) {
-    background: rgb(8 14 11 / 0.74);
+    background: rgb(24 26 28 / 0.74);
     border-color: #fff;
   }
 
@@ -630,7 +630,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     position: relative;
     z-index: 1;
     border-top: 1px solid rgb(255 255 255 / 0.18);
-    background: rgb(8 14 11 / 0.4);
+    background: rgb(24 26 28 / 0.4);
     padding-block: var(--s4);
   }
 
@@ -678,10 +678,10 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
     .scrim {
       background: linear-gradient(
         to top,
-        rgb(8 14 11 / 0.88) 0%,
-        rgb(8 14 11 / 0.7) 32%,
-        rgb(8 14 11 / 0.36) 62%,
-        rgb(8 14 11 / 0.46) 100%
+        rgb(24 26 28 / 0.88) 0%,
+        rgb(24 26 28 / 0.7) 32%,
+        rgb(24 26 28 / 0.36) 62%,
+        rgb(24 26 28 / 0.46) 100%
       );
     }
 
@@ -695,7 +695,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   .intro-line {
     font-size: var(--d3);
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     color: var(--ink);
     max-width: 34ch;
     text-wrap: pretty;
@@ -789,7 +789,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
 
   .groups > li h3 {
     font-size: var(--d3);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 
   .items {
@@ -812,7 +812,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   .special {
     margin-top: var(--s7);
     padding-inline-start: var(--s5);
-    border-inline-start: 3px solid var(--hi-vis);
+    border-inline-start: 3px solid var(--accent);
     max-width: 68ch;
   }
 
@@ -916,7 +916,7 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
 
   /* The resolved half reads darker, so the pair has a direction. */
   .solution h3 {
-    color: var(--spruce-2);
+    color: var(--link);
   }
 
   .solution p {
@@ -962,7 +962,10 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   }
 
   .group a:hover {
-    color: var(--spruce-2);
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.15em;
   }
 
   .group span {
@@ -994,22 +997,22 @@ const ctaSecond = CTA_SECOND[service.slug] ?? 'Ready to clear the space?';
   /* ─────────────────────── Final CTA ─────────────────────── */
 
   .final {
-    background: var(--spruce);
-    color: var(--on-spruce);
-    border-top: 4px solid var(--hi-vis);
+    background: var(--dark);
+    color: var(--on-dark);
+    border-top: 4px solid var(--accent);
     padding-block: var(--sec-std-t) var(--sec-std-b);
   }
 
   .final h2 {
     color: #fff;
     font-size: var(--d2);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     max-width: 18ch;
   }
 
   .final p {
     margin-top: var(--s4);
-    color: var(--on-spruce-2);
+    color: var(--on-dark-2);
     max-width: 46ch;
   }
 

@@ -24,22 +24,22 @@ interface Props {
   body?: string;
   source: string;
   /** `bone` sits inside the light run; `spruce` marks a heavier transition. */
-  tone?: 'bone' | 'spruce';
+  tone?: 'light' | 'dark';
   /** Passed through to QuoteCta. City pages use "Schedule Now". */
   ctaLabel?: string;
 }
 
-const { heading, body, source, tone = 'bone', ctaLabel } = Astro.props;
+const { heading, body, source, tone = 'light', ctaLabel } = Astro.props;
 ---
 
-<section class:list={['break', tone, { 'on-spruce': tone === 'spruce' }]}>
+<section class:list={['break', tone, { 'on-dark': tone === 'dark' }]}>
   <div class="container container-wide inner">
     <div class="copy">
       <p class="heading">{heading}</p>
       {body && <p class="body">{body}</p>}
     </div>
     <div class="action">
-      <QuoteCta {source} onDark={tone === 'spruce'} label={ctaLabel} />
+      <QuoteCta {source} onDark={tone === 'dark'} label={ctaLabel} />
     </div>
   </div>
 </section>
@@ -50,27 +50,27 @@ const { heading, body, source, tone = 'bone', ctaLabel } = Astro.props;
     border-block: 1px solid var(--rule);
   }
 
-  .bone {
-    background: var(--bone-2);
+  .light {
+    background: var(--surface-alt-2);
   }
 
-  .spruce {
-    background: var(--spruce);
-    color: var(--on-spruce);
-    border-block-color: var(--rule-on-spruce);
-    border-top: 4px solid var(--hi-vis);
+  .dark {
+    background: var(--dark);
+    color: var(--on-dark);
+    border-block-color: var(--rule-on-dark);
+    border-top: 4px solid var(--accent);
   }
 
   .heading {
     font-family: var(--font-display);
     font-size: var(--d3);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     color: var(--ink);
     text-wrap: balance;
   }
 
-  .spruce .heading {
+  .dark .heading {
     color: #fff;
   }
 
@@ -80,8 +80,8 @@ const { heading, body, source, tone = 'bone', ctaLabel } = Astro.props;
     max-width: 48ch;
   }
 
-  .spruce .body {
-    color: var(--on-spruce-2);
+  .dark .body {
+    color: var(--on-dark-2);
   }
 
   .action {

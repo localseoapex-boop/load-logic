@@ -12,30 +12,59 @@
 
 :root {
   /* ─────────────────────────── Colour ───────────────────────────
-     One accent. Warm neutral base. Spruce is a block colour, not a tint. */
+     The approved brand palette, then the semantic system built from it.
+     Components read the SEMANTIC tokens; the palette tokens exist so every
+     derived value visibly traces back to an approved colour. Safety orange is
+     the one accent: actions, highlights, active/focus states. It is never a
+     large surface. */
 
-  --bone: #f4f2ed;
-  --bone-2: #eae7df;
-  --surface: #ffffff;
+  /* Palette (approved) */
+  --orange: #ff6500;
+  --charcoal: #2b2f33;
+  --black: #181a1c;
+  --steel: #697077;
+  --gray-light: #f3f4f4;
+  --white: #ffffff;
 
-  --ink: #171a17;
-  --ink-2: #565c57;
-  --ink-3: #878d87;
+  /* Light surfaces */
+  --background: var(--white);
+  --surface: var(--white);
+  --surface-alt: var(--gray-light);
+  /* One step below gray-light, for sunk moments inside an alt section. */
+  --surface-alt-2: #e8eaeb;
 
-  --rule: #d8d3c8;
-  --rule-strong: #b9b3a5;
+  /* Text on light. --ink-2 is a darkened steel: pure steel reads AA on white
+     but falls to ~4.5:1 on gray-light, so running text gets the safe step and
+     pure steel is reserved for labels, small mono and borders. */
+  --ink: var(--black);
+  --ink-heading: var(--charcoal);
+  --ink-2: #565b61;
+  --ink-3: var(--steel);
 
-  --spruce: #123329;
-  --spruce-2: #1d5443;
-  --spruce-3: #2e6e58;
-  /* Hairline and secondary text for use ON spruce blocks. */
-  --on-spruce: #dfe4df;
-  --on-spruce-2: #a9b5ad;
-  --rule-on-spruce: #2b4a3e;
+  /* Rules on light */
+  --rule: #e3e5e6;
+  --rule-strong: #c8cbcd;
 
-  /* The only accent. Actions and focus, nothing else. */
-  --hi-vis: #cfe034;
-  --hi-vis-press: #bacc28;
+  /* Dark surfaces and what sits on them */
+  --dark: var(--charcoal);
+  --dark-2: #3a3f44; /* raised/hover on dark */
+  --dark-deep: var(--black); /* footer, darkest blocks */
+  --on-dark: var(--gray-light);
+  --on-dark-2: #aab0b5; /* muted on charcoal, AA */
+  --rule-on-dark: #43484d;
+
+  /* The only accent. Actions, highlights, active and focus states. */
+  --accent: var(--orange);
+  --accent-press: #e05500; /* hover/pressed: darker, same hue */
+  /* Button/label foreground on an orange fill. Near black measures 5.7:1 on
+     the accent; white measures 3.0:1 and fails, so it is never used there. */
+  --on-accent: var(--black);
+
+  /* Interactive text on light surfaces. Orange fails AA as normal-size text
+     on white, so links are charcoal with the accent carried by underline,
+     arrow or marker — never by weakening the text itself. */
+  --link: var(--charcoal);
+  --link-hover: var(--black);
 
   /* Semantic only: restrictions and warnings. Never decorative. */
   --rust: #a8462a;
@@ -43,17 +72,17 @@
 
   /* ─────────────────────────── Type ─────────────────────────── */
 
-  --font-display: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-text: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --font-text: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-data: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Display scale. The previous build ran every section heading at --d2, which
      meant the load scale and the FAQ shouted at exactly the same volume and the
      page had no way to tell you what mattered. The steps below are deliberately
      far apart: contrast is the point, not size. */
-  --d0: clamp(2.75rem, 7vw, 5.5rem); /* hero only */
-  --d1: clamp(2.5rem, 5.5vw, 4.5rem); /* signature sections */
-  --d2: clamp(2rem, 4vw, 3.25rem); /* standard sections */
+  --d0: clamp(2.75rem, 6.5vw, 5rem); /* hero only */
+  --d1: clamp(2.5rem, 5vw, 4.25rem); /* signature sections */
+  --d2: clamp(2rem, 3.6vw, 3rem); /* standard sections */
   --d3: clamp(1.375rem, 2vw, 1.75rem); /* utility sections, sub-heads */
   --t1: 1.1875rem;
   --t2: 1.0625rem;
@@ -112,8 +141,8 @@
   --r: 4px;
   --r-pill: 999px;
 
-  --shadow-float: 0 1px 2px rgb(23 26 23 / 0.06), 0 8px 24px rgb(18 51 41 / 0.1);
-  --shadow-lift: 0 12px 40px rgb(18 51 41 / 0.16);
+  --shadow-float: 0 1px 2px rgb(24 26 28 / 0.06), 0 8px 24px rgb(24 26 28 / 0.1);
+  --shadow-lift: 0 12px 40px rgb(24 26 28 / 0.16);
 
   /* ─────────────────────────── Motion ───────────────────────────
      MOTION_INTENSITY 3. Functional feedback only. */

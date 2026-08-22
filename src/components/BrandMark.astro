@@ -18,7 +18,7 @@ interface Props {
 }
 
 const { size = 32, onDark = false } = Astro.props;
-const solid = onDark ? 'var(--on-spruce)' : 'var(--spruce)';
+const solid = onDark ? 'var(--on-dark)' : 'var(--dark)';
 ---
 
 <svg
@@ -32,7 +32,7 @@ const solid = onDark ? 'var(--on-spruce)' : 'var(--spruce)';
 >
   <rect x="4" y="14" width="13" height="14" fill={solid} />
   <rect x="19" y="19" width="9" height="9" fill={solid} />
-  <rect x="19" y="8" width="9" height="9" fill="var(--hi-vis)" />
+  <rect x="19" y="8" width="9" height="9" fill="var(--accent)" />
 </svg>
 
 <style>

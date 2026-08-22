@@ -35,7 +35,7 @@ const { heading, body, source = 'footer-cta', showSteps = true } = Astro.props;
 const quote = primaryQuoteAction();
 ---
 
-<section class="final on-spruce">
+<section class="final on-dark">
   <div class="container container-wide inner">
     <div class="copy">
       <h2>{heading}</h2>
@@ -57,12 +57,12 @@ const quote = primaryQuoteAction();
 
 <style>
   .final {
-    background: var(--spruce);
-    color: var(--on-spruce-2);
+    background: var(--dark);
+    color: var(--on-dark-2);
     /* The closing edge. The hero panel opens the page with a hi-vis rule along
        its top; this closes it with the same mark at full viewport width, so the
        document is bracketed rather than just ending. */
-    border-top: 4px solid var(--hi-vis);
+    border-top: 4px solid var(--accent);
     /* Lighter bottom padding than a feature section would normally take: the
        footer is also spruce and sits directly below, so a full feature gap here
        reads as dead space inside one very large dark region rather than as
@@ -82,7 +82,7 @@ const quote = primaryQuoteAction();
   h2 {
     color: #fff;
     font-size: var(--d1);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     line-height: 0.96;
     max-width: 15ch;
   }
@@ -97,7 +97,7 @@ const quote = primaryQuoteAction();
   .steps {
     margin-top: var(--s6);
     padding: var(--s5) 0 0;
-    border-top: 1px solid var(--rule-on-spruce);
+    border-top: 1px solid var(--rule-on-dark);
     list-style: none;
     counter-reset: step;
     display: grid;
@@ -116,7 +116,7 @@ const quote = primaryQuoteAction();
     position: absolute;
     inset-inline-start: 0;
     font-family: var(--font-data);
-    color: var(--hi-vis);
+    color: var(--accent);
     font-weight: 600;
   }
 

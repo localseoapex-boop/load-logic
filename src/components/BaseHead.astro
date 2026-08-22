@@ -57,16 +57,24 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
 <link rel="icon" href="/favicon.ico" />
 
 <!--
-  Font preload. Archivo carries every heading including the LCP text, so the
-  latin subset is fetched at high priority rather than waiting on the CSS to be
-  parsed first. The file is served from /public precisely so this URL is stable
-  and predictable; a Vite-hashed asset could not be referenced from here.
-  The latin-extended subset is deliberately NOT preloaded: it is rarely needed
-  and would compete for bandwidth with the hero image.
+  Font preload. The display face carries every heading including the LCP text,
+  and the body face carries everything else above the fold, so both latin
+  subsets are fetched at high priority rather than waiting on the CSS to be
+  parsed first. Files are served from /public precisely so these URLs are
+  stable and predictable; a Vite-hashed asset could not be referenced here.
+  The remaining weights are NOT preloaded: they would compete for bandwidth
+  with the hero image.
 -->
 <link
   rel="preload"
-  href="/fonts/archivo-latin-var.woff2"
+  href="/fonts/barlow-condensed-latin-700.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+<link
+  rel="preload"
+  href="/fonts/inter-latin-400.woff2"
   as="font"
   type="font/woff2"
   crossorigin

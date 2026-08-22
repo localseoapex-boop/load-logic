@@ -9,31 +9,48 @@
  */
 
 /* ─────────────────────────── Fonts ───────────────────────────
-   Archivo variable, self-hosted. One family covers display and text through its
-   weight and width axes. `swap` so text is never invisible while loading. */
+   Barlow Condensed for display, Inter for text/UI — both self-hosted latin
+   subsets, only the weights actually used. `swap` so text is never invisible
+   while loading. The mono data face stays a system stack. */
 
 @font-face {
-  font-family: 'Archivo';
+  font-family: 'Barlow Condensed';
   font-style: normal;
-  font-weight: 400 800;
-  font-stretch: 75% 125%;
+  font-weight: 600;
   font-display: swap;
-  src: url('/fonts/archivo-latin-var.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
-    U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url('/fonts/barlow-condensed-latin-600.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Archivo';
+  font-family: 'Barlow Condensed';
   font-style: normal;
-  font-weight: 400 800;
-  font-stretch: 75% 125%;
+  font-weight: 700;
   font-display: swap;
-  src: url('/fonts/archivo-latin-ext-var.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
-    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
-    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url('/fonts/barlow-condensed-latin-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-latin-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/inter-latin-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-latin-600.woff2') format('woff2');
 }
 
 /* ─────────────────────────── Reset ─────────────────────────── */
@@ -64,7 +81,7 @@ body {
   font-size: var(--t2);
   line-height: 1.65;
   color: var(--ink);
-  background: var(--bone);
+  background: var(--background);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -96,26 +113,27 @@ h4 {
   font-family: var(--font-display);
   font-weight: 700;
   text-wrap: balance;
-  color: var(--ink);
+  color: var(--ink-heading);
 }
 
+/* Barlow Condensed is already narrow: tracking stays at zero (negative
+   tracking on a condensed face closes it up), and the old Archivo
+   font-stretch axis values are gone with the variable font. */
 h1 {
   font-size: var(--d1);
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   line-height: 0.95;
-  font-stretch: 108%;
 }
 
 h2 {
   font-size: var(--d2);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   line-height: 1.02;
-  font-stretch: 105%;
 }
 
 h3 {
   font-size: var(--d3);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.005em;
   line-height: 1.15;
 }
 
@@ -123,14 +141,19 @@ p {
   text-wrap: pretty;
 }
 
+/* Orange fails AA as normal-size link text on white, so the text stays
+   charcoal and the ACCENT is the underline. Hover deepens the text and
+   thickens the rule instead of recolouring the words. */
 a {
-  color: var(--spruce-2);
+  color: var(--link);
+  text-decoration-color: var(--accent);
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
 
 a:hover {
-  color: var(--spruce-3);
+  color: var(--link-hover);
+  text-decoration-thickness: 2px;
 }
 
 strong {
@@ -157,14 +180,14 @@ strong {
 /* ───────────────────────── Accessibility ───────────────────────── */
 
 :focus-visible {
-  outline: 2px solid var(--hi-vis);
+  outline: 2px solid var(--accent-press);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* Visible focus on spruce needs a light ring to stay legible. */
-.on-spruce :focus-visible {
-  outline-color: var(--hi-vis);
+/* On dark surfaces the pure accent has the stronger contrast. */
+.on-dark :focus-visible {
+  outline-color: var(--accent);
 }
 
 .visually-hidden {
@@ -184,8 +207,8 @@ strong {
   left: var(--s2);
   z-index: var(--z-overlay);
   padding: var(--s3) var(--s4);
-  background: var(--hi-vis);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: 700;
   text-decoration: none;
   border-radius: var(--r);

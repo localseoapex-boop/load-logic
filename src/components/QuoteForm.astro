@@ -427,7 +427,7 @@ const optionsFor = (from?: string) => {
 
   .checklist li {
     padding: var(--s1) var(--s3);
-    background: var(--bone-2);
+    background: var(--surface-alt-2);
     border-radius: var(--r-pill);
     font-size: var(--t3);
   }
@@ -442,11 +442,11 @@ const optionsFor = (from?: string) => {
   button[type='submit'] {
     min-height: 56px;
     padding-inline: var(--s7);
-    background: var(--hi-vis);
-    color: var(--ink);
+    background: var(--accent);
+    color: var(--on-accent);
     border: 0;
     border-radius: var(--r);
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 600;
     font-size: var(--t1);
     cursor: pointer;
@@ -455,7 +455,7 @@ const optionsFor = (from?: string) => {
   }
 
   button[type='submit']:hover {
-    background: var(--hi-vis-press);
+    background: var(--accent-press);
   }
 
   button[type='submit']:active {
@@ -501,13 +501,19 @@ const optionsFor = (from?: string) => {
     min-height: 48px;
     padding-inline: var(--s5);
     border-radius: var(--r);
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 600;
     text-decoration: none;
   }
 
   .pending-call {
-    background: var(--spruce);
+    background: transparent;
+    border: 1px solid var(--charcoal);
+    color: var(--charcoal);
+  }
+
+  .pending-call:hover {
+    background: var(--charcoal);
     color: #fff;
   }
 
