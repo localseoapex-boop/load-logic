@@ -34,6 +34,8 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import IndexHero from '../components/IndexHero.astro';
+import heroImg from '../assets/photos/equipment/equip-dump-trailer.jpg';
 import Section from '../components/Section.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
@@ -69,36 +71,21 @@ const published = isPricingPublished();
   title="Junk Removal Pricing in Mesa, AZ"
   description="How junk removal pricing works in Mesa and the East Valley: what the price is based on, what makes a job cost more, and how to estimate your own load before you call."
 >
-  <div class="container">
+  <div class="container container-wide crumbs">
     <Breadcrumbs items={crumbs} />
   </div>
 
-  <!-- Text-led hero. Deliberately not the photographic hero the homepage uses:
-       this page answers a question, so the answer is the opening image. -->
-  <header class="page-hero">
-    <div class="container">
-      <p class="label">Pricing</p>
-      <h1>What it costs, and what decides it</h1>
-      <p class="lede">
-        Junk removal is priced per job, not from a menu. The honest version is
-        that two garages of the same size can cost different amounts, and the
-        things that move the number are volume, weight and how hard the items are
-        to get to.
-      </p>
-
-      <div class="promise">
-        <p>
-          What does not change: <strong>you get the price before anything is
-          loaded.</strong> The crew confirms the number on site, and if there is
-          more than expected you decide before it goes on the trailer.
-        </p>
-      </div>
-
-      <div class="hero-cta">
-        <QuoteCta source="pricing-hero" />
-      </div>
-    </div>
-  </header>
+  {/* Compact index masthead — see IndexHero.astro. The lede keeps the page's
+      one standing commitment: the price comes before anything is loaded. The
+      restrained CTA keeps the established pricing-hero source tag. */}
+  <IndexHero
+    eyebrow="Pricing"
+    heading="Simple Junk Removal Pricing"
+    lede="Priced by how much space your junk takes up in the truck, plus weight and access where they matter — and you get the number before anything is loaded."
+    image={heroImg}
+    focus="center 55%"
+    ctaSource="pricing-hero"
+  />
 
   <!-- The estimation tool comes first. Someone on this page wants a number, and
        working out their own load size gets them closest fastest. -->
@@ -154,41 +141,9 @@ const published = isPricingPublished();
 </BaseLayout>
 
 <style>
-  .page-hero {
-    padding-block: var(--s7) var(--s9);
-  }
-
-  .label {
-    margin-bottom: var(--s3);
-  }
-
-  h1 {
-    max-width: 16ch;
-  }
-
-  .lede {
-    margin-top: var(--s5);
-    font-size: var(--t1);
-    color: var(--ink-2);
-    max-width: 58ch;
-  }
-
-  /* The one commitment that is true regardless of the missing figures, given the
-     weight it deserves on a page about price. */
-  .promise {
-    margin-top: var(--s6);
-    padding: var(--s5);
-    background: var(--surface);
-    border-inline-start: 3px solid var(--hi-vis);
-    max-width: 62ch;
-  }
-
-  .promise strong {
-    color: var(--ink);
-  }
-
-  .hero-cta {
-    margin-top: var(--s6);
+  .crumbs {
+    padding-top: var(--s5);
+    padding-bottom: var(--s4);
   }
 
   .jobs {

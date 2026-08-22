@@ -7,7 +7,9 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import IndexHero from '../../components/IndexHero.astro';
 import InternalLinks from '../../components/InternalLinks.astro';
+import heroImg from '../../assets/photos/home/hero-carry.jpg';
 import { services } from '../../data/services';
 import { serviceUrl } from '../../lib/urls';
 
@@ -22,12 +24,32 @@ const links = services.map((s) => ({
   title="Junk Removal & Cleanout Services"
   description="Explore Load Logic's full range of junk removal and cleanout services across Mesa and the East Valley — furniture, appliances, garages, estates, and more."
 >
-  <div class="container page">
+  <div class="container container-wide crumbs">
     <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Services' }]} />
-    <header class="page-hero">
-      <h1>Junk Removal &amp; Cleanout Services</h1>
-      <p class="lede">Full-service hauling for homes and businesses across Mesa and the East Valley — we bring the truck and the muscle.</p>
-    </header>
+  </div>
+
+  {/* Compact index masthead — see IndexHero.astro. Browsing page: no hero CTA,
+      the service directory below carries the links. */}
+  <IndexHero
+    eyebrow="All services"
+    heading="Junk Removal Services"
+    lede="Junk removal, cleanouts and hauling for homes and businesses across the East Valley. Every service below is full-service: we bring the truck and the muscle, you point at what goes."
+    image={heroImg}
+    focus="center 42%"
+  />
+
+  <div class="container page">
     <InternalLinks title="Browse services" links={links} />
   </div>
 </BaseLayout>
+
+<style>
+  .crumbs {
+    padding-top: var(--s5);
+    padding-bottom: var(--s4);
+  }
+
+  .page {
+    padding-block: var(--s7) var(--s8);
+  }
+</style>
