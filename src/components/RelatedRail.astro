@@ -91,7 +91,10 @@ const { title, links, variant = 'index', headingLevel: Heading = 'h2' } = Astro.
   }
 
   .index a:hover {
-    color: var(--spruce-2);
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.15em;
   }
 
   .index .label-text {

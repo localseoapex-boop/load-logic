@@ -156,7 +156,7 @@ const names = points.map((p) => p.city).join(', ');
             { home: p.isHome, current: p.isCurrent, 'home-muted': p.isHome && Boolean(highlight) },
           ]}
         >
-          {/* The current city is drawn twice: a hi-vis halo under a solid dot, so
+          {/* The current city is drawn twice: an accent halo under a solid dot, so
               it outranks the home marker at a glance rather than merely differing
               from it. */}
           {p.isCurrent && <circle class="halo" cx={p.x} cy={p.y} r={14} />}
@@ -188,34 +188,34 @@ const names = points.map((p) => p.city).join(', ');
   }
 
   .area {
-    fill: var(--spruce);
+    fill: var(--steel);
     fill-opacity: 0.08;
-    stroke: var(--spruce-3);
-    stroke-opacity: 0.5;
+    stroke: var(--steel);
+    stroke-opacity: 0.55;
     stroke-width: 1.5;
     stroke-dasharray: 6 5;
   }
 
   .pin circle {
-    fill: var(--spruce);
+    fill: var(--steel);
   }
 
   .pin text {
     font-family: var(--font-data);
     font-size: 19px;
     fill: var(--ink-2);
-    letter-spacing: -0.01em;
+    letter-spacing: 0.005em;
   }
 
-  /* The city whose page this is, marked so it is found at a glance. Filled
-     rather than outlined, so it reads as "you are here" and not as a second
-     home base. */
+  /* The city whose page this is: the one safety-orange mark on the map, so it
+     is found at a glance. */
   .current circle {
-    fill: var(--ink);
+    fill: var(--accent);
   }
 
   .current .halo {
-    fill: var(--hi-vis);
+    fill: var(--accent);
+    fill-opacity: 0.22;
     stroke: none;
   }
 
@@ -224,11 +224,11 @@ const names = points.map((p) => p.city).join(', ');
     font-weight: 700;
   }
 
-  /* The home base is the one thing on this map that should be read first. */
+  /* The home base reads first without borrowing the accent: solid charcoal,
+     heavier than the steel field pins. */
   .home circle {
-    fill: var(--hi-vis);
-    stroke: var(--ink);
-    stroke-width: 3;
+    fill: var(--charcoal);
+    stroke: none;
   }
 
   .home text {
@@ -239,7 +239,7 @@ const names = points.map((p) => p.city).join(', ');
   /* On a city page the home base is still shown, but it stops competing with the
      city the visitor is actually on. */
   .home-muted circle {
-    fill: var(--spruce);
+    fill: var(--steel);
     stroke: none;
   }
 

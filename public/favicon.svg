@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  favicon.svg — the Load Logic mark on a spruce field.
+  favicon.svg — the Load Logic mark on a charcoal field.
 
   Replaces the default Astro logo that shipped with the starter. The mark is the
   same packed-load composition as src/assets/brand/mark.svg, reversed onto a
@@ -8,12 +8,12 @@
   and dark browser chrome.
 
   Deliberately does NOT invert under prefers-color-scheme. A logo that changes
-  color with the viewer's theme stops being recognisable, and the spruce field
+  color with the viewer's theme stops being recognisable, and the charcoal field
   gives enough contrast either way.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" fill="#123329" />
-  <rect x="4" y="14" width="13" height="14" fill="#F4F2ED" />
-  <rect x="19" y="19" width="9" height="9" fill="#F4F2ED" />
-  <rect x="19" y="8" width="9" height="9" fill="#CFE034" />
+  <rect width="32" height="32" fill="#2B2F33" />
+  <rect x="4" y="14" width="13" height="14" fill="#FFFFFF" />
+  <rect x="19" y="19" width="9" height="9" fill="#FFFFFF" />
+  <rect x="19" y="8" width="9" height="9" fill="#FF6500" />
 </svg>

@@ -67,7 +67,7 @@ const home = locations.find((l) => isHomeCity(l.slug));
     font-family: var(--font-display);
     font-size: var(--d3);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     color: var(--ink);
     text-decoration: none;
   }
@@ -93,7 +93,10 @@ const home = locations.find((l) => isHomeCity(l.slug));
 
   @media (hover: hover) {
     a.name:hover {
-      color: var(--spruce-2);
+      color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.15em;
     }
 
     li:hover .mark {

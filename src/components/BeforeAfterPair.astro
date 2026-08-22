@@ -93,19 +93,19 @@ const { before, after, beforeAlt, afterAlt, note } = Astro.props;
     padding: var(--s2) var(--s4);
   }
 
-  /* Literal colours, not tokens. Spruce sections remap --ink to white so that
+  /* Literal colours, not tokens. Dark sections remap --ink to white so that
      light-surface components render correctly on dark, which is right for body
      copy and wrong for these two labels: BEFORE became white-on-white the moment
      the section turned dark. A state label has to look the same everywhere it
      appears, so it does not participate in the remap. */
   .before {
-    background: #171a17;
+    background: #181a1c;
     color: #fff;
   }
 
   .after {
-    background: #cfe034;
-    color: #171a17;
+    background: #ff6500;
+    color: #181a1c;
   }
 
   .note {

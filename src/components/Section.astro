@@ -7,7 +7,7 @@
  * The previous version had two levers, `weight` (padding) and `tone`
  * (background), and neither carried enough signal to be felt. Measured on the
  * rendered page, every section heading came out at exactly 52px/700, padding
- * took one of two values, and the bone/sunk alternation was a ten-point
+ * took one of two values, and the light/sunk alternation was a ten-point
  * difference in RGB. So the page had eight sections that announced themselves
  * at identical volume against a background that never actually changed. That is
  * the whole of why it read as "content, section, content, section" — not the
@@ -19,8 +19,8 @@
  *            equally important and must not be set at the same size. The steps
  *            are far apart on purpose.
  *
- *   TONE     bone, sunk, white or spruce. `white` is a genuine surface change
- *            rather than a tint, and spruce is now allowed to appear mid-page as
+ *   TONE     light, sunk, white or dark. `white` is a genuine surface change
+ *            rather than a tint, and dark is now allowed to appear mid-page as
  *            a major transition instead of only bookending it.
  *
  *   INDEX    an optional section numeral. Beyond wayfinding, this is the page's
@@ -37,7 +37,7 @@
  */
 interface Props {
   weight?: 'tight' | 'standard' | 'feature';
-  tone?: 'bone' | 'sunk' | 'white' | 'spruce';
+  tone?: 'light' | 'sunk' | 'white' | 'dark';
   width?: 'content' | 'wide' | 'narrow';
   /** Heading size. Ration `display` to the two or three signature sections. */
   scale?: 'display' | 'standard' | 'utility';
@@ -58,7 +58,7 @@ interface Props {
 
 const {
   weight = 'standard',
-  tone = 'bone',
+  tone = 'light',
   width = 'content',
   scale = 'standard',
   index,
@@ -77,7 +77,7 @@ const hasMedia = Astro.slots.has('media');
 ---
 
 <section
-  class:list={['section', weight, tone, className, { 'on-spruce': tone === 'spruce' }]}
+  class:list={['section', weight, tone, className, { 'on-dark': tone === 'dark' }]}
   {id}
 >
   <div
@@ -135,47 +135,47 @@ const hasMedia = Astro.slots.has('media');
 
   /* ─── Tone ─── */
 
-  .bone {
-    background: var(--bone);
+  .light {
+    background: var(--background);
   }
 
   .sunk {
-    background: var(--bone-2);
+    background: var(--surface-alt);
   }
 
-  /* A real surface change rather than a tint. Used for the measuring sections,
-     where white reads as instrument paper against the warm page. */
+  /* Explicit white. Same value as the page ground now that the page is white;
+     kept as a tone so section markup stays declarative. */
   .white {
     background: var(--surface);
   }
 
-  /* Rather than override every child component's colours one by one, the spruce
+  /* Rather than override every child component's colours one by one, the dark
      section REMAPS the tokens its children already read. A component written for
      the light page (rules, muted text, a white panel) then renders correctly on
      dark without knowing it is on dark, and anything added later inherits the
      same behaviour for free. This is why the proof section can host the job
      record, the equipment table and the before/after slider unmodified. */
-  .spruce {
+  .dark {
     --ink: #ffffff;
-    --ink-2: var(--on-spruce);
-    --ink-3: var(--on-spruce-2);
-    --rule: var(--rule-on-spruce);
-    --rule-strong: #3d6155;
-    /* Anything expecting a raised panel gets a lifted spruce, not white. */
-    --surface: #17402f;
-    --bone: var(--spruce);
-    --bone-2: #17402f;
-    /* Links read as var(--spruce-2), which is invisible against spruce. On dark
-       the accent takes over as the link colour. */
-    --spruce-2: var(--hi-vis);
-    --spruce-3: var(--hi-vis);
+    --ink-2: var(--on-dark);
+    --ink-3: var(--on-dark-2);
+    --rule: var(--rule-on-dark);
+    --rule-strong: #5c6268;
+    /* Anything expecting a raised panel gets a lifted charcoal, not white. */
+    --surface: var(--dark-2);
+    --surface-alt: var(--dark);
+    --surface-alt-2: var(--dark-2);
+    /* Charcoal link text is invisible against charcoal: on dark, links run
+       white and the accent takes over on hover/focus. */
+    --link: var(--white);
+    --link-hover: var(--accent);
 
-    background: var(--spruce);
-    color: var(--on-spruce);
+    background: var(--dark);
+    color: var(--on-dark);
   }
 
-  .spruce :global(h2),
-  .spruce :global(h3) {
+  .dark :global(h2),
+  .dark :global(h3) {
     color: #fff;
   }
 
@@ -222,21 +222,21 @@ const hasMedia = Astro.slots.has('media');
     flex: none;
   }
 
-  .spruce .idx {
-    color: var(--hi-vis);
+  .dark .idx {
+    color: var(--accent);
   }
 
-  .spruce .tickrule {
-    border-bottom-color: var(--rule-on-spruce);
+  .dark .tickrule {
+    border-bottom-color: var(--rule-on-dark);
     background-image: repeating-linear-gradient(
       to right,
-      var(--rule-on-spruce) 0 1px,
+      var(--rule-on-dark) 0 1px,
       transparent 1px 14px
     );
   }
 
-  .spruce .lbl {
-    color: var(--on-spruce-2);
+  .dark .lbl {
+    color: var(--on-dark-2);
   }
 
   /* ─── Header block ─── */
@@ -260,7 +260,7 @@ const hasMedia = Astro.slots.has('media');
 
   .head.scale-display :global(h2) {
     font-size: var(--d1);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     line-height: 0.96;
   }
 
@@ -355,7 +355,7 @@ const hasMedia = Astro.slots.has('media');
     margin-top: var(--s5);
   }
 
-  .spruce .intro {
-    color: var(--on-spruce-2);
+  .dark .intro {
+    color: var(--on-dark-2);
   }
 </style>

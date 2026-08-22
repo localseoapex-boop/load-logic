@@ -332,7 +332,7 @@ const heroTall = await getImage({
     heading="Ready to clear out your junk?"
     body="Send us a few photos and we'll help estimate the job."
     source={`city-${location.slug}-mid`}
-    tone="spruce"
+    tone="dark"
     ctaLabel="Schedule Now"
   />
 
@@ -454,7 +454,7 @@ const heroTall = await getImage({
   </Section>
 
   {/* ── 13. Final CTA. ── */}
-  <section class="final on-spruce">
+  <section class="final on-dark">
     <div class="container container-wide final-inner">
       <div>
         <h2>Need junk gone in {location.city}?</h2>
@@ -483,7 +483,7 @@ const heroTall = await getImage({
     display: grid;
     min-height: min(70dvh, 520px);
     isolation: isolate;
-    background: var(--spruce);
+    background: var(--dark);
     color: #fff;
   }
 
@@ -518,17 +518,17 @@ const heroTall = await getImage({
     background:
       linear-gradient(
         to right,
-        rgb(8 14 11 / 0.84) 0%,
-        rgb(8 14 11 / 0.64) 34%,
-        rgb(8 14 11 / 0.24) 66%,
-        rgb(8 14 11 / 0.06) 100%
+        rgb(24 26 28 / 0.84) 0%,
+        rgb(24 26 28 / 0.64) 34%,
+        rgb(24 26 28 / 0.24) 66%,
+        rgb(24 26 28 / 0.06) 100%
       ),
       linear-gradient(
         to top,
-        rgb(8 14 11 / 0.62) 0%,
-        rgb(8 14 11 / 0.24) 34%,
-        rgb(8 14 11 / 0.04) 64%,
-        rgb(8 14 11 / 0.12) 100%
+        rgb(24 26 28 / 0.62) 0%,
+        rgb(24 26 28 / 0.24) 34%,
+        rgb(24 26 28 / 0.04) 64%,
+        rgb(24 26 28 / 0.12) 100%
       );
   }
 
@@ -546,17 +546,17 @@ const heroTall = await getImage({
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--hi-vis);
+    color: var(--accent);
     margin-bottom: var(--s4);
   }
 
   h1 {
     font-size: var(--d1);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     line-height: 0.98;
     max-width: 15ch;
     color: #fff;
-    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
+    text-shadow: 0 2px 24px rgb(24 26 28 / 0.5);
   }
 
   .lede {
@@ -564,7 +564,7 @@ const heroTall = await getImage({
     font-size: var(--t1);
     color: rgb(255 255 255 / 0.9);
     max-width: 52ch;
-    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
+    text-shadow: 0 1px 16px rgb(24 26 28 / 0.55);
   }
 
   .hero-cta {
@@ -574,13 +574,13 @@ const heroTall = await getImage({
   /* The secondary button is transparent with a dim border, which is right on a
      solid block and too weak over a photograph. Scoped to the hero. */
   .hero-cta :global(.btn.dark.solid) {
-    background: rgb(8 14 11 / 0.55);
+    background: rgb(24 26 28 / 0.55);
     border-color: rgb(255 255 255 / 0.5);
     color: #fff;
   }
 
   .hero-cta :global(.btn.dark.solid:hover) {
-    background: rgb(8 14 11 / 0.74);
+    background: rgb(24 26 28 / 0.74);
     border-color: #fff;
   }
 
@@ -634,9 +634,9 @@ const heroTall = await getImage({
     .scrim {
       background: linear-gradient(
         to top,
-        rgb(8 14 11 / 0.35) 0%,
-        rgb(8 14 11 / 0.06) 26%,
-        rgb(8 14 11 / 0) 55%
+        rgb(24 26 28 / 0.35) 0%,
+        rgb(24 26 28 / 0.06) 26%,
+        rgb(24 26 28 / 0) 55%
       );
     }
 
@@ -645,7 +645,7 @@ const heroTall = await getImage({
       margin-inline: 0;
       padding-inline: var(--gutter);
       padding-block: var(--s7) var(--s8);
-      border-top: 3px solid var(--hi-vis);
+      border-top: 3px solid var(--accent);
     }
 
     .hero-inner h1,
@@ -771,7 +771,7 @@ const heroTall = await getImage({
     font-family: var(--font-display);
     font-size: var(--t1);
     font-weight: 700;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     line-height: 1.15;
   }
 
@@ -796,7 +796,7 @@ const heroTall = await getImage({
 
   @media (hover: hover) {
     .directory a:hover {
-      background: var(--bone);
+      background: var(--surface-alt);
     }
 
     .directory a:hover .num,
@@ -810,7 +810,7 @@ const heroTall = await getImage({
   }
 
   .directory a:focus-visible {
-    outline: 2px solid var(--spruce-2);
+    outline: 2px solid var(--accent-press);
     outline-offset: -2px;
   }
 
@@ -860,7 +860,7 @@ const heroTall = await getImage({
   .price-heavy {
     margin-top: var(--s4);
     padding-inline-start: var(--s4);
-    border-inline-start: 3px solid var(--hi-vis);
+    border-inline-start: 3px solid var(--accent);
     font-size: var(--t3);
     color: var(--ink-2);
   }
@@ -874,7 +874,7 @@ const heroTall = await getImage({
   .section-link a {
     font-family: var(--font-display);
     font-weight: 600;
-    color: var(--spruce-2);
+    color: var(--link);
   }
 
   .section-link a::after {
@@ -919,7 +919,7 @@ const heroTall = await getImage({
     font-family: var(--font-display);
     font-weight: 700;
     font-size: var(--t1);
-    letter-spacing: -0.01em;
+    letter-spacing: 0.005em;
   }
 
   @media (min-width: 620px) {
@@ -955,14 +955,17 @@ const heroTall = await getImage({
     font-family: var(--font-display);
     font-size: var(--d3);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     color: var(--ink);
     text-decoration: none;
   }
 
   @media (hover: hover) {
     .nearby a:hover {
-      color: var(--spruce-2);
+      color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.15em;
     }
   }
 
@@ -977,22 +980,22 @@ const heroTall = await getImage({
   /* ─────────────────── Final CTA ─────────────────── */
 
   .final {
-    background: var(--spruce);
-    color: var(--on-spruce);
-    border-top: 4px solid var(--hi-vis);
+    background: var(--dark);
+    color: var(--on-dark);
+    border-top: 4px solid var(--accent);
     padding-block: var(--sec-std-t) var(--sec-std-b);
   }
 
   .final h2 {
     color: #fff;
     font-size: var(--d2);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     max-width: 18ch;
   }
 
   .final p {
     margin-top: var(--s4);
-    color: var(--on-spruce-2);
+    color: var(--on-dark-2);
     max-width: 46ch;
   }
 

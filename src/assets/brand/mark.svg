@@ -14,14 +14,14 @@
   is the one place the accent appears outside an action, and it is a deliberate
   brand exception rather than a drift in the icon rules.
 
-  Usage: pairs with the wordmark set in Archivo. Never redraw, restretch, or
+  Usage: pairs with the wordmark set in Barlow Condensed. Never redraw, restretch, or
   recolor outside the two approved variants (this one and favicon.svg).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Load Logic">
   <!-- large block, the bulk of the load -->
-  <rect x="4" y="14" width="13" height="14" fill="#123329" />
+  <rect x="4" y="14" width="13" height="14" fill="#2B2F33" />
   <!-- small block, packed alongside -->
-  <rect x="19" y="19" width="9" height="9" fill="#123329" />
+  <rect x="19" y="19" width="9" height="9" fill="#2B2F33" />
   <!-- top block, the accent -->
-  <rect x="19" y="8" width="9" height="9" fill="#CFE034" />
+  <rect x="19" y="8" width="9" height="9" fill="#FF6500" />
 </svg>

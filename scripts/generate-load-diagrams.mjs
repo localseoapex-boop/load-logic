@@ -47,11 +47,12 @@ const LOADS = [
   { slug: 'load-full', name: 'Full load', fraction: 1 },
 ];
 
-/* Palette from DESIGN.md. */
-const SPRUCE = '#123329';
-const HI_VIS = '#CFE034';
-const RULE = '#D8D3C8';
-const INK_3 = '#878D87';
+/* Approved brand palette: trailer structure in charcoal/steel, the measured
+   fill in safety orange — the selected-load indicator colour system-wide. */
+const CHARCOAL = '#2B2F33';
+const ACCENT = '#FF6500';
+const RULE = '#E3E5E6';
+const STEEL = '#697077';
 
 /* Geometry, in viewBox units. Side elevation of an open utility trailer. */
 const W = 300;
@@ -94,7 +95,7 @@ function loadRect(fraction) {
 
 const meshPattern = (id) => `
     <pattern id="${id}" width="8" height="8" patternUnits="userSpaceOnUse">
-      <path d="M0 0 L8 8 M8 0 L0 8" stroke="${INK_3}" stroke-width="0.7" opacity="0.55" />
+      <path d="M0 0 L8 8 M8 0 L0 8" stroke="${STEEL}" stroke-width="0.7" opacity="0.55" />
     </pattern>`;
 
 function diagram({ slug, name, fraction }) {
@@ -116,28 +117,28 @@ function diagram({ slug, name, fraction }) {
   <defs>${meshPattern(`mesh-${slug}`)}</defs>
 
   <!-- load, area-proportional -->
-  <rect x="${load.x.toFixed(1)}" y="${load.y.toFixed(1)}" width="${load.w.toFixed(1)}" height="${load.h.toFixed(1)}" fill="${HI_VIS}" />
+  <rect x="${load.x.toFixed(1)}" y="${load.y.toFixed(1)}" width="${load.w.toFixed(1)}" height="${load.h.toFixed(1)}" fill="${ACCENT}" />
 
   <!-- mesh side rail, drawn over the load so the load sits inside the trailer -->
   <rect x="${DECK_X}" y="${RAIL_Y}" width="${DECK_W}" height="${RAIL_H}" fill="url(#mesh-${slug})" />
   <rect x="${DECK_X}" y="${RAIL_Y}" width="${DECK_W}" height="${RAIL_H}" fill="none"
-        stroke="${SPRUCE}" stroke-width="3" />
+        stroke="${CHARCOAL}" stroke-width="3" />
 
   <!-- front and rear uprights -->
-  <rect x="${DECK_X - 3}" y="${RAIL_Y - 8}" width="6" height="${RAIL_H + 8}" fill="${SPRUCE}" />
-  <rect x="${DECK_X + DECK_W - 3}" y="${RAIL_Y - 8}" width="6" height="${RAIL_H + 8}" fill="${SPRUCE}" />
+  <rect x="${DECK_X - 3}" y="${RAIL_Y - 8}" width="6" height="${RAIL_H + 8}" fill="${CHARCOAL}" />
+  <rect x="${DECK_X + DECK_W - 3}" y="${RAIL_Y - 8}" width="6" height="${RAIL_H + 8}" fill="${CHARCOAL}" />
 
   <!-- deck and frame -->
-  <rect x="${DECK_X}" y="${DECK_Y}" width="${DECK_W}" height="10" fill="${SPRUCE}" />
+  <rect x="${DECK_X}" y="${DECK_Y}" width="${DECK_W}" height="10" fill="${CHARCOAL}" />
 
   <!-- tongue and coupler -->
-  <path d="M${DECK_X} ${DECK_Y + 5} L${DECK_X - 20} ${DECK_Y + 5}" stroke="${SPRUCE}" stroke-width="5" />
-  <rect x="${DECK_X - 24}" y="${DECK_Y}" width="8" height="10" fill="${SPRUCE}" />
+  <path d="M${DECK_X} ${DECK_Y + 5} L${DECK_X - 20} ${DECK_Y + 5}" stroke="${CHARCOAL}" stroke-width="5" />
+  <rect x="${DECK_X - 24}" y="${DECK_Y}" width="8" height="10" fill="${CHARCOAL}" />
 
   <!-- wheels -->
-  <circle cx="${DECK_X + 78}" cy="${DECK_Y + 26}" r="16" fill="${SPRUCE}" />
+  <circle cx="${DECK_X + 78}" cy="${DECK_Y + 26}" r="16" fill="${CHARCOAL}" />
   <circle cx="${DECK_X + 78}" cy="${DECK_Y + 26}" r="6" fill="${RULE}" />
-  <circle cx="${DECK_X + 118}" cy="${DECK_Y + 26}" r="16" fill="${SPRUCE}" />
+  <circle cx="${DECK_X + 118}" cy="${DECK_Y + 26}" r="16" fill="${CHARCOAL}" />
   <circle cx="${DECK_X + 118}" cy="${DECK_Y + 26}" r="6" fill="${RULE}" />
 
   <!-- ground line -->

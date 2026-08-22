@@ -344,7 +344,7 @@ const points = allPoints.filter((p) => !omit.includes(p.key));
   /* The commitment is the one point that changes a decision, so it carries a
      hi-vis rule rather than another heading weight. */
   .emphasis {
-    border-inline-start: 3px solid var(--hi-vis);
+    border-inline-start: 3px solid var(--accent);
     padding-inline-start: var(--s4);
   }
 
@@ -372,7 +372,7 @@ const points = allPoints.filter((p) => !omit.includes(p.key));
 
   .minimum {
     padding-inline-start: var(--s4);
-    border-inline-start: 3px solid var(--hi-vis);
+    border-inline-start: 3px solid var(--accent);
     max-width: 62ch;
     color: var(--ink-2);
   }
@@ -519,7 +519,7 @@ const points = allPoints.filter((p) => !omit.includes(p.key));
     top: 0.7em;
     width: 14px;
     height: 2px;
-    background: var(--hi-vis);
+    background: var(--accent);
   }
 
   .pending {

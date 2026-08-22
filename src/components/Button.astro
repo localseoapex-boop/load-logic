@@ -3,10 +3,10 @@
  * Button.astro — the one button. Every action on the site renders through it.
  *
  * Variants map to intent, not to decoration:
- *   primary  hi-vis fill   the single most important action on the view
- *   solid    spruce fill   the phone action, paired with primary
- *   outline  hairline      secondary navigation
- *   quiet    text only     tertiary, inline
+ *   primary  safety-orange fill  the single most important action on the view
+ *   solid    charcoal outline    the phone action, paired with primary
+ *   outline  hairline            secondary navigation
+ *   quiet    text only           tertiary, inline
  *
  * DESIGN.md locks one label per conversion intent site-wide: "Get a Photo Quote"
  * and "Call Now". Those live in QuoteCta so they cannot drift.
@@ -15,7 +15,7 @@ interface Props {
   href: string;
   variant?: 'primary' | 'solid' | 'outline' | 'quiet';
   size?: 'md' | 'lg';
-  /** Renders on a spruce block, so the outline variant flips to light. */
+  /** Renders on a dark block, so the outline variants flip to light. */
   onDark?: boolean;
   full?: boolean;
   class?: string;
@@ -52,7 +52,7 @@ const {
     padding: var(--s3) var(--s5);
     border: 1px solid transparent;
     border-radius: var(--r);
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 600;
     font-size: var(--t2);
     line-height: 1.1;
@@ -83,21 +83,23 @@ const {
   }
 
   .primary {
-    background: var(--hi-vis);
-    /* Ink on hi-vis, never white. 12.4:1. */
-    color: var(--ink);
+    background: var(--accent);
+    /* Near black on safety orange: 5.7:1. White measures 3.0:1 and fails,
+       so it is never the foreground here. */
+    color: var(--on-accent);
   }
   .primary:hover {
-    background: var(--hi-vis-press);
-    color: var(--ink);
+    background: var(--accent-press);
+    color: var(--on-accent);
   }
 
   .solid {
-    background: var(--spruce);
-    color: #fff;
+    background: transparent;
+    color: var(--charcoal);
+    border-color: var(--charcoal);
   }
   .solid:hover {
-    background: var(--spruce-2);
+    background: var(--charcoal);
     color: #fff;
   }
 
@@ -114,31 +116,32 @@ const {
 
   .quiet {
     background: transparent;
-    color: var(--spruce-2);
+    color: var(--link);
     min-height: 0;
     padding: var(--s1) 0;
   }
   .quiet:hover {
-    color: var(--spruce-3);
+    color: var(--link-hover);
     text-decoration: underline;
+    text-decoration-color: var(--accent);
   }
 
-  /* On a spruce block the outline and solid variants need to invert to keep
-     contrast. Primary is unchanged: hi-vis reads on spruce. */
+  /* On a dark or photographic block the outline and solid variants invert to
+     stay legible. Primary is unchanged: orange reads on charcoal. */
   .dark.outline {
-    color: var(--on-spruce);
-    border-color: var(--rule-on-spruce);
+    color: var(--on-dark);
+    border-color: var(--rule-on-dark);
   }
   .dark.outline:hover {
     background: rgb(255 255 255 / 0.06);
-    border-color: var(--on-spruce);
+    border-color: var(--on-dark);
     color: #fff;
   }
 
   .dark.solid {
     background: transparent;
-    border-color: var(--on-spruce-2);
-    color: var(--on-spruce);
+    border-color: var(--on-dark-2);
+    color: var(--on-dark);
   }
   .dark.solid:hover {
     background: rgb(255 255 255 / 0.08);

@@ -169,7 +169,7 @@ const zipMap = Object.fromEntries(
   button {
     min-height: 48px;
     padding-inline: var(--s5);
-    background: var(--spruce);
+    background: var(--dark);
     color: #fff;
     border: 0;
     border-radius: var(--r);
@@ -180,7 +180,7 @@ const zipMap = Object.fromEntries(
   }
 
   button:hover {
-    background: var(--spruce-2);
+    background: var(--dark-2);
   }
 
   button:active {
@@ -202,11 +202,11 @@ const zipMap = Object.fromEntries(
   }
 
   .result[data-state='yes'] {
-    border-inline-start-color: var(--hi-vis);
+    border-inline-start-color: var(--accent);
   }
 
   .result[data-state='ask'] {
-    border-inline-start-color: var(--spruce-2);
+    border-inline-start-color: var(--steel);
   }
 
   .result :global(.result-title) {
@@ -234,7 +234,7 @@ const zipMap = Object.fromEntries(
     align-items: center;
     min-height: 48px;
     padding-inline: var(--s5);
-    background: var(--hi-vis);
+    background: var(--accent);
     color: var(--ink);
     border-radius: var(--r);
     font-family: var(--font-display);
@@ -244,7 +244,7 @@ const zipMap = Object.fromEntries(
 
   .result :global(.result-alt) {
     font-weight: 600;
-    color: var(--spruce-2);
+    color: var(--link);
   }
 
   /* ─── Coverage list ─── */
@@ -283,7 +283,7 @@ const zipMap = Object.fromEntries(
     font-family: var(--font-display);
     font-size: var(--d3);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     color: var(--ink);
     text-decoration: none;
   }
@@ -291,17 +291,17 @@ const zipMap = Object.fromEntries(
   .cities li.home .city {
     font-size: var(--num-lg);
     line-height: 1;
-    letter-spacing: -0.035em;
+    letter-spacing: 0;
   }
 
   @media (hover: hover) {
     a.city:hover {
-      color: var(--spruce-2);
+      color: var(--link);
     }
   }
 
   a.city:hover {
-    color: var(--spruce-2);
+    color: var(--link);
   }
 
   .home .city::after {
@@ -311,7 +311,7 @@ const zipMap = Object.fromEntries(
     font-size: var(--lbl);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--spruce-2);
+    color: var(--link);
     font-weight: 600;
   }
 

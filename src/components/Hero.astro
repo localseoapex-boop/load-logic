@@ -122,7 +122,7 @@ const tall = await getImage({
     /* dvh rather than vh: the iOS address bar must not resize the hero. */
     min-height: min(94dvh, 680px);
     isolation: isolate;
-    background: var(--spruce);
+    background: var(--dark);
     color: #fff;
   }
 
@@ -162,17 +162,17 @@ const tall = await getImage({
     background:
       linear-gradient(
         to right,
-        rgb(8 14 11 / 0.86) 0%,
-        rgb(8 14 11 / 0.68) 30%,
-        rgb(8 14 11 / 0.26) 62%,
-        rgb(8 14 11 / 0.04) 100%
+        rgb(24 26 28 / 0.86) 0%,
+        rgb(24 26 28 / 0.68) 30%,
+        rgb(24 26 28 / 0.26) 62%,
+        rgb(24 26 28 / 0.04) 100%
       ),
       linear-gradient(
         to top,
-        rgb(8 14 11 / 0.78) 0%,
-        rgb(8 14 11 / 0.34) 32%,
-        rgb(8 14 11 / 0.04) 64%,
-        rgb(8 14 11 / 0.08) 100%
+        rgb(24 26 28 / 0.78) 0%,
+        rgb(24 26 28 / 0.34) 32%,
+        rgb(24 26 28 / 0.04) 64%,
+        rgb(24 26 28 / 0.08) 100%
       );
   }
 
@@ -192,18 +192,18 @@ const tall = await getImage({
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--hi-vis);
+    color: var(--accent);
     margin-bottom: var(--s4);
   }
 
   h1 {
     color: #fff;
     font-size: var(--d0);
-    letter-spacing: -0.035em;
+    letter-spacing: 0;
     line-height: 0.96;
     max-width: 15ch;
     /* Lifts the type off the photograph without a visible box. */
-    text-shadow: 0 2px 24px rgb(8 14 11 / 0.5);
+    text-shadow: 0 2px 24px rgb(24 26 28 / 0.5);
   }
 
   .subhead {
@@ -211,7 +211,7 @@ const tall = await getImage({
     font-size: var(--t1);
     color: rgb(255 255 255 / 0.9);
     max-width: 46ch;
-    text-shadow: 0 1px 16px rgb(8 14 11 / 0.55);
+    text-shadow: 0 1px 16px rgb(24 26 28 / 0.55);
   }
 
   .actions {
@@ -224,13 +224,13 @@ const tall = await getImage({
      the hero so the button behaves normally everywhere else. No backdrop-filter
      — this element scrolls, and blur on a scrolling layer costs repaints. */
   .actions :global(.btn.dark.solid) {
-    background: rgb(8 14 11 / 0.55);
+    background: rgb(24 26 28 / 0.55);
     border-color: rgb(255 255 255 / 0.5);
     color: #fff;
   }
 
   .actions :global(.btn.dark.solid:hover) {
-    background: rgb(8 14 11 / 0.74);
+    background: rgb(24 26 28 / 0.74);
     border-color: #fff;
   }
 
@@ -240,7 +240,7 @@ const tall = await getImage({
     position: relative;
     z-index: 1;
     border-top: 1px solid rgb(255 255 255 / 0.18);
-    background: rgb(8 14 11 / 0.42);
+    background: rgb(24 26 28 / 0.42);
     padding-block: var(--s5);
   }
 
@@ -310,12 +310,12 @@ const tall = await getImage({
     .scrim {
       background: linear-gradient(
         to top,
-        rgb(8 14 11 / 0.9) 0%,
-        rgb(8 14 11 / 0.72) 30%,
+        rgb(24 26 28 / 0.9) 0%,
+        rgb(24 26 28 / 0.72) 30%,
         /* Eased off through the band the truck and trailer occupy, so the
            subject is not flattened by the same scrim that protects the copy. */
-        rgb(8 14 11 / 0.34) 58%,
-        rgb(8 14 11 / 0.46) 100%
+        rgb(24 26 28 / 0.34) 58%,
+        rgb(24 26 28 / 0.46) 100%
       );
     }
   }

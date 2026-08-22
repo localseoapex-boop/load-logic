@@ -113,7 +113,7 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
     font-family: var(--font-display);
     font-size: var(--t1);
     font-weight: 700;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     line-height: 1.15;
   }
 
@@ -140,7 +140,7 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
 
   @media (hover: hover) {
     .directory a:hover {
-      background: var(--bone-2);
+      background: var(--surface-alt-2);
     }
 
     .directory a:hover .num,
@@ -154,7 +154,7 @@ const shown = only ? services.filter((s) => only.includes(s.slug)) : services;
   }
 
   .directory a:focus-visible {
-    outline: 2px solid var(--spruce-2);
+    outline: 2px solid var(--accent-press);
     outline-offset: -2px;
   }
 
