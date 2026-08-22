@@ -21,6 +21,7 @@
  * it shows shared content under a local heading, and nothing in between.
  *
  *   intro          unique per city (hero lede)
+ *   localIntro     per-city paragraphs written from that city's own data
  *   accessNotes    operationally true local details, surfaced in the intro
  *   propertyMix    which buyers dominate this market — drives Property Types
  *   neighborhoods  real communities, listed in Areas We Serve
@@ -38,15 +39,20 @@
  *
  * ─────────────────────────── Reviews ───────────────────────────
  *
- * The reviews section renders ONLY when reviews.ts holds verified entries. The
- * homepage's approved placeholder testimonials are homepage-only display
- * content; the owner's city-page rule is verified/real only, so this section
- * stays hidden until real reviews exist and then appears on its own.
+ * The reviews section renders Testimonials, the same component the homepage
+ * uses. TODO: the quotes it currently shows are the approved PLACEHOLDER set
+ * from reviews.ts (isPlaceholder: true) — temporary display content so the
+ * section can be evaluated, never presented as verified and never given
+ * Review/AggregateRating schema. The moment a real review lands in reviews.ts
+ * with `verified: true`, Testimonials switches to the verified set on its own;
+ * replacing the placeholders requires no change here.
  *
  * ─────────────────────────── Honesty ───────────────────────────
  *
  * Nothing here claims an office, an address, a tenure or a customer count in
- * this city. Mesa is the home base and the local paragraph says so. The hero
+ * this city. Each page is written city-first: the target city is the subject,
+ * and Mesa appears only where it is legitimate geography (the coverage map's
+ * home-base marker and the site chrome). The hero
  * photograph is Arizona suburban context, not a photograph of the named city,
  * and its alt text never names one.
  */
@@ -61,7 +67,7 @@ import WhyChoose from '../components/WhyChoose.astro';
 import MaterialOverview from '../components/MaterialOverview.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PropertyTypes from '../components/PropertyTypes.astro';
-import ReviewWall from '../components/ReviewWall.astro';
+import Testimonials from '../components/Testimonials.astro';
 import FaqBlock from '../components/FaqBlock.astro';
 import { Image, getImage } from 'astro:assets';
 import type { Location } from '../data/locations';
@@ -70,7 +76,6 @@ import { servicesForLocation, nearbyCities } from '../lib/links';
 import { cityUrl, serviceUrl } from '../lib/urls';
 import { getFaq, faqsForCity } from '../data/faqs';
 import { getPropertyType, type PropertyType } from '../data/property-types';
-import { hasVerifiedReviews } from '../data/reviews';
 
 import { heroForCity } from '../data/city-images';
 import localImg from '../assets/photos/cities/ctx-suburb.jpg';
@@ -167,8 +172,6 @@ const cityFaqs = [
   ...faqsForCity(location.slug).map((f) => ({ question: f.question, answer: f.answer })),
 ];
 
-const showReviews = hasVerifiedReviews();
-
 /*
  * Hero from the regional library. Five concepts across nine cities, so the pages
  * are related without being identical — and no frame claims to depict the named
@@ -230,19 +233,19 @@ const heroTall = await getImage({
   <Section
     index="01"
     label={`In ${location.city}`}
-    heading={`A Mesa-based junk removal crew serving ${location.city}`}
+    heading={`Your junk removal crew in ${location.city}`}
     width="wide"
   >
     <div class="local-row">
       <div class="local">
         <p class="local-lede">
-          Load Logic is a Mesa-based junk removal team serving {location.city} and the
-          surrounding East Valley. We bring the truck and the muscle, give you an
-          upfront price before we load, and clean up the area when the job is done —
-          no dumpster rental, no heavy lifting on your end.
+          Load Logic provides full-service junk removal throughout {location.city}. We
+          bring the truck and the muscle, give you an upfront price before we load,
+          and clean up the area when the job is done — no dumpster rental, no heavy
+          lifting on your end.
         </p>
 
-        {location.localIntro && <p class="local-more">{location.localIntro}</p>}
+        {location.localIntro?.map((para) => <p class="local-more">{para}</p>)}
 
         {
           location.accessNotes && location.accessNotes.length > 0 && (
@@ -321,7 +324,7 @@ const heroTall = await getImage({
   {/* ── 5. Why choose Load Logic. The homepage's four supported differentiators,
        unchanged — every claim is one the project can stand behind. ── */}
   <Section index="04" label="Why Load Logic" tone="sunk" heading="Why choose Load Logic">
-    <WhyChoose />
+    <WhyChoose localScope="east-valley" />
   </Section>
 
   {/* ── 6. Mid-page CTA band. ── */}
@@ -387,22 +390,21 @@ const heroTall = await getImage({
     </div>
   </Section>
 
-  {/* ── 10. Reviews. Verified only — renders nothing until reviews.ts holds a
-       real, confirmed review, then appears on its own. The homepage's approved
-       placeholder testimonials are homepage-only and never shown here. ── */}
-  {
-    showReviews && (
-      <Section label="Reviews" heading="What customers say" width="wide">
-        <ReviewWall />
-      </Section>
-    )
-  }
+  {/* ── 10. Reviews. Testimonials renders the site's review state: TODO — the
+       current quotes are the approved PLACEHOLDER set (reviews.ts, isPlaceholder:
+       true) and must be replaced with verified customer reviews. No Review or
+       AggregateRating schema is emitted for them, no star ratings, no platform
+       names. Once a `verified: true` review exists the component switches to the
+       real set automatically. ── */}
+  <Section index="08" label="Reviews" tone="sunk" heading="What customers say" width="wide">
+    <Testimonials />
+  </Section>
 
   {/* ── 11. Areas we serve. The city's real communities, the nearby cities as
        crawlable links, and the coverage map drawn from real coordinates with
        this city marked. ── */}
   <Section
-    index="08"
+    index="09"
     label="Coverage"
     heading={`Areas we serve around ${location.city}`}
     width="wide"
@@ -441,7 +443,7 @@ const heroTall = await getImage({
        serve-area question. FaqBlock emits the FAQPage schema from the same
        array it renders, so the two cannot diverge. ── */}
   <Section
-    index="09"
+    index="10"
     label="FAQ"
     tone="sunk"
     scale="utility"

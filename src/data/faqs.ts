@@ -213,6 +213,177 @@ export const faqs: Faq[] = [
     about: [ref('office', 'mesa')],
     featured: true,
   },
+
+  /* ─────────────────────── Per-city questions ───────────────────────
+   *
+   * Two questions per city, surfaced by faqsForCity() on that city's page only.
+   * Every answer is built from that city's own locations.ts data — accessNotes,
+   * propertyMix, situations, disposalNote — so nothing here is a generic answer
+   * with a city name pasted in. When adding a city, write questions its data can
+   * actually support or add none at all.
+   */
+
+  /* Gilbert */
+  {
+    slug: 'gilbert-gated-communities',
+    question: 'Can you pick up from gated communities in Gilbert?',
+    answer:
+      'Yes. Seville and Power Ranch both have gated sections — send the gate code with your quote request or have the crew added to the visitor list and entry is handled before arrival. Several Gilbert HOAs also restrict how long anything can sit on a driveway, so we load directly from the garage or yard rather than staging items outside.',
+    scope: { kind: 'location', slug: 'gilbert-az' },
+    about: [ref('location', 'gilbert-az'), ref('accessFactor', 'gated-community')],
+  },
+  {
+    slug: 'gilbert-hot-tub-shed-access',
+    question: 'Can you remove a hot tub or shed from a Gilbert back yard?',
+    answer:
+      'Yes. Newer Gilbert builds often have narrow side gates between the garage and the back yard, so hot tubs and sheds are usually cut down on site and carried through in sections. A photo of the side gate along with the item lets us plan the crew and the price before anyone arrives.',
+    scope: { kind: 'location', slug: 'gilbert-az' },
+    about: [ref('location', 'gilbert-az'), ref('accessFactor', 'tight-access'), ref('service', 'hot-tub-removal')],
+  },
+
+  /* Chandler */
+  {
+    slug: 'chandler-hoa-bulk-windows',
+    question: 'Can you work around HOA bulk-trash rules in Chandler?',
+    answer:
+      'Yes — this is one of the most common reasons Chandler residents call. Bulk-pickup windows vary by community, and several neighborhoods restrict how long anything can sit at the curb, which is often why a pile needs to be gone before a specific day. Tell us the deadline and we schedule the removal ahead of it, loading from the garage or yard so nothing waits outside.',
+    scope: { kind: 'location', slug: 'chandler-az' },
+    about: [ref('location', 'chandler-az'), ref('accessFactor', 'curbside')],
+  },
+  {
+    slug: 'chandler-pre-sale-clearout',
+    question: 'Can you clear a Chandler home before a sale or rental turnover?',
+    answer:
+      'Yes. Pre-listing clear-outs and turnovers are a big share of our Chandler work. A lot of what comes out of Chandler homes is still genuinely usable, so donation-ready furniture is separated at the property and the rest is hauled for disposal — you get the space back in one visit, on a date that works for the listing or the lease.',
+    scope: { kind: 'location', slug: 'chandler-az' },
+    about: [ref('location', 'chandler-az'), ref('situation', 'pre-sale-prep')],
+  },
+
+  /* Tempe */
+  {
+    slug: 'tempe-apartment-cleanouts',
+    question: 'Do you clear apartments and student housing in Tempe?',
+    answer:
+      'Yes — apartment and student-housing turnovers are a large part of what we do in Tempe. Several downtown buildings require the service elevator to be reserved in advance and a certificate of insurance on file, and street parking near ASU can mean a longer carry from the unit to the truck. Send the building details with your quote request and we arrange all of it before the appointment.',
+    scope: { kind: 'location', slug: 'tempe-az' },
+    about: [ref('location', 'tempe-az'), ref('accessFactor', 'apartment'), ref('accessFactor', 'elevator')],
+  },
+  {
+    slug: 'tempe-semester-moveout',
+    question: 'Can you handle end-of-lease move-outs near ASU?',
+    answer:
+      'Yes. Turnovers cluster around the end of the academic year, when loading zones near campus are at their busiest — booking earlier in that window gets the best pick of times. If the unit will be empty, plenty of Tempe jobs run without anyone on site once scope and access are agreed in advance.',
+    scope: { kind: 'location', slug: 'tempe-az' },
+    about: [ref('location', 'tempe-az'), ref('situation', 'moving-out')],
+  },
+
+  /* Queen Creek */
+  {
+    slug: 'queen-creek-acreage',
+    question: 'Can you haul from acreage properties in Queen Creek?',
+    answer:
+      'Yes. Larger Queen Creek lots often mean a long carry from an outbuilding or a back fence line to wherever a truck can park, and that labor is planned into the quote rather than discovered on the day. Photos of the pile plus one of the path to where a truck can stand are what make the estimate accurate.',
+    scope: { kind: 'location', slug: 'queen-creek-az' },
+    about: [ref('location', 'queen-creek-az'), ref('accessFactor', 'long-carry')],
+  },
+  {
+    slug: 'queen-creek-green-waste',
+    question: 'Do you take green waste and old wood from Queen Creek properties?',
+    answer:
+      'Yes. Bigger lots here generate a lot of clean green waste and untreated wood, and when it is kept separate from other material it goes to a green-waste facility rather than to disposal. Mixed piles are fine too — we sort at the trailer.',
+    scope: { kind: 'location', slug: 'queen-creek-az' },
+    about: [ref('location', 'queen-creek-az'), ref('materialCategory', 'yard-green-waste')],
+  },
+
+  /* San Tan Valley */
+  {
+    slug: 'san-tan-valley-not-home',
+    question: 'Can a San Tan Valley pickup happen while I am not there?',
+    answer:
+      'Usually, yes. A good share of jobs out here — rental turnovers especially — run without anyone on site. It works when the scope is agreed from photos in advance and the crew has access: a gate code, an unlocked side yard, or items staged where they can be reached. Payment and confirmation photos are handled remotely.',
+    scope: { kind: 'location', slug: 'san-tan-valley-az' },
+    about: [ref('location', 'san-tan-valley-az'), ref('accessFactor', 'unoccupied')],
+  },
+  {
+    slug: 'san-tan-valley-scheduling',
+    question: 'How does scheduling work for San Tan Valley?',
+    answer:
+      'San Tan Valley is part of our regular coverage, and jobs out here are batched with nearby routes where possible so the drive is not carried by a single small load. If your timing is flexible, say so with your quote request — it usually gets you an earlier window.',
+    scope: { kind: 'location', slug: 'san-tan-valley-az' },
+    about: [ref('location', 'san-tan-valley-az')],
+  },
+
+  /* Apache Junction */
+  {
+    slug: 'apache-junction-estate-pace',
+    question: 'Can you clear a long-held or inherited property in Apache Junction?',
+    answer:
+      'Yes — estate and foreclosure cleanouts are a large share of our Apache Junction work. Sorting happens room by room during loading rather than all at once at the truck, so items worth keeping or donating are pulled aside as we go, at a pace that works for the family or the professional handling the property.',
+    scope: { kind: 'location', slug: 'apache-junction-az' },
+    about: [ref('location', 'apache-junction-az'), ref('situation', 'estate-settlement')],
+  },
+  {
+    slug: 'apache-junction-narrow-drives',
+    question: 'Can your truck reach a park model or an older property with a narrow drive?',
+    answer:
+      'Yes. Older Apache Junction properties and park models often have narrow drives and carports that limit how close a truck can get — the crew carries from the property to wherever the truck can legally park. Long-held places here also turn up safes, workshop equipment and appliances that need more than two people, so mention anything unusually heavy with your photos and we staff for it.',
+    scope: { kind: 'location', slug: 'apache-junction-az' },
+    about: [ref('location', 'apache-junction-az'), ref('accessFactor', 'tight-access'), ref('accessFactor', 'heavy-items')],
+  },
+
+  /* Gold Canyon */
+  {
+    slug: 'gold-canyon-guard-gates',
+    question: 'Can you get into guard-gated Gold Canyon communities?',
+    answer:
+      'Yes. Superstition Mountain and several other communities here are guard-gated, so the crew needs to be listed with the gate in advance — we sort that out when the job is scheduled. Long private driveways are common too and affect where the truck can stand, so a photo of the drive helps us plan the carry.',
+    scope: { kind: 'location', slug: 'gold-canyon-az' },
+    about: [ref('location', 'gold-canyon-az'), ref('accessFactor', 'gated-community'), ref('accessFactor', 'long-carry')],
+  },
+  {
+    slug: 'gold-canyon-hot-tubs',
+    question: 'Do you remove hot tubs in Gold Canyon?',
+    answer:
+      'Yes — hot tubs and built-in outdoor features come up often in Gold Canyon and usually need cutting down on site before they can leave. That work is planned into the quote from your photos, so the price you approve already covers the disassembly.',
+    scope: { kind: 'location', slug: 'gold-canyon-az' },
+    about: [ref('location', 'gold-canyon-az'), ref('service', 'hot-tub-removal')],
+  },
+
+  /* Scottsdale */
+  {
+    slug: 'scottsdale-vendor-registration',
+    question: 'Can you work in gated and guard-managed Scottsdale communities?',
+    answer:
+      'Yes. DC Ranch, Gainey Ranch and much of North Scottsdale are gated or guard-managed, and several communities require vendors to be registered — we handle the listing and any paperwork before the appointment. Send the community name with your quote request and it is arranged by the time the crew arrives.',
+    scope: { kind: 'location', slug: 'scottsdale-az' },
+    about: [ref('location', 'scottsdale-az'), ref('accessFactor', 'gated-community')],
+  },
+  {
+    slug: 'scottsdale-str-turnover',
+    question: 'Can you clear a Scottsdale vacation rental between guests?',
+    answer:
+      'Yes. Vacation-rental turnovers frequently have to happen between a checkout and the next check-in, and Old Town condos and short-term rentals often add restricted loading zones and set service hours. Give us the window and the building rules and we schedule the removal inside them.',
+    scope: { kind: 'location', slug: 'scottsdale-az' },
+    about: [ref('location', 'scottsdale-az'), ref('propertyType', 'property-manager')],
+  },
+
+  /* Ahwatukee */
+  {
+    slug: 'ahwatukee-steep-driveways',
+    question: 'Can you work on steep or narrow Ahwatukee driveways?',
+    answer:
+      'Yes. Hillside lots and cul-de-sac driveways in the Foothills can be steep and narrow, which limits how a truck approaches the property — the crew stages the truck where it can stand safely and carries the rest. Note the slope or any tight turns with your photos so the estimate reflects the real job.',
+    scope: { kind: 'location', slug: 'ahwatukee-az' },
+    about: [ref('location', 'ahwatukee-az'), ref('accessFactor', 'tight-access')],
+  },
+  {
+    slug: 'ahwatukee-hoa-curb-rules',
+    question: 'Do you handle HOA and gated communities in Ahwatukee?',
+    answer:
+      'Yes. Several Foothills communities are gated, and HOA rules commonly govern what can sit at the curb and for how long. We load directly from the garage or yard so nothing has to wait outside, and gate access is arranged when the job is scheduled.',
+    scope: { kind: 'location', slug: 'ahwatukee-az' },
+    about: [ref('location', 'ahwatukee-az'), ref('accessFactor', 'gated-community')],
+  },
 ];
 
 export const getFaq = (slug: string): Faq | undefined => faqs.find((f) => f.slug === slug);
@@ -227,6 +398,6 @@ export const globalFaqs = (): Faq[] => faqs.filter((f) => f.scope.kind === 'glob
 /** The short, high-intent set for compact FAQ blocks. */
 export const featuredFaqs = (): Faq[] => faqs.filter((f) => f.featured);
 
-/** Questions scoped to one city. Empty until a city has its own. */
+/** Questions scoped to one city, from the per-city bank above. */
 export const faqsForCity = (citySlug: string): Faq[] =>
   faqs.filter((f) => f.scope.kind === 'location' && f.scope.slug === citySlug);
