@@ -15,6 +15,12 @@
  *   fast scheduling           hedged as "may be available", because route and
  *                             job size genuinely decide it
  *
+ * The one geographic line is prop-switched: the default names Mesa (true, and
+ * right for the homepage and service pages), while the city pages pass
+ * localScope="east-valley" so the target city's own page is not anchored to
+ * another city's name. Both variants are true; East Valley is the region the
+ * business actually operates in (locations.ts).
+ *
  * NOT stated, because nothing in the project supports them: licensed, insured,
  * bonded, years in business, number of jobs, review counts, recycling or
  * diversion percentages, certifications, awards, or any guarantee of same-day
@@ -30,6 +36,17 @@
  * qualification beneath, which reads as a short list of commitments rather than
  * as feature tiles.
  */
+interface Props {
+  /**
+   * 'mesa' (default) names the home city; 'east-valley' names the region
+   * instead — used by the city pages so a non-Mesa city page is not anchored
+   * to Mesa. Rendering is otherwise identical.
+   */
+  localScope?: 'mesa' | 'east-valley';
+}
+
+const { localScope = 'mesa' } = Astro.props;
+
 interface Point {
   title: string;
   text: string;
@@ -38,7 +55,10 @@ interface Point {
 const points: Point[] = [
   {
     title: 'Local and owner-operated',
-    text: 'Work directly with a local Mesa business instead of a national franchise or a call center.',
+    text:
+      localScope === 'east-valley'
+        ? 'Work directly with a local, owner-operated East Valley business instead of a national franchise or a call center.'
+        : 'Work directly with a local Mesa business instead of a national franchise or a call center.',
   },
   {
     title: 'Upfront pricing',

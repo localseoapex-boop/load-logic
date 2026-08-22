@@ -1,0 +1,112 @@
+---
+/**
+ * PropertyTypes.astro — who a page's market actually is, from real data.
+ *
+ * Renders a list of PropertyType entries from data/property-types.ts: the buyer,
+ * what they are trying to accomplish, and the services they commonly book as
+ * crawlable links. The caller decides WHICH buyers to show — a city page passes
+ * its own `propertyMix` from locations.ts, so Tempe leads with renters and
+ * property managers while Scottsdale leads with realtors, because that is what
+ * the data for those markets says. Nothing here is city-swapped filler: pass a
+ * different mix and the section genuinely changes.
+ *
+ * Deliberately concise. Each entry is the buyer's need in one sentence plus up
+ * to two service links — this section is about USE CASES, and the services
+ * themselves are already introduced higher on the page.
+ */
+import type { PropertyType } from '../data/property-types';
+import { getService } from '../data/services';
+import { serviceUrl } from '../lib/urls';
+
+interface Props {
+  types: PropertyType[];
+}
+
+const { types } = Astro.props;
+
+/** Up to two commonly-booked services per buyer, resolved to real pages. */
+const rows = types.map((t) => ({
+  ...t,
+  links: t.services
+    .slice(0, 2)
+    .map((slug) => ({ slug, service: getService(slug) }))
+    .filter((x) => Boolean(x.service)),
+}));
+---
+
+<ul class="types" data-reveal>
+  {
+    rows.map((t) => (
+      <li>
+        <h3>{t.plural}</h3>
+        <p class="need">{t.need}</p>
+        {t.links.length > 0 && (
+          <p class="links">
+            {t.links.map((l, i) => (
+              <>
+                {i > 0 && <span class="sep" aria-hidden="true">{' · '}</span>}
+                <a href={serviceUrl(l.slug)}>{l.service!.name}</a>
+              </>
+            ))}
+          </p>
+        )}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .types {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+    display: grid;
+  }
+
+  .types li {
+    padding-block: var(--s5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h3 {
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .need {
+    margin-top: var(--s2);
+    color: var(--ink-2);
+    font-size: var(--t3);
+    max-width: 52ch;
+  }
+
+  .links {
+    margin-top: var(--s3);
+    font-size: var(--t3);
+  }
+
+  .links a {
+    font-weight: 600;
+  }
+
+  .sep {
+    color: var(--ink-3);
+  }
+
+  @media (min-width: 760px) {
+    .types {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s8);
+    }
+
+    .types li:nth-child(-n + 2) {
+      border-top: 0;
+    }
+
+    h3 {
+      font-size: var(--d3);
+    }
+  }
+</style>

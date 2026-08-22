@@ -30,6 +30,14 @@ export interface Location {
   services?: string[];
   /** Unique opening paragraph for the city page. */
   intro?: string;
+  /**
+   * Extended local introduction: one to three short paragraphs rendered in the
+   * city page's Local Introduction section beneath the shared opening line.
+   * Written per city from this entry's own data (situations, propertyMix,
+   * accessNotes, disposalNote) — only verifiable local detail belongs here,
+   * never city-swapped filler; the accessNotes below are the model.
+   */
+  localIntro?: string[];
   /** Recognizable local areas, woven into the city page for local relevance. */
   neighborhoods?: string[];
 
@@ -101,6 +109,10 @@ export const locations: Location[] = [
     intro:
       'Chandler jobs often involve family homes, garages, and move-outs — donation-ready furniture, appliances, and bulky junk that needs to clear out before a sale or rental turnover. We schedule around HOA pickup windows and property access.',
     neighborhoods: ['Ocotillo', 'Fulton Ranch', 'Downtown Chandler', 'Sun Groves', 'Layton Lakes'],
+    localIntro: [
+      'Chandler work leans toward family homes in the middle of a change: a sale, a remodel, a downsize, or furniture being replaced. A lot of what comes out of Chandler houses is still genuinely usable, so we separate donation-ready pieces at the property instead of hauling everything as waste.',
+      'Timing matters here more than most places — HOA bulk-pickup windows vary by community, and several neighborhoods restrict how long anything can sit out front. When a pile has to be gone before a specific day, we schedule against that deadline.',
+    ],
     zips: ['85224', '85225', '85226', '85248', '85249', '85286'],
     propertyMix: ['homeowner', 'realtor', 'renter'],
     situations: ['pre-sale-prep', 'garage-reset', 'downsizing', 'replacing-furniture'],
@@ -121,6 +133,10 @@ export const locations: Location[] = [
     intro:
       'Gilbert homeowners call us for garage resets, furniture removal, mattress haul-away, yard waste, and bulky-item cleanup before a move or home project. Photos help us confirm truck space and separate donation-ready items first.',
     neighborhoods: ['Agritopia', 'Power Ranch', 'Val Vista Lakes', 'Seville', 'Morrison Ranch'],
+    localIntro: [
+      'Gilbert\'s housing stock is young and its garages fill fast — shelving, bikes, holiday storage, and the furniture that got swapped out but never left. Most of what we haul here comes straight out of the garage or the back yard, loaded in one visit so the second parking space is usable again by the afternoon.',
+      'We also do steady work for Gilbert realtors and landlords: pre-listing clear-outs ahead of photos, and rental turnovers between tenants. Because so many communities here are HOA-managed, we load directly from the garage or yard, so nothing has to wait at the curb.',
+    ],
     zips: ['85233', '85234', '85295', '85296', '85297', '85298'],
     propertyMix: ['homeowner', 'realtor', 'landlord'],
     situations: ['garage-reset', 'pre-sale-prep', 'replacing-furniture', 'yard-cleanup'],
@@ -141,6 +157,10 @@ export const locations: Location[] = [
     intro:
       'Tempe removals often mean apartments, student-housing turnovers, tight parking, and quick timelines near ASU and downtown. Share elevator, loading-zone, and parking details up front and we plan the pickup around them.',
     neighborhoods: ['Maple-Ash', 'Mitchell Park', 'Tempe Gardens', 'Warner Ranch', 'Downtown Tempe'],
+    localIntro: [
+      'Tempe is the densest market we serve — apartments, condos and student housing rather than single-family garages. The jobs are usually turnovers: a unit that has to be empty between a lease ending and an inspection, cleared through elevators, corridors and parking that all take planning.',
+      'Property managers and landlords make up much of our Tempe work, and the logistics are half the job — reserving service elevators, filing insurance certificates where buildings require them, and working with the loading zones that are actually available near campus and downtown.',
+    ],
     zips: ['85281', '85282', '85283', '85284'],
     propertyMix: ['renter', 'property-manager', 'landlord', 'small-business'],
     situations: ['rental-turnover', 'moving-out', 'replacing-furniture'],
@@ -162,11 +182,15 @@ export const locations: Location[] = [
     intro:
       'Queen Creek properties tend to be larger, with sheds, garages, and yards that collect bulky junk and green waste. We clear furniture, appliances, construction debris, and full cleanouts across new builds and established acreage alike.',
     neighborhoods: ['Encanterra', 'Hastings Farms', 'Cortina', 'Pecan Creek', 'Queen Creek Station'],
+    localIntro: [
+      'Queen Creek lots run bigger than the rest of the East Valley, and so do the jobs — shed and outbuilding cleanouts, fence-line piles, and yards that have collected years of green waste. Long carries from a back building to wherever a truck can park are normal here, and we plan the crew for them.',
+      'Alongside homeowners, we work with Queen Creek contractors and landlords clearing renovation debris and turnover leftovers across the newer builds. Clean green waste and untreated wood ride separately on the trailer so they can go to a green-waste facility instead of disposal.',
+    ],
     zips: ['85142', '85140'],
     propertyMix: ['homeowner', 'contractor', 'landlord'],
     situations: ['yard-cleanup', 'backyard-project', 'renovation-cleanup', 'garage-reset'],
     accessNotes: [
-      { factor: 'gated-community', note: 'Encanterra and several newer communities are gated, so entry needs arranging before the crew leaves Mesa.' },
+      { factor: 'gated-community', note: 'Encanterra and several newer communities are gated, so entry needs arranging before the crew heads out.' },
       { factor: 'long-carry', note: 'Acreage properties often mean a long haul from an outbuilding or back fence line to where a truck can park.' },
     ],
     disposalNote:
@@ -180,8 +204,12 @@ export const locations: Location[] = [
     officeId: 'mesa',
     nearby: ['queen-creek-az', 'gilbert-az', 'gold-canyon-az', 'apache-junction-az'],
     intro:
-      'San Tan Valley jobs range from garage and shed cleanouts to rental turnovers and post-storm yard waste. Our crews make the drive out so you do not have to haul heavy loads into town yourself.',
+      'San Tan Valley jobs range from garage and shed cleanouts to rental turnovers and post-storm yard waste. We do the loading and the hauling so you do not have to run heavy loads into town yourself.',
     neighborhoods: ['Johnson Ranch', 'Circle Cross Ranch', 'Pecan Creek', 'Skyline Ranch', 'Copper Basin'],
+    localIntro: [
+      'Most of what we clear in San Tan Valley comes out of garages, sheds and yards — including the storm debris that piles up fast out here — plus rental turnovers across communities like Johnson Ranch and Copper Basin. Deeper lots and detached outbuildings usually mean a longer carry to the truck, and we staff for it.',
+      'A good share of San Tan Valley jobs run without anyone on site — landlords especially — which works when the scope and gate access are agreed before the crew arrives. Jobs out here are batched with nearby routes, so a little flexibility on timing usually gets you an earlier window.',
+    ],
     zips: ['85140', '85143', '85144'],
     propertyMix: ['homeowner', 'landlord', 'renter'],
     situations: ['garage-reset', 'yard-cleanup', 'rental-turnover', 'backyard-project'],
@@ -202,6 +230,10 @@ export const locations: Location[] = [
     intro:
       'Apache Junction calls often involve estate and foreclosure cleanouts, older homes, and outbuildings packed with years of stored items. We sort, load, and haul at a pace that works for families and property owners.',
     neighborhoods: ['Gold Canyon foothills', 'Superstition Mountain', 'Mountain View', 'Sun Lakes edge', 'Goldfield'],
+    localIntro: [
+      'Apache Junction work is different from the newer suburbs: more estate settlements, foreclosure cleanouts and long-held properties where a house, a carport and a couple of outbuildings all need clearing. We sort room by room as we load, at a pace that works for families going through it.',
+      'Older Apache Junction properties also produce the heavy finds — safes, workshop equipment, old appliances — and narrow drives and carports that keep a truck at a distance. We bring the hands for the weight and carry to wherever the truck can actually park.',
+    ],
     zips: ['85119', '85120', '85117'],
     propertyMix: ['homeowner', 'executor', 'foreclosure-buyer', 'landlord'],
     situations: ['estate-settlement', 'foreclosure-turnover', 'hoarding-cleanup', 'garage-reset'],
@@ -222,6 +254,10 @@ export const locations: Location[] = [
     intro:
       'Gold Canyon homes near the Superstitions often need hot tub removal, yard waste hauling, and full cleanouts during remodels or moves. We plan around gated communities and longer driveways so arrival stays smooth.',
     neighborhoods: ['Superstition Mountain', 'Mountainbrook Village', 'Peralta Trails', 'Entrada del Oro', 'Kings Ranch'],
+    localIntro: [
+      'Gold Canyon jobs usually start with access: guard-gated communities where the crew has to be listed ahead of time, and long private driveways that decide where the truck can stand. We arrange all of that before arrival so the appointment itself is simple.',
+      'The work itself leans toward downsizing and remodel clear-outs, plus the backyard features that come with homes here — hot tubs and built-in outdoor pieces that get cut down on site before they leave. Desert green waste like cactus and palm is loaded separately from everything else.',
+    ],
     zips: ['85118'],
     propertyMix: ['homeowner', 'realtor'],
     situations: ['backyard-project', 'downsizing', 'renovation-cleanup', 'yard-cleanup'],
@@ -243,6 +279,10 @@ export const locations: Location[] = [
     intro:
       'Scottsdale jobs often mean careful removal from condos, gated communities, vacation rentals, and homes prepping for a listing or remodel. Share gate instructions with your quote and we keep the property clean from start to finish.',
     neighborhoods: ['Old Town', 'McCormick Ranch', 'Gainey Ranch', 'North Scottsdale', 'DC Ranch'],
+    localIntro: [
+      'Scottsdale jobs call for a lighter touch: furniture out of finished condos, staging swaps ahead of a listing, and remodel debris from homes where the floors and walls matter. More of what we remove here is genuinely reusable than anywhere else we work, so a larger share of each load is separated for donation or reuse.',
+      'Access is the other Scottsdale constant. Much of the city is gated or guard-managed and several communities register vendors, so we handle the listing and paperwork in advance — including vacation-rental turnovers that have to fit between a checkout and the next check-in.',
+    ],
     zips: ['85250', '85251', '85254', '85255', '85257', '85258', '85259', '85260', '85262'],
     propertyMix: ['homeowner', 'realtor', 'property-manager', 'renter'],
     situations: ['pre-sale-prep', 'downsizing', 'renovation-cleanup', 'replacing-furniture'],
@@ -264,6 +304,10 @@ export const locations: Location[] = [
     intro:
       'Ahwatukee homeowners call for garage cleanouts, furniture and appliance removal, and pre-sale resets across the Foothills. We work around HOA rules and tucked-away cul-de-sacs to clear bulky items in a single visit.',
     neighborhoods: ['Foothills', 'Mountain Park Ranch', 'Lakewood', 'Club West', 'The Foothills Reserve'],
+    localIntro: [
+      'Ahwatukee is a pocket of hillside streets and cul-de-sacs, and the terrain shapes the work — steep, narrow driveways change where the truck stands and how far the crew carries. We look at that in your photos and price the job accordingly, so nothing is a surprise on arrival.',
+      'The jobs themselves are classic Foothills: garage resets, appliance swaps, downsizing and pre-sale clear-outs. With most communities under HOA rules about what can sit outside, we load straight from the garage so the curb never comes into it.',
+    ],
     zips: ['85044', '85045', '85048'],
     propertyMix: ['homeowner', 'realtor', 'landlord'],
     situations: ['garage-reset', 'pre-sale-prep', 'downsizing', 'replacing-appliance'],

@@ -11,6 +11,11 @@
  * quote" and "See all services" all pointing at /services, so the primary action
  * did not exist and the secondary one lied about where it went.
  *
+ * `label` / `callLabel` exist for the ONE sanctioned exception: the city pages
+ * use "Schedule Now" at the owner's instruction. The destinations never change —
+ * a different word on the same button is a wording decision; a different URL
+ * would be the old bug again. Leave both unset everywhere else.
+ *
  * Phone stays a first-class path. Junk removal buyers call, especially on mobile
  * mid-task, and the form supplements that rather than replacing it.
  */
@@ -27,6 +32,10 @@ interface Props {
   source?: string;
   /** Show the phone number under the buttons for scannability. */
   showNumber?: boolean;
+  /** Override the primary label. City pages only; destination stays /quote. */
+  label?: string;
+  /** Override the secondary label. Destination stays tel:. */
+  callLabel?: string;
 }
 
 const {
@@ -35,6 +44,8 @@ const {
   onDark = false,
   source,
   showNumber = false,
+  label,
+  callLabel,
 } = Astro.props;
 
 const quote = primaryQuoteAction();
@@ -43,7 +54,7 @@ const quoteHref = source ? `${quote.href}?from=${source}` : quote.href;
 
 <div class:list={['cta', layout]}>
   <Button href={quoteHref} variant="primary" {size} full={layout === 'stack'}>
-    {quote.label}
+    {label ?? quote.label}
   </Button>
   <Button
     href={`tel:${BUSINESS.phone}`}
@@ -52,7 +63,7 @@ const quoteHref = source ? `${quote.href}?from=${source}` : quote.href;
     {onDark}
     full={layout === 'stack'}
   >
-    Call Now
+    {callLabel ?? 'Call Now'}
   </Button>
 </div>
 
