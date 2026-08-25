@@ -10,7 +10,7 @@ import { primaryOffice } from '../data/offices';
 
 export const SITE = {
   /** Must match `site` in astro.config.mjs. Used to build absolute/canonical URLs. */
-  url: 'https://load-logic.vercel.app',
+  url: 'https://loadlogicjr.com',
   /** Brand / business name, reused in titles, schema, and footer. */
   name: 'Load Logic Junk Removal',
   /** Short tagline used as the default meta description fallback. */
