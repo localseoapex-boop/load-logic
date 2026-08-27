@@ -66,7 +66,7 @@ export const offices: Office[] = [
     type: 'LocalBusiness',
     priceRange: '$$',
     phone: '+1-480-650-0905',
-    email: 'hello@loadlogicjunk.com',
+    email: 'info@loadlogicjr.com',
     address: {
       // street + postalCode pending final Mesa move-in.
       city: 'Mesa',
