@@ -8,6 +8,11 @@
  *
  * Driven entirely by offices.ts, so the structured data always matches the
  * footer's NAP — a key local-SEO consistency signal.
+ *
+ * PLACEMENT: opt-in, not global. Rendered via BaseLayout's `localBusiness` prop
+ * on the homepage, the locations index, and the city pages only. Pages that
+ * merely need to point AT the business (Service `provider`, Article
+ * `publisher`) reference the stable @id instead of repeating the entity.
  */
 import { SITE } from '../config/site';
 import { offices, officeNodeId } from '../data/offices';

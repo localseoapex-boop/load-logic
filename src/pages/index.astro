@@ -143,9 +143,11 @@ const heroFacts = [
 ];
 
 const showTrust = hasVerifiedFacts();
+
+// localBusiness: the homepage is the canonical page for the business entity.
 ---
 
-<BaseLayout title={SITE.name} description={SITE.description}>
+<BaseLayout title={SITE.name} description={SITE.description} localBusiness>
   <!-- 1. Hero. Four text elements, both CTAs, no explanatory copy above the fold. -->
   <Hero
     eyebrow="Full-service hauling · Same-day when the route allows"

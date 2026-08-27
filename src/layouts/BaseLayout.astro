@@ -2,10 +2,12 @@
 /**
  * BaseLayout.astro — the root HTML shell every page renders inside.
  *
- * Composes the global pieces: BaseHead (SEO meta), the header, the footer, the
- * sticky mobile action bar, and the LocalBusiness schema. It forwards SEO props
- * through to BaseHead so each page controls its own title/description/canonical
- * while inheriting one consistent document structure.
+ * Composes the global pieces: BaseHead (SEO meta), the header, the footer, and
+ * the sticky mobile action bar. It forwards SEO props through to BaseHead so
+ * each page controls its own title/description/canonical while inheriting one
+ * consistent document structure.
+ *
+ * The full LocalBusiness entity is NOT global — see the `localBusiness` prop.
  *
  * The specialized templates (Service/City/BlogPost) build ON TOP of this layout,
  * so global concerns live here and only here.
@@ -37,16 +39,38 @@ interface Props {
    * already on.
    */
   hideActionBar?: boolean;
+  /**
+   * Emit the FULL LocalBusiness entity in the head. OPT-IN, and deliberately so.
+   *
+   * The business is one entity, not one-per-page. Repeating the complete node on
+   * all 34 pages says nothing extra about the business and dilutes which page
+   * actually represents it, so the full entity renders only where the page IS
+   * about the business as a local operation: the homepage, the locations index,
+   * and the city pages.
+   *
+   * Everywhere else the entity is still reachable — Service `provider`, Article
+   * `publisher` and the city pages all point at the same stable @id, so the
+   * graph stays connected without duplicating the object.
+   */
+  localBusiness?: boolean;
 }
 
-const { title, description, image, type, noindex, hideActionBar = false } = Astro.props;
+const {
+  title,
+  description,
+  image,
+  type,
+  noindex,
+  hideActionBar = false,
+  localBusiness = false,
+} = Astro.props;
 ---
 
 <!doctype html>
 <html lang={SITE.locale}>
   <head>
     <BaseHead {title} {description} {image} {type} {noindex} />
-    <LocalBusinessSchema />
+    {localBusiness && <LocalBusinessSchema />}
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->

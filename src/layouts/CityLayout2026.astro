@@ -56,6 +56,9 @@
  * photograph is Arizona suburban context, not a photograph of the named city,
  * and its alt text never names one.
  */
+// localBusiness (passed to BaseLayout below): a city page IS a page about this
+// business serving that city. Every city page emits the SAME entity — same @id,
+// same Mesa address — because Gilbert or Chandler is an areaServed, not a branch.
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import Section from '../components/Section.astro';
@@ -191,7 +194,7 @@ const heroTall = await getImage({
 });
 ---
 
-<BaseLayout {title} {description}>
+<BaseLayout {title} {description} localBusiness>
   <div class="container container-wide crumbs">
     <Breadcrumbs items={crumbs} />
   </div>
