@@ -65,7 +65,7 @@ export const offices: Office[] = [
     legalName: 'Load Logic Junk Removal LLC',
     type: 'LocalBusiness',
     priceRange: '$$',
-    phone: '+1-480-712-0431',
+    phone: '+1-480-650-0905',
     email: 'hello@loadlogicjunk.com',
     address: {
       // street + postalCode pending final Mesa move-in.
