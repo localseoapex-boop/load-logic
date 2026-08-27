@@ -10,10 +10,10 @@
  * `primaryOffice` (offices[0]) feeds the org-level BUSINESS defaults in
  * src/config/site.ts, so there's no duplicated business data anywhere.
  *
- * NOTE: Load Logic's Mesa street address is pending final move-in, so `street`
- * and `postalCode` are intentionally omitted. The footer and LocalBusiness
- * schema render the address with addressLocality ("Mesa") + region ("AZ") only,
- * which is the correct, Google-safe state until the full address is published.
+ * The Mesa street address is verified and published, so `street` and
+ * `postalCode` are populated. Both the footer's <address> block and the
+ * LocalBusiness schema render the complete address; they were already written
+ * to include those fields whenever present.
  */
 export interface OfficeHours {
   days: string[];
@@ -40,12 +40,19 @@ export interface Office {
   priceRange: string;
   phone: string;
   email: string;
+  /**
+   * Long-form business description for structured data ONLY.
+   *
+   * Deliberately separate from SITE.description, which is the site tagline: it
+   * is the footer copy and the default <meta name="description">, so it has to
+   * stay short. Schema has room for the full description; the page does not.
+   */
+  description?: string;
   address: {
-    /** Omitted until the real Mesa street address is published. */
+    /** Optional so a future office can be listed before its lease is signed. */
     street?: string;
     city: string;
     region: string;
-    /** Omitted until the real Mesa address is published. */
     postalCode?: string;
     country: string;
   };
@@ -67,17 +74,25 @@ export const offices: Office[] = [
     priceRange: '$$',
     phone: '+1-480-650-0905',
     email: 'info@loadlogicjr.com',
+    description:
+      "Load Logic Junk Removal is Mesa's straightforward junk hauling service with upfront, published pricing with no surprise fees, no bait-and-switch estimates. Serving Mesa, Gilbert, Chandler, Queen Creek, Apache Junction, and Tempe, we remove furniture, appliances, mattresses, yard debris, construction waste, hot tubs, and full garage, estate, and moving cleanouts. Our team does all the lifting, loading, and hauling, then sweeps the space clean before we leave. We donate and recycle whatever we can to keep usable items out of the landfill. Same-day and next-day appointments available across the East Valley. Locally owned and operated. Call or book online for an all-inclusive quote you can trust.",
     address: {
-      // street + postalCode pending final Mesa move-in.
+      street: '314 S 91st St',
       city: 'Mesa',
       region: 'AZ',
+      postalCode: '85208',
       country: 'US',
     },
-    geo: { latitude: 33.4152, longitude: -111.8315 },
+    // The business location, NOT the Mesa city centroid. locations.ts carries a
+    // separate `mesa-az` geo for the city itself; the two are different points
+    // and must not be collapsed into one.
+    geo: { latitude: 33.4092607, longitude: -111.638184 },
+    // Sunday is closed, so it is absent: a day with no OpeningHoursSpecification
+    // reads as closed in schema.org. Listing it with 00:00-00:00 would say the
+    // same thing more obscurely.
     hours: [
-      { days: WEEKDAYS, opens: '07:00', closes: '19:00' },
-      { days: ['Saturday'], opens: '07:00', closes: '18:00' },
-      { days: ['Sunday'], opens: '08:00', closes: '16:00' },
+      { days: WEEKDAYS, opens: '08:00', closes: '18:00' },
+      { days: ['Saturday'], opens: '08:00', closes: '16:00' },
     ],
     serves: [
       'mesa-az',

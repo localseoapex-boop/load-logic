@@ -14,7 +14,7 @@
  * merely need to point AT the business (Service `provider`, Article
  * `publisher`) reference the stable @id instead of repeating the entity.
  */
-import { SITE } from '../config/site';
+import { SITE, BUSINESS } from '../config/site';
 import { offices, officeNodeId } from '../data/offices';
 
 const graph = offices.map((office) => ({
@@ -22,7 +22,9 @@ const graph = offices.map((office) => ({
   '@id': officeNodeId(SITE.url, office),
   name: office.name === offices[0].name ? SITE.name : `${SITE.name} — ${office.address.city}`,
   legalName: office.legalName,
-  description: SITE.description,
+  // The office's own long-form description when it has one; the site tagline is
+  // only the fallback, since it is written to fit a <meta> tag.
+  description: office.description ?? SITE.description,
   url: SITE.url,
   telephone: office.phone,
   email: office.email,
@@ -47,6 +49,18 @@ const graph = offices.map((office) => ({
     dayOfWeek: spec.days,
     opens: spec.opens,
     closes: spec.closes,
+  })),
+  /**
+   * The cities this business serves, from the same BUSINESS.areaServed list the
+   * Service nodes use — one list, two views of it. Service says "this service is
+   * offered in these cities"; LocalBusiness says "this business covers these
+   * cities". Both are legitimate, and neither is a branch location: every city
+   * here is served FROM the one Mesa address above.
+   */
+  areaServed: BUSINESS.areaServed.map((city) => ({
+    '@type': 'City',
+    name: city,
+    containedInPlace: { '@type': 'State', name: office.address.region },
   })),
 }));
 
