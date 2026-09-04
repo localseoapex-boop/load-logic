@@ -9,9 +9,11 @@
  *
  *   height     ~380px desktop / ~300px mobile, roughly a third to a half of
  *              the primary heroes (which run to min(66dvh, 540px) and taller)
- *   image      ONE full-bleed background photograph at every width — no split
- *              treatment, and no photo-band-plus-copy-block on mobile. The
- *              mobile split belongs to the primary hero family only.
+ *   image      ONE full-bleed background photograph, and no photo-band-plus-
+ *              copy-block on mobile — that split belongs to the primary hero
+ *              family only. A page MAY pass an art-directed portrait frame as
+ *              `imageMobile`, swapped below 768px; the band itself is unchanged
+ *              either way, only the source behind it.
  *   overlay    heavier and simpler than the primary heroes: a flat darkening
  *              layer plus one left gradient, because the copy is short and
  *              sits in the left third at every width
@@ -36,34 +38,70 @@ interface Props {
   lede?: string;
   /** Full-bleed background photograph. Decorative: alt is always empty. */
   image: ImageMetadata;
+  /**
+   * OPTIONAL art-directed mobile frame, swapped in below 768px — the same
+   * breakpoint the primary heroes use. Omit it and the masthead renders the
+   * single <img> it always has, so this is additive for every page that does
+   * not pass one.
+   */
+  imageMobile?: ImageMetadata;
   /** object-position for the cover crop, per page. */
   focus?: string;
   /** Render the site's standard quote CTA pair, tagged with this source. */
   ctaSource?: string;
 }
 
-const { eyebrow, heading, lede, image, focus = 'center 50%', ctaSource } = Astro.props;
+const { eyebrow, heading, lede, image, imageMobile, focus = 'center 50%', ctaSource } = Astro.props;
 
 const bg = await getImage({
   src: image,
   widths: [768, 1024],
   format: 'webp',
 });
+
+/*
+ * A 16:9 masthead frame letterboxed into a phone leaves a strip of driveway, so
+ * a page whose subject matters on mobile passes a portrait frame of its own.
+ * Narrower width set than the desktop one because this source is only ever
+ * served below 768px.
+ */
+const bgMobile = imageMobile
+  ? await getImage({ src: imageMobile, widths: [480, 780, 960], format: 'webp' })
+  : undefined;
 ---
 
 <header class="index-hero" style={`--hero-focus: ${focus}`}>
   <div class="media" aria-hidden="true">
-    <img
-      src={bg.src}
-      srcset={bg.srcSet.attribute}
-      sizes="100vw"
-      alt=""
-      width={bg.attributes.width}
-      height={bg.attributes.height}
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-    />
+    {
+      bgMobile ? (
+        <picture>
+          <source media="(min-width: 768px)" srcset={bg.srcSet.attribute} sizes="100vw" />
+          <img
+            src={bgMobile.src}
+            srcset={bgMobile.srcSet.attribute}
+            sizes="100vw"
+            alt=""
+            width={bgMobile.attributes.width}
+            height={bgMobile.attributes.height}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+      ) : (
+        <img
+          src={bg.src}
+          srcset={bg.srcSet.attribute}
+          sizes="100vw"
+          alt=""
+          width={bg.attributes.width}
+          height={bg.attributes.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      )
+    }
     <div class="shade"></div>
   </div>
 
@@ -98,6 +136,15 @@ const bg = await getImage({
     inset: 0;
     z-index: 0;
     overflow: hidden;
+  }
+
+  /* <picture> is display:inline by default, so a percentage height on the <img>
+     would resolve against the picture box rather than against .media. Same fix
+     the primary heroes carry. */
+  .media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .media img {

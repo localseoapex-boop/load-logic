@@ -36,6 +36,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import IndexHero from '../components/IndexHero.astro';
 import heroImg from '../assets/photos/equipment/equip-dump-trailer.jpg';
+import heroImgMobile from '../assets/photos/equipment/equip-dump-trailer-tall.jpg';
 import Section from '../components/Section.astro';
 import LoadSizeScale from '../components/LoadSizeScale.astro';
 import PricingLedger from '../components/PricingLedger.astro';
@@ -83,6 +84,7 @@ const published = isPricingPublished();
     heading="Simple Junk Removal Pricing"
     lede="Priced by how much space your junk takes up in the truck, plus weight and access where they matter — and you get the number before anything is loaded."
     image={heroImg}
+    imageMobile={heroImgMobile}
     focus="center 55%"
     ctaSource="pricing-hero"
   />

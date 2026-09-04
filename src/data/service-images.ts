@@ -312,11 +312,11 @@ export const serviceImages: Record<string, ServiceImages> = {
   'same-day-junk-removal': {
     hero: {
       src: heroSameDay,
-      alt: 'A pickup and an open utility trailer loaded and ready to leave a suburban driveway',
+      alt: 'A white pickup towing a loaded black dump trailer, parked on the street outside a suburban home and ready to leave',
     },
     heroWide: {
       src: bgSameDayJunkRemoval,
-      alt: 'A pickup and an open utility trailer loaded and ready to leave a suburban driveway',
+      alt: 'A white pickup towing a loaded black dump trailer, parked on the street outside a suburban home and ready to leave',
     },
     support: {
       src: supLoad,
