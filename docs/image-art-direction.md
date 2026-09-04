@@ -45,7 +45,7 @@ rather than a stock library.
 | Element | Locked description |
 |---|---|
 | Workers | Two working adults, dark green work polo shirts, jeans, work gloves, work boots. Mixed build and appearance. Always mid-task. **Faces turned away, obscured by the load, or cropped by the frame.** Never facing or acknowledging the camera. |
-| Vehicle | A pickup truck towing an **open utility trailer with mesh side rails**. **Unbranded.** No decals, no lettering. The dump trailer appears only in the equipment shots. |
+| Vehicle | One white pickup truck towing an **open utility trailer with ~5 ft mesh cage side rails**, hitched behind. **Unbranded.** No decals, no lettering. The dump trailer appears only in `equip-dump-trailer`, which is the `/pricing` masthead. |
 | Light | Overcast bright, or low early-morning sun. Never midday harsh, never golden-hour glamour. |
 | Palette | Muted. Desert tan, concrete gray, dusty green. Nothing neon except the work gloves. |
 | Camera | Eye level, 35mm. Occasionally 50mm for detail shots. Never drone, never worm's-eye, never wide-angle distortion. |
@@ -57,12 +57,32 @@ Generated equipment represents the actual type of vehicle and gear the business
 runs. Inventing a fleet that does not exist is a fabricated business fact and
 misleads a customer trying to judge whether their job fits.
 
-**Confirmed by the owner, 2026-08-18:**
+**Confirmed by the owner, 2026-08-18; dimensions 2026-09-03:**
 
-| Equipment | Capacity | Role |
-|---|---|---|
-| Open utility trailer | ~9 cubic yards | The default. Bulky household loads. **The trailer shown in the load-size scale**, because open rails make the fill level readable from the side. |
-| Dump trailer | ~6 cubic yards | Heavy material: concrete, tile, brick, soil, roofing. Appears only in equipment shots. |
+| Equipment | Size | Capacity | Role |
+|---|---|---|---|
+| Open utility trailer | ~6 ft x 8 ft deck, **~5 ft tall mesh cage side rails** | ~9 cubic yards | The default. Bulky household loads. **The trailer shown in the load-size scale**, because open rails make the fill level readable from the side. |
+| Dump trailer | ~7 ft x 10 ft floor, **~2.5 ft solid sides**, tandem axle | ~6 cubic yards | Heavy material: concrete, tile, brick, soil, roofing. |
+
+**The rail and wall heights are the
+whole game and they are what the first generation got wrong.** The utility
+trailer's 9 cubic yards comes from the ~5 ft cage, not from the deck; the dump
+trailer's sides are LOW, roughly knee to thigh height. Prompts that said "low mesh
+side rails about waist height" and "solid high walls" produced a rail-less flatbed
+and a high-side dump reading at roughly double the real capacity — a fabricated
+equipment claim, not just an ugly frame.
+
+**One white pickup truck.** It tows in front; the trailer is hitched behind it.
+Describe the coupling as hardware — A-frame tongue, coupler, ball, safety chains,
+jack — because naming the trailer and leaving the mechanics implicit reliably
+produced trailers with no tongue sitting in a gap behind the truck, and in one
+case a trailer parked ahead of the truck's front bumper with nothing joining
+them. See `RIG`, `CAGE`, `DUMP_TRAILER` and the split negatives in
+`scripts/generate-photos.mjs`.
+
+The two trailers fail in OPPOSITE directions, so their negative prompts are
+separate: the cage loses its rails, the dump grows its walls. A shared list would
+have to carry both "no low side rails" and "no tall sides", which cancel out.
 
 **One tow vehicle, so one trailer at a time.** No image may show both trailers
 together, or two loads staged at once, because that would depict a capacity the
@@ -182,10 +202,10 @@ Deliberately empty. See section 2.2.
 
 ```bash
 # authenticated already; verify with:
-~/.local/bin/fal auth whoami
+fal auth whoami          # re-run `fal auth login` when the refresh token expires
 
 # generate
-~/.local/bin/fal api fal-ai/flux/dev \
+fal api fal-ai/flux/dev \
   prompt="<BASE STYLE>, <SCENE>, <ENVIRONMENT>, <NEGATIVE>" \
   image_size=landscape_16_9 \
   num_images=1

@@ -20,6 +20,7 @@
  * docs/image-art-direction.md section 2.1.
  */
 import { mkdir, writeFile, access } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -28,7 +29,21 @@ import { homedir } from 'node:os';
 
 const run = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const FAL = join(homedir(), '.local/bin/fal');
+/**
+ * The fal CLI is a pip install, so where it lands depends on how it was
+ * installed. This used to hardcode ~/.local/bin/fal, which silently stopped
+ * existing when it was installed under the user-scheme Python bin directory
+ * instead. Resolve it rather than assume it, and let FAL_CLI override.
+ */
+const FAL =
+  process.env.FAL_CLI ??
+  [
+    join(homedir(), '.local/bin/fal'),
+    join(homedir(), 'Library/Python/3.9/bin/fal'),
+    '/opt/homebrew/bin/fal',
+    '/usr/local/bin/fal',
+  ].find((p) => existsSync(p)) ??
+  'fal';
 const MODEL = 'fal-ai/flux/dev';
 /**
  * Before-and-after pairs are generated as a derivation, not as two independent
@@ -69,12 +84,88 @@ const NEGATIVE =
  * open utility trailer of roughly 9 cubic yards. One tow vehicle, so a frame must
  * never show two trailers or two staged loads.
  */
-const TRAILER =
-  'a white pickup truck towing a large open utility trailer with mesh side rails, plain and unbranded with no lettering or decals';
+/**
+ * ─────────────── Rig geometry, and why it is spelled out ───────────────
+ *
+ * The earlier constants named the trailer and left the mechanics implicit, and
+ * the model filled the gap wrongly and consistently: trailers with no tongue and
+ * no coupler sitting in an unexplained gap behind the truck, and in the dump
+ * trailer shot a trailer parked AHEAD of the truck's front bumper with nothing
+ * connecting the two. "Behind a white pickup truck" was read as "in the same
+ * picture as", not as a hitch.
+ *
+ * So the coupling is described as hardware — tongue, coupler, ball, chains, jack
+ * — rather than implied by a preposition, and the ordering is stated twice.
+ * Shared by both trailers because both failed the same way.
+ */
+const RIG =
+  'exactly ONE white pickup truck in FRONT and exactly ONE trailer hitched BEHIND it, ' +
+  'the truck leads and the trailer follows in one straight line, never overlapping and never intersecting, ' +
+  'a black A-frame tongue running forward from the trailer nose to a coupler seated on the ball hitch in the ' +
+  "truck's rear bumper, two safety chains crossed beneath the tongue and a jack on the tongue, " +
+  'every wheel the same size, perfectly round and flat on the concrete, ' +
+  'the truck uniformly white with no two-tone paint, plain and unbranded with no lettering, decals or badges';
 
-/** The heavy-material trailer, for equipment shots only. */
+/**
+ * The default trailer. ~9 cubic yards, and the capacity comes from the CAGE:
+ * roughly 5 ft of mesh side rail above a 6x8 deck. The previous constant said
+ * "low mesh side rails about waist height", which is a different trailer holding
+ * a third of the volume, and the generated frames duly came back as flatbeds
+ * with knee-high rails or no rails at all.
+ */
+const CAGE =
+  'a black tandem-axle utility trailer about 6 feet wide and 8 feet long with a flat steel deck and ' +
+  'TALL BLACK STEEL MESH CAGE SIDE RAILS ABOUT 5 FEET HIGH running the full length of both sides and across the front, ' +
+  'built from square tube uprights every two feet with welded wire mesh panels between them, ' +
+  'open to the sky with no roof and no lid, a black fender arching over each wheel';
+
+const TRAILER = `${RIG}, the trailer is ${CAGE}`;
+
+/**
+ * The heavy-material trailer. ~6 cubic yards in a LOW body: roughly 2.5 ft of
+ * solid side over a 7x10 floor. The previous constant said "solid high walls",
+ * which produced a high-side 14K dump reading at something like double the real
+ * capacity — a fabricated equipment claim, not just an ugly frame.
+ */
 const DUMP_TRAILER =
-  'a black hydraulic dump trailer with solid high walls behind a white pickup truck, plain and unbranded with no lettering or decals';
+  `${RIG}, the trailer is a black dump trailer about 7 feet wide and 10 feet long with ` +
+  'LOW SOLID SMOOTH BLACK STEEL SIDES ONLY ABOUT 2 AND A HALF FEET HIGH, low shallow and squat, ' +
+  "roughly knee to thigh height and much lower than the truck's bed, a black steel frame underneath, " +
+  'FOUR WHEELS ON TWO AXLES spaced about three feet apart with a SEPARATE BLACK FENDER ARCHING FULLY OVER EACH PAIR, ' +
+  'a small black battery and pump box mounted on the tongue, rear barn doors with vertical hinges, ' +
+  'red rectangular tail lights and small amber clearance lights at the rear corners, ' +
+  'the bed empty, level and fully lowered';
+
+/**
+ * Appended to any shot containing the rig. These are the exact failures the
+ * three audited frames shipped with, named individually because the general
+ * NEGATIVE line did not prevent any of them.
+ *
+ * SPLIT BY TRAILER, and it has to be. The two trailers fail in OPPOSITE
+ * directions: the cage keeps coming back with its rails missing or knee-high,
+ * the dump keeps coming back with walls at twice their real height. A single
+ * shared list would have to carry both "no low side rails" and "no tall sides",
+ * which cancel out and tell the model nothing.
+ *
+ * Set `rig: 'cage'` or `rig: 'dump'` on a shot. `rig: true` means cage, which is
+ * the default trailer on all but the one equipment frame.
+ */
+const RIG_NEGATIVE =
+  'no trailer in front of the truck, no trailer beside the truck, no unhitched trailer, no floating trailer, ' +
+  'no missing tongue, no missing hitch, no second trailer, no second truck, ' +
+  'no bent or warped wheels, no oval tyres, no mismatched wheel sizes, no merged or fused objects, ' +
+  'no badges, no license plates, no placards, no two-tone paint';
+
+/** The cage fails by losing its rails. */
+const CAGE_NEGATIVE =
+  'no missing side rails, no low side rails, no knee-high rails, no flatbed without rails, ' +
+  'no enclosed trailer, no box truck, no roof over the trailer, ' +
+  'no cargo overhanging the sides, no cargo wider than the trailer, no single oversized box, no shipping crate';
+
+/** The dump fails by growing its walls. */
+const DUMP_NEGATIVE =
+  'no high walls, no tall sides, no side extensions, no cage rails, no mesh rails, no roll-off dumpster, ' +
+  'no missing fenders, no tipped or raised bed';
 
 /**
  * The load-size scale shows the TRAILER ONLY, with no tow vehicle.
@@ -143,6 +234,7 @@ const SHOTS = [
     ratio: '16:9',
     scene: `${WORKERS}, lifting a worn sofa up over the side rail into ${TRAILER} parked on the driveway`,
     env: true,
+    rig: true,
   },
   {
     id: 'chapter-street',
@@ -151,6 +243,7 @@ const SHOTS = [
     scene: `${TRAILER} parked at the kerb, the trailer piled with mixed household junk and furniture`,
     env: true,
     empty: true,
+    rig: true,
   },
 
   /* Service imagery */
@@ -350,14 +443,35 @@ const SHOTS = [
     scene: `${TRAILER}, empty, parked on a driveway with its rear gate lowered as a ramp`,
     env: true,
     empty: true,
+    rig: true,
   },
   {
     id: 'equip-dump-trailer',
     dir: 'equipment',
     ratio: '21:9',
-    scene: `${DUMP_TRAILER}, empty, parked on a driveway, the heavy material option`,
+    /*
+     * Composed for the /pricing masthead, which is where this file actually
+     * renders — IndexHero gives it 100vw x 380px, so a 1920px desktop crops to
+     * roughly 5:1 and shows only the middle third of the frame's height. The
+     * previous version filled the frame top to bottom, so that masthead was
+     * showing a trailer with its top rail and its wheels both cropped away.
+     *
+     * Hence "long low horizontal band in the middle third": a side-on rig is
+     * naturally a long low subject, and holding it there is what survives the
+     * crop. Nothing touches a frame edge, because the mobile crop takes 13% off
+     * each side.
+     */
+    scene:
+      `${DUMP_TRAILER}, photographed side on from the driver side, ` +
+      'composed as a LONG LOW HORIZONTAL BAND: the whole rig sits in the RIGHT HALF of the frame and ' +
+      'occupies only the MIDDLE THIRD of the picture height, with a wide expanse of empty concrete driveway ' +
+      'below it and open overcast sky above it, ' +
+      'the LEFT HALF of the picture is bare empty driveway and gravel with nothing on it, ' +
+      'nothing touching the left, right, top or bottom edge of the frame, ' +
+      'a stucco house with a tile roof set well back, the heavy material option',
     env: true,
     empty: true,
+    rig: 'dump',
   },
 
   /* City context, reused across all nine location pages */
@@ -502,10 +616,15 @@ const SHOTS = [
  * and defended in the negatives, or the image makes a false claim about the
  * equipment the business owns.
  */
-const OPEN_TRAILER =
-  'a white pickup truck towing a completely open flatbed utility trailer, the trailer has a flat deck with low mesh side rails ' +
-  'about waist height and absolutely no roof and no walls, fully open to the sky so the furniture loaded on it is visible from above, ' +
-  'plain and unbranded with no lettering or decals';
+/**
+ * The background-hero phrasing of the same rig as TRAILER. It stays a separate
+ * constant because these frames need the cage called out again in the middle of
+ * a long compositional prompt, where a single earlier mention gets lost.
+ *
+ * It previously said "low mesh side rails about waist height", contradicting the
+ * real ~5 ft cage. Both hero frames came back as bare flatbeds.
+ */
+const OPEN_TRAILER = `${RIG}, the trailer is ${CAGE}, fully open to the sky so the load is visible from above`;
 
 const NO_FACE =
   'no visible face, no facial features, no eyes, no portrait, nobody looking toward the camera, nobody facing the camera';
@@ -532,6 +651,7 @@ const HOMEPAGE_2026 = [
       'the trailer and the load sit in the right two thirds of the frame, the left third is empty open driveway and gravel yard with nothing in it, ' +
       'ordinary weekday, nothing staged for a photograph',
     env: true,
+    rig: true,
   },
   {
     id: 'hero-drive-tall',
@@ -551,6 +671,7 @@ const HOMEPAGE_2026 = [
       'ordinary weekday, nothing staged for a photograph',
     env: true,
     empty: true,
+    rig: true,
   },
 
   {
@@ -606,18 +727,22 @@ const HERO_BG = [
     dir: 'home',
     ratio: '16:9',
     scene:
-      'wide photograph looking across a large empty concrete driveway apron, ' +
-      'the foreground and the whole left side of the picture is nothing but bare empty concrete and gravel with absolutely nothing on it, ' +
-      'far away in the RIGHT THIRD of the frame and small in the distance, ' +
-      OPEN_TRAILER +
-      ' parked side on, loaded with a worn sofa, a chest of drawers and stacked cardboard boxes, mesh side rails visible, ' +
-      'a stucco house with a tile roof behind it on the right, ' +
+      'wide photograph looking across a suburban driveway, ' +
+      'the ENTIRE LEFT HALF of the picture is bare empty concrete driveway and gravel with absolutely nothing on it, ' +
+      'in the RIGHT HALF of the frame, seen side on from the driver side and sitting in the vertical middle of the picture: ' +
+      OPEN_TRAILER + ', ' +
+      'loaded inside the cage and contained by the rails, filled to about two thirds of the rail height with ' +
+      'a worn sofa on its side, a chest of drawers and stacked cardboard boxes, ' +
+      'nothing overhanging the rails and nothing touching the house, ' +
       NOT_A_BOX_TRUCK + ', ' +
-      'the truck and trailer must stay entirely within the right third of the picture and must not extend into the left half, ' +
+      'a stucco house with a tile roof well behind the rig with clear sky and space separating the load from the roofline, ' +
+      'the truck and trailer stay entirely within the right half of the picture and must not extend into the left half, ' +
+      'the rig sits within the middle band of the frame with clear driveway below it and clear sky above it, ' +
       'flat even overcast light with no bright sky and no blown highlights, ' +
       'ordinary weekday, nothing staged for a photograph',
     env: true,
     empty: true,
+    rig: true,
   },
   {
     id: 'hero-bg-tall',
@@ -636,6 +761,7 @@ const HERO_BG = [
       'ordinary weekday, nothing staged for a photograph',
     env: true,
     empty: true,
+    rig: true,
   },
 ];
 
@@ -861,6 +987,7 @@ const SERVICE_HERO_BG = [
       HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
     env: true,
     empty: true,
+    rig: true,
   },
   {
     id: 'svc-bg-furniture-removal',
@@ -999,12 +1126,21 @@ const SERVICE_HERO_BG = [
     dir: 'services',
     ratio: '16:9',
     scene:
-      'a small household pickup staged and ready to go on a suburban driveway, a few bulky items set out beside ' +
-      OPEN_TRAILER + ' which is already partly loaded, positioned toward the right of frame, ' + NOT_A_BOX_TRUCK + ', ' +
-      'a wide clean driveway across the left, ' +
+      'a household junk pickup finished and ready to leave a suburban driveway, ' +
+      'the LEFT HALF of the picture is a wide clean empty concrete driveway apron with nothing on it, ' +
+      'in the RIGHT HALF, seen side on and sitting in the vertical middle of the frame: ' +
+      OPEN_TRAILER + ', ' +
+      'the trailer loaded nearly to the top of the cage with an assortment of ordinary household junk — ' +
+      'mismatched cardboard boxes, a broken chair, black bags, a rolled carpet and a small table — ' +
+      'all contained INSIDE the rails with nothing overhanging the sides and no single item larger than the trailer, ' +
+      'two more bulky items sitting on the concrete beside the trailer waiting to go on, ' +
+      NOT_A_BOX_TRUCK + ', ' +
+      'the rig stays entirely within the right half of the frame and within the middle vertical band, ' +
+      'with clear driveway below it and clear sky above it, ' +
       HERO_BG_FRAMING + ', nobody in frame, ordinary weekday, practical and unstaged',
     env: true,
     empty: true,
+    rig: true,
   },
   {
     id: 'svc-bg-garage-cleanouts',
@@ -1035,6 +1171,7 @@ const SERVICE_HEROES = [
       'ordinary weekday, practical and unstaged',
     env: true,
     empty: true,
+    rig: true,
   },
   {
     id: 'svc-hero-hottub',
@@ -1138,6 +1275,7 @@ const SERVICE_HEROES = [
       'matter of fact and unstaged, nobody in frame',
     env: false,
     empty: true,
+    rig: true,
   },
   {
     id: 'svc-hero-sameday',
@@ -1240,7 +1378,15 @@ SHOTS.push(...HOMEPAGE_2026);
 /* ───────────────────────────── Generation ───────────────────────────── */
 
 const buildPrompt = (shot) =>
-  [BASE, shot.scene, shot.env ? ENVIRONMENT : null, shot.empty ? EMPTY : null, NEGATIVE]
+  [
+    BASE,
+    shot.scene,
+    shot.env ? ENVIRONMENT : null,
+    shot.empty ? EMPTY : null,
+    NEGATIVE,
+    shot.rig ? RIG_NEGATIVE : null,
+    shot.rig === 'dump' ? DUMP_NEGATIVE : shot.rig ? CAGE_NEGATIVE : null,
+  ]
     .filter(Boolean)
     .join(', ');
 
@@ -1294,7 +1440,26 @@ async function generate(shot, force, urls) {
         'num_images=1',
       ];
 
-  const { stdout } = await run(FAL, args, { maxBuffer: 1024 * 1024 * 8 });
+  /*
+   * execFile's own error message is the entire command line, which for these
+   * shots is a 3000-character prompt with the real cause nowhere in it. The
+   * useful text is on stderr — an expired fal session reads "You must be
+   * authenticated", and that is worth seeing on line one rather than hunting
+   * for it. Auth failures are reported once and stop the run, because every
+   * remaining shot would fail the same way.
+   */
+  let stdout;
+  try {
+    ({ stdout } = await run(FAL, args, { maxBuffer: 1024 * 1024 * 8 }));
+  } catch (err) {
+    const detail = (err.stderr || err.stdout || err.message || '').trim().split('\n')[0];
+    console.error(`[fail]  ${shot.id}: ${detail}`);
+    if (/authenticat|refresh token|fal auth login/i.test(detail)) {
+      console.error('\n        The fal session has expired. Run:  fal auth login\n');
+      return { id: shot.id, status: 'unauthenticated' };
+    }
+    return { id: shot.id, status: 'failed' };
+  }
 
   // The CLI prints a Python dict repr, not JSON, so the URL is pulled with a
   // regex rather than parsed. Do not reach for JSON.parse here.
@@ -1363,7 +1528,11 @@ for (const shot of queue) {
     // A source whose derived shot is also queued must be regenerated even if it
     // exists on disk, because the derivation needs a live URL.
     const neededAsSource = queue.some((q) => q.derivedFrom === shot.id);
-    results.push(await generate(shot, force || neededAsSource, urls));
+    const result = await generate(shot, force || neededAsSource, urls);
+    results.push(result);
+    // Nothing else can succeed on an expired session, so stop rather than
+    // printing the same failure once per remaining shot.
+    if (result.status === 'unauthenticated') break;
   } catch (err) {
     console.error(`[fail]  ${shot.id}: ${err.message}`);
     results.push({ id: shot.id, status: 'failed' });
@@ -1372,6 +1541,7 @@ for (const shot of queue) {
 
 const count = (status) => results.filter((r) => r.status === status).length;
 console.log(
-  `\nDone. ${count('generated')} generated, ${count('skipped')} skipped, ${count('failed')} failed.`,
+  `\nDone. ${count('generated')} generated, ${count('skipped')} skipped, ` +
+    `${count('failed') + count('unauthenticated')} failed.`,
 );
 console.log('Every generated image must pass the review gate in docs/image-art-direction.md.\n');
