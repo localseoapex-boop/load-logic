@@ -30,6 +30,8 @@ rebuild-kit/
 # Local reference material
 reference/
 .env*
+# ...but the documented template of what those files need is tracked.
+!.env.example
 
 # local visual QA artifacts
 .playwright-mcp/

@@ -11,24 +11,20 @@
  * sit inside a <details> that opens with no JavaScript, so the form looks short
  * but the detail is one click away and fully present for anyone who wants it.
  *
- * BACKEND STATUS. The POST target is `/api/quote`, which does not exist yet:
- * shipping it needs the Vercel adapter plus Resend and Blob credentials, which
- * is phase 9 work. Until then the form is marked `data-endpoint-pending` and the
- * script intercepts submission to show the phone and SMS fallbacks rather than
- * posting into a void. Nothing here silently loses a lead.
+ * BACKEND. The POST target is `/api/quote`, the site's only non-static route.
+ * It validates against these same field definitions, stores photos in Vercel
+ * Blob, and emails the lead. The form posts natively without JavaScript and the
+ * server answers with a 303 to /quote/thanks; with JavaScript it is sent by
+ * fetch instead, which keeps everything the visitor typed on screen if the send
+ * fails. Either way a failure is shown, with the call and text fallbacks, rather
+ * than swallowed. Nothing here silently loses a lead.
  */
 import { initialInputs, additionalInputs, primaryQuoteAction, timingOptions, contactPreferenceOptions } from '../data/quote-actions';
 import { services } from '../data/services';
 import { loadScale } from '../data/pricing';
 import { accessChecklist } from '../data/access';
 import { BUSINESS } from '../config/site';
-
-interface Props {
-  /** Endpoint is live. Flip when /api/quote ships. */
-  endpointReady?: boolean;
-}
-
-const { endpointReady = false } = Astro.props;
+import { HONEYPOT_FIELD, TIMESTAMP_FIELD } from '../lib/quote-submission';
 
 const action = primaryQuoteAction();
 const initial = initialInputs();
@@ -57,9 +53,22 @@ const optionsFor = (from?: string) => {
   action={action.endpoint}
   enctype="multipart/form-data"
   data-quote-form
-  data-endpoint-pending={endpointReady ? undefined : ''}
   novalidate
 >
+  <!--
+    Spam screening, both invisible to a person. `company` is a field no visitor
+    can see or tab into, so anything in it came from a script filling every
+    input on the page. `loadedAt` is stamped by the script below on page load,
+    which lets the server reject a submission that arrived faster than a human
+    could type one. Neither asks the visitor for anything, and neither needs a
+    CAPTCHA or a third-party service.
+  -->
+  <div class="hp" aria-hidden="true">
+    <label for={HONEYPOT_FIELD}>Company</label>
+    <input id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name={TIMESTAMP_FIELD} value="" data-loaded-at />
+
   <div class="fields">
     {
       initial.map((input) => (
@@ -179,29 +188,47 @@ const optionsFor = (from?: string) => {
     </p>
   </div>
 
-  <div class="pending-notice" data-pending-notice hidden>
-    <p class="pending-title">Online submission is not switched on yet</p>
+  <!-- Shown only when a submission actually fails. Everything the visitor typed
+       stays in the form behind it, so sending again costs one click. -->
+  <div class="fail-notice" data-fail-notice role="alert" tabindex="-1" hidden>
+    <p class="fail-title">Your request was not sent</p>
+    <p data-fail-message>
+      Something went wrong on our end. Nothing you typed has been lost, so you can
+      try again.
+    </p>
     <p>
-      The form is built but the endpoint that receives it goes live with the next
-      release. Until then, call or text photos to
+      If it keeps failing, call or text photos to
       <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
       and you will get the same estimate.
     </p>
-    <p class="pending-actions">
-      <a class="pending-call" href={`tel:${BUSINESS.phone}`}>Call Now</a>
-      <a class="pending-sms" href={`sms:${BUSINESS.phone}`}>Text photos</a>
+    <p class="fail-actions">
+      <a class="fail-call" href={`tel:${BUSINESS.phone}`}>Call Now</a>
+      <a class="fail-sms" href={`sms:${BUSINESS.phone}`}>Text photos</a>
     </p>
   </div>
 </form>
 
 <script>
-  // Two jobs: inline validation with real messages, and an honest fallback while
-  // the endpoint is unbuilt. The form never posts into a void and never silently
-  // loses a lead.
+  // Progressive enhancement over a form that already works without it.
+  //
+  //   without JavaScript  the browser posts to /api/quote and the server answers
+  //                       with a 303 to /quote/thanks
+  //   with JavaScript     the same fields go by fetch, so a failed send leaves
+  //                       every value on screen and costs one click to retry
+  //
+  // The inline validation here duplicates the server's rules for speed only.
+  // The server is the one that decides.
   const form = document.querySelector<HTMLFormElement>('[data-quote-form]');
   if (form) {
-    const pending = form.hasAttribute('data-endpoint-pending');
-    const notice = form.querySelector<HTMLElement>('[data-pending-notice]');
+    const notice = form.querySelector<HTMLElement>('[data-fail-notice]');
+    const noticeMessage = form.querySelector<HTMLElement>('[data-fail-message]');
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const buttonLabel = button?.textContent ?? '';
+
+    // Stamps when the form was rendered. The server uses it to reject anything
+    // submitted faster than a person could fill it in.
+    const loadedAt = form.querySelector<HTMLInputElement>('[data-loaded-at]');
+    if (loadedAt) loadedAt.value = String(Date.now());
 
     const showError = (name: string, message: string) => {
       const el = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
@@ -211,6 +238,10 @@ const optionsFor = (from?: string) => {
         el.hidden = false;
       }
       input?.setAttribute('aria-invalid', 'true');
+
+      // A field inside the collapsed detail section is useless if it cannot be
+      // seen, so open it when that is where the problem is.
+      input?.closest('details')?.setAttribute('open', '');
     };
 
     const clearErrors = () => {
@@ -219,9 +250,25 @@ const optionsFor = (from?: string) => {
         el.textContent = '';
       });
       form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+      if (notice) notice.hidden = true;
     };
 
-    form.addEventListener('submit', (event) => {
+    const fail = (message?: string) => {
+      if (noticeMessage && message) noticeMessage.textContent = message;
+      if (notice) {
+        notice.hidden = false;
+        notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        notice.focus();
+      }
+    };
+
+    const setBusy = (busy: boolean) => {
+      if (!button) return;
+      button.disabled = busy;
+      button.textContent = busy ? 'Sending…' : buttonLabel;
+    };
+
+    form.addEventListener('submit', async (event) => {
       clearErrors();
       let valid = true;
 
@@ -251,12 +298,39 @@ const optionsFor = (from?: string) => {
         return;
       }
 
-      if (pending) {
-        event.preventDefault();
-        if (notice) {
-          notice.hidden = false;
-          notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Take over the native submit so a failure can be shown in place.
+      event.preventDefault();
+      setBusy(true);
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result?.ok) {
+          window.location.assign(result.redirect ?? '/quote/thanks');
+          return;
         }
+
+        if (result?.fieldErrors) {
+          for (const [name, message] of Object.entries(result.fieldErrors)) {
+            showError(name, String(message));
+          }
+          form.querySelector<HTMLElement>('[aria-invalid]')?.focus();
+        }
+
+        fail(
+          result?.message ??
+            'Something went wrong on our end. Nothing you typed has been lost, so you can try again.',
+        );
+      } catch {
+        fail('We could not reach the server. Check your connection and try again.');
+      } finally {
+        setBusy(false);
       }
     });
   }
@@ -266,6 +340,17 @@ const optionsFor = (from?: string) => {
   .quote-form {
     display: grid;
     gap: var(--s6);
+  }
+
+  /* The honeypot. Removed from the layout and from assistive technology, but
+     still a real focusable-by-script input, which is the point. */
+  .hp {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .fields {
@@ -462,6 +547,11 @@ const optionsFor = (from?: string) => {
     transform: translateY(1px);
   }
 
+  button[type='submit']:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
   .fallback {
     font-size: var(--t3);
     color: var(--ink-2);
@@ -471,9 +561,9 @@ const optionsFor = (from?: string) => {
     font-weight: 600;
   }
 
-  /* ─── Honest pending state ─── */
+  /* ─── Visible failure state ─── */
 
-  .pending-notice {
+  .fail-notice {
     padding: var(--s5);
     border-inline-start: 3px solid var(--rust);
     background: var(--rust-tint);
@@ -481,21 +571,27 @@ const optionsFor = (from?: string) => {
     gap: var(--s3);
   }
 
-  .pending-title {
+  /* `display: grid` on a class beats the browser's own `[hidden]` rule, so the
+     block has to opt back out explicitly or it is on screen permanently. */
+  .fail-notice[hidden] {
+    display: none;
+  }
+
+  .fail-title {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: var(--t1);
   }
 
-  .pending-actions {
+  .fail-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--s3);
     margin-top: var(--s2);
   }
 
-  .pending-call,
-  .pending-sms {
+  .fail-call,
+  .fail-sms {
     display: inline-flex;
     align-items: center;
     min-height: 48px;
@@ -506,18 +602,18 @@ const optionsFor = (from?: string) => {
     text-decoration: none;
   }
 
-  .pending-call {
+  .fail-call {
     background: transparent;
     border: 1px solid var(--charcoal);
     color: var(--charcoal);
   }
 
-  .pending-call:hover {
+  .fail-call:hover {
     background: var(--charcoal);
     color: #fff;
   }
 
-  .pending-sms {
+  .fail-sms {
     border: 1px solid var(--rule-strong);
     color: var(--ink);
   }

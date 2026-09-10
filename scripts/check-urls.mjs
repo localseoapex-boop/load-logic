@@ -26,13 +26,31 @@
  * needs a single-hop 301 first; the city x service removal above is the
  * documented exception, taken deliberately and before indexing.
  */
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DIST = resolve(root, 'dist');
 const BASELINE = resolve(root, 'scripts/url-baseline.txt');
+
+/**
+ * Where the prerendered pages land. Astro writes them straight into dist/ for a
+ * purely static build, and into dist/client/ once an adapter is configured —
+ * which this project has, solely so /api/quote can be a function. The pages
+ * themselves are identical either way, so the guard follows the layout rather
+ * than being defeated by it.
+ */
+async function findDist() {
+  const client = resolve(root, 'dist/client');
+  try {
+    if ((await stat(client)).isDirectory()) return client;
+  } catch {
+    // No adapter output; fall through to the plain static layout.
+  }
+  return resolve(root, 'dist');
+}
+
+const DIST = await findDist();
 
 /** Every .html file in dist, as the URL path it will be served at. */
 async function collectUrls(dir, urls = []) {

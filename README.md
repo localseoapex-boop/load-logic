@@ -10,6 +10,7 @@ Before making changes to this project, review these documents in order:
 2. **Copywriting Standards** (`docs/copywriting-standards.md`) – Follow the writing standards for all content.
 3. **SEO Methodology Interview** (`docs/seo-methodology-interview.md`) – Understand the reasoning behind the framework's SEO decisions.
 4. **SEO Standards** *(Coming Soon)* – The official SEO playbook built from the methodology interview.
+5. **Quote Form Backend** (`docs/quote-form-backend.md`) – How `/quote` delivers a lead, and the environment variables it needs.
 
 ## 🚀 Project Structure
 

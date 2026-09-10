@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
@@ -9,6 +10,15 @@ export default defineConfig({
   //   - the @astrojs/sitemap integration's absolute URLs
   // Keep this in sync with SITE.url in src/config/site.ts.
   site: 'https://loadlogicjr.com',
+
+  // The site stays static. `output: 'static'` is Astro's default and every page
+  // in src/pages is prerendered at build time exactly as before; the adapter is
+  // here only so that the ONE route that genuinely cannot be static —
+  // src/pages/api/quote.ts, which receives the lead form POST — can opt out with
+  // `export const prerender = false`. Nothing else in the project sets that flag,
+  // so the page count, the URLs, and the sitemap are unchanged. Verify after any
+  // adapter change that the build still reports 34 prerendered pages.
+  adapter: vercel(),
 
   integrations: [
     // Generates /sitemap-index.xml + /sitemap-0.xml at build time from every
