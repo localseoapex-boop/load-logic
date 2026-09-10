@@ -8,7 +8,8 @@
  * WHAT IT DOES
  *   1. rate-limits and screens obvious automation (honeypot + time trap)
  *   2. validates against the same field definitions the form is generated from
- *   3. stores photos in Vercel Blob and keeps the links
+ *   3. stores photos in the private Vercel Blob store and signs a view link
+ *      for each (see src/lib/quote-photo-links.ts)
  *   4. emails the lead to the operations inbox through Resend
  *   5. answers JSON to the form's fetch, or a 303 to /quote/thanks without JS
  *
@@ -28,6 +29,8 @@ import {
   PHOTO_LIMITS,
   type EmailContext,
 } from '../../lib/quote-submission';
+import { PHOTO_PREFIX, signPhotoLink } from '../../lib/quote-photo-links';
+import { SITE } from '../../config/site';
 
 export const prerender = false;
 
@@ -91,6 +94,15 @@ const json = (body: unknown, status = 200) =>
   });
 
 const thanksUrl = (request: Request) => new URL('/quote/thanks', request.url).toString();
+
+/**
+ * The origin photo links are built on. Production always uses the canonical
+ * domain, so a link in the inbox never depends on which hostname the visitor
+ * happened to arrive on. Preview and local builds link to themselves, which is
+ * what makes a preview's photo links testable against the preview.
+ */
+const linkOrigin = (request: Request): string =>
+  process.env.VERCEL_ENV === 'production' ? SITE.url : new URL(request.url).origin;
 
 /**
  * The no-JavaScript failure page. Not a route and not in the sitemap — it is the
@@ -162,7 +174,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Links, not attachments: eight phone photos are tens of megabytes, which is
   // past what any mail provider will accept, and links keep the notification
   // small and forwardable.
+  //
+  // The store is PRIVATE. A raw blob URL answers 403 to anyone without the
+  // store token, the inbox included, so each photo is stored privately and the
+  // email gets a signed /api/quote-photo link that works for that one photo
+  // for a limited time. Uploading with `access: 'public'` to a private store is
+  // rejected outright, which is why the access mode here must match the store.
   const photoUrls: { name: string; url: string }[] = [];
+  let photoLinksExpire: Date | undefined;
   const photoNotes: string[] = [...photoErrors];
   const blobToken = env('BLOB_READ_WRITE_TOKEN');
 
@@ -174,17 +193,23 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   if (photos.length > 0 && blobToken) {
     const stamp = new Date().toISOString().slice(0, 10);
-    const folder = `quote-photos/${stamp}`;
+    const folder = `${PHOTO_PREFIX}${stamp}`;
+    const origin = linkOrigin(request);
     for (const file of photos) {
-      const safeName = (file.name || 'photo.jpg').replace(/[^\w.\- ]+/g, '_').slice(-80);
+      const safeName = (file.name || 'photo.jpg')
+        .replace(/[^\w.\- ]+/g, '_')
+        .replace(/\.{2,}/g, '.')
+        .slice(-80);
       try {
         const blob = await put(`${folder}/${safeName}`, file, {
-          access: 'public',
+          access: 'private',
           addRandomSuffix: true,
           contentType: file.type,
           token: blobToken,
         });
-        photoUrls.push({ name: file.name || safeName, url: blob.url });
+        const link = signPhotoLink(blobToken, origin, blob.pathname);
+        photoLinksExpire = link.expiresAt;
+        photoUrls.push({ name: file.name || safeName, url: link.url });
       } catch (error) {
         console.error('[quote] blob upload failed', error);
         photoNotes.push(`"${file.name}" could not be stored. Ask the customer to text it.`);
@@ -197,6 +222,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const ctx: EmailContext = {
     photoUrls,
     photoNotes,
+    photoLinksExpire,
     sourcePage: request.headers.get('referer') ?? undefined,
     submittedAt: new Date(),
   };

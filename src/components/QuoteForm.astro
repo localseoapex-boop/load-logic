@@ -7,6 +7,13 @@
  * therefore cannot drift apart, and the same definition is what /knowledge.json
  * publishes to AI consumers as "here is how to actually book this".
  *
+ * PREFILL. QuoteStarter.astro sends `?zip=` and `?service=` here (it is not
+ * mounted on any page at the moment, but that is its contract). This page is
+ * prerendered, so the query string does not exist when the HTML is
+ * built — reading `Astro.url.searchParams` in the frontmatter always saw an
+ * empty one, and prefill silently never worked. It is applied in the browser by
+ * the script below instead, which is the only place the query string exists.
+ *
  * PROGRESSIVE DISCLOSURE. The five `initial` fields are always visible. The rest
  * sit inside a <details> that opens with no JavaScript, so the form looks short
  * but the detail is one click away and fully present for anyone who wants it.
@@ -29,13 +36,6 @@ import { HONEYPOT_FIELD, TIMESTAMP_FIELD } from '../lib/quote-submission';
 const action = primaryQuoteAction();
 const initial = initialInputs();
 const extra = additionalInputs();
-
-/** Prefill from the homepage quote starter. */
-const params = Astro.url.searchParams;
-const prefill = {
-  zip: params.get('zip') ?? '',
-  service: params.get('service') ?? '',
-};
 
 const optionsFor = (from?: string) => {
   if (from === 'services') return services.map((s) => ({ value: s.slug, label: s.name }));
@@ -82,9 +82,7 @@ const optionsFor = (from?: string) => {
             <select id={input.name} name={input.name} required={input.required}>
               <option value="">Choose one</option>
               {optionsFor(input.optionsFrom).map((opt) => (
-                <option value={opt.value} selected={prefill.service === opt.value}>
-                  {opt.label}
-                </option>
+                <option value={opt.value}>{opt.label}</option>
               ))}
             </select>
           ) : input.kind === 'file' ? (
@@ -115,7 +113,6 @@ const optionsFor = (from?: string) => {
                         ? 'name'
                         : undefined
               }
-              value={input.name === 'zip' ? prefill.zip : undefined}
             />
           )}
 
@@ -220,6 +217,27 @@ const optionsFor = (from?: string) => {
   // The server is the one that decides.
   const form = document.querySelector<HTMLFormElement>('[data-quote-form]');
   if (form) {
+    // Prefill from QuoteStarter.astro's contract (?zip=85201&service=junk-removal).
+    // Only a value the form could have produced is accepted: a five digit ZIP,
+    // and a service that is one of the rendered options. Anything else is
+    // ignored. A field that already has a value — typed, autofilled, or
+    // restored by the browser on Back — is never overwritten.
+    const params = new URLSearchParams(window.location.search);
+
+    const zipField = form.querySelector<HTMLInputElement>('input[name="zip"]');
+    const zip = (params.get('zip') ?? '').trim();
+    if (zipField && !zipField.value && /^\d{5}$/.test(zip)) zipField.value = zip;
+
+    const serviceField = form.querySelector<HTMLSelectElement>('select[name="service"]');
+    const service = (params.get('service') ?? '').trim();
+    if (
+      serviceField &&
+      !serviceField.value &&
+      Array.from(serviceField.options).some((option) => option.value && option.value === service)
+    ) {
+      serviceField.value = service;
+    }
+
     const notice = form.querySelector<HTMLElement>('[data-fail-notice]');
     const noticeMessage = form.querySelector<HTMLElement>('[data-fail-message]');
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');

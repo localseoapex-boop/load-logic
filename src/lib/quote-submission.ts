@@ -186,8 +186,10 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
 };
 
 export interface EmailContext {
-  /** Public URLs of the stored photos, in upload order. */
+  /** Signed view links to the stored photos, in upload order. */
   photoUrls: { name: string; url: string }[];
+  /** When those links stop working. The photos themselves stay in the store. */
+  photoLinksExpire?: Date;
   /** Anything that stopped a photo being stored, for the operator to see. */
   photoNotes: string[];
   /** The page the form was submitted from, from the Referer header. */
@@ -216,6 +218,7 @@ export const buildText = (values: Record<string, string>, ctx: EmailContext): st
   lines.push('', `Photos: ${ctx.photoUrls.length}`);
   for (const photo of ctx.photoUrls) lines.push(`  ${photo.name} — ${photo.url}`);
   for (const note of ctx.photoNotes) lines.push(`  NOTE: ${note}`);
+  if (expiryNote(ctx)) lines.push(`  ${expiryNote(ctx)}`);
 
   lines.push('', '---');
   lines.push(
@@ -226,6 +229,16 @@ export const buildText = (values: Record<string, string>, ctx: EmailContext): st
 
   return lines.join('\n');
 };
+
+const expiryNote = (ctx: EmailContext): string =>
+  ctx.photoLinksExpire && ctx.photoUrls.length
+    ? `Photo links work until ${ctx.photoLinksExpire.toLocaleDateString('en-US', {
+        timeZone: 'America/Phoenix',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })}. After that the photos are still in the Vercel Blob store.`
+    : '';
 
 const escapeHtml = (value: string): string =>
   value
@@ -261,6 +274,10 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
     ? `<p style="margin:8px 0;color:#a4442c">${ctx.photoNotes.map(escapeHtml).join('<br>')}</p>`
     : '';
 
+  const expiry = expiryNote(ctx)
+    ? `<p style="margin:8px 0;color:#5b5b57;font-size:12px">${escapeHtml(expiryNote(ctx))}</p>`
+    : '';
+
   const tel = (values.phone ?? '').replace(/[^\d+]/g, '');
 
   return `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1c1c19;max-width:640px">
@@ -273,6 +290,7 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
   <h2 style="font-size:15px;margin:24px 0 0">Photos (${ctx.photoUrls.length})</h2>
   ${photos}
   ${notes}
+  ${expiry}
   <hr style="border:0;border-top:1px solid #e2e0da;margin:24px 0">
   <p style="font-size:12px;color:#5b5b57;margin:0">
     ${ctx.sourcePage ? `Submitted from ${escapeHtml(ctx.sourcePage)}<br>` : ''}
