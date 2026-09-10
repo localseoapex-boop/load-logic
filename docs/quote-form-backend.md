@@ -144,7 +144,9 @@ deployment they point at the preview itself.
 Lightweight and dependency-free, sized for a local lead form:
 
 - **Honeypot** (`company`) — a field no visitor can see or tab into
-- **Time trap** (`loadedAt`) — a submission faster than 2.5 seconds was not typed
+- **Time trap** (`loadedAt`) — a submission faster than 1.5 seconds was not typed.
+  Deliberately low: a hit is dropped silently, so a false positive is a lost
+  lead, and autofill plus prefill make fast genuine submissions realistic
 - **Rate limit** — 5 submissions per client address per 10 minutes, in memory.
   Not distributed, and not pretending to be: it stops one script hammering the
   inbox, which is the realistic threat

@@ -21,12 +21,20 @@ import { loadScale } from '../data/pricing';
  * Neither is a real question and neither is shown to a person. The honeypot is
  * a field a human never sees and therefore never fills in; the timestamp is
  * written by the form's own script on load, so a submission that arrives in
- * under a couple of seconds did not come from someone typing. Both are cheap,
+ * well under two seconds did not come from someone typing. Both are cheap,
  * invisible to real visitors, and need no third-party service or CAPTCHA. */
 export const HONEYPOT_FIELD = 'company';
 export const TIMESTAMP_FIELD = 'loadedAt';
-/** A real person cannot fill this form in faster than this. */
-export const MIN_FILL_MS = 2500;
+/**
+ * A real person cannot fill this form in faster than this.
+ *
+ * Kept deliberately low. Anything under it is discarded SILENTLY, with a
+ * thank-you page, so a false positive is a lost lead nobody ever hears about.
+ * Browser autofill and the ZIP/service prefill can take a genuine visitor from
+ * page load to submit in two or three seconds; 1.5 still stops a script that
+ * posts on load, which is what this is for. Do not raise it without a reason.
+ */
+export const MIN_FILL_MS = 1500;
 
 const action = primaryQuoteAction();
 const photoInput = action.inputs.find((i) => i.name === 'photos');
