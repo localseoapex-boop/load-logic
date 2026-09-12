@@ -1,0 +1,539 @@
+---
+/**
+ * /mesa25 — landing page for the first direct-mail campaign (postcard QR code).
+ *
+ * NOT PART OF THE SITE'S SEARCH SURFACE, on purpose:
+ *   - `noindex, nofollow` through BaseLayout, the same mechanism as /quote.
+ *     robots.txt deliberately does NOT block it: a crawler has to be able to
+ *     fetch the page to see the noindex.
+ *   - excluded from the sitemap in astro.config.mjs
+ *   - linked from nothing: not the header, not the footer, not a content page
+ * The self-referencing canonical BaseHead emits is the same one /quote carries;
+ * with noindex it cannot make the page indexable.
+ *
+ * ONE LEAD SYSTEM. The quote form here is the site's QuoteForm, posting to the
+ * same /api/quote and landing on the same /quote/thanks. It is passed the
+ * campaign id, so every request sent from this page arrives tagged with the
+ * promo code, and the form carries the postcard's UTM values (utm_content
+ * distinguishes the five mail routes) for the rest of the session.
+ *
+ * NO NEW CLAIMS. Every fact below is one the site already states: the operating
+ * facts from the homepage, the four-step process, the service area from
+ * locations.ts, the per-trip capacity from equipment.ts. VERIFIED and reviews.ts
+ * are both empty, so there is no rating, review count, tenure, or credential
+ * here, and there must not be until those are real.
+ *
+ * The sticky mobile action bar is hidden, as on /quote: this page IS the
+ * conversion step, and the bar's quote button would lead away from the form.
+ * The hero, the offer, and the closing section all carry both actions instead.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import Button from '../components/Button.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import { BUSINESS } from '../config/site';
+import { services } from '../data/services';
+import { locations } from '../data/locations';
+import { confirmedCapacityCubicYards } from '../data/equipment';
+import { getCampaign } from '../data/campaigns';
+
+const campaign = getCampaign('direct-mail-mesa25');
+if (!campaign) throw new Error('[mesa25] campaign "direct-mail-mesa25" is missing from campaigns.ts');
+
+const tel = `tel:${BUSINESS.phone}`;
+const sms = `sms:${BUSINESS.phone}`;
+
+/**
+ * The six things people most often mail-order a pickup for. Where the site has a
+ * matching service, its own one-line description is used, so this list cannot
+ * promise more than the service pages do.
+ */
+const tagline = (slug: string) => services.find((s) => s.slug === slug)?.tagline ?? '';
+const serviceList = [
+  { name: 'Furniture removal', text: tagline('furniture-removal') },
+  { name: 'Appliance removal', text: tagline('appliance-removal') },
+  { name: 'Garage cleanouts', text: tagline('garage-cleanouts') },
+  { name: 'Household junk', text: tagline('junk-removal') },
+  { name: 'Yard debris', text: tagline('yard-waste-removal') },
+  { name: 'General cleanouts', text: 'Spare rooms, rentals and move-outs, loaded and hauled for you.' },
+];
+
+/** The homepage's operating facts, verbatim. Descriptions, not credentials. */
+const operatingFacts = [
+  'Upfront, volume-based quotes',
+  'No dumpster rental needed',
+  'Full-service loading and hauling',
+  'Donation and recycling first',
+];
+
+// Every campaign ZIP must be one the Mesa service area actually lists; if the
+// data ever stops saying so, the page must not keep saying it.
+const mesa = locations.find((l) => l.slug === 'mesa-az');
+const mailZipsCovered = campaign.zips.every((zip) => mesa?.zips?.includes(zip));
+if (!mailZipsCovered) throw new Error('[mesa25] a campaign ZIP is not in the Mesa service area in locations.ts');
+
+const heroFacts = [
+  { label: 'Offer', value: `${campaign.offerShort} first pickup` },
+  { label: 'Promo code', value: campaign.promoCode },
+  { label: 'Base', value: 'Mesa, AZ' },
+  { label: 'Call or text', value: BUSINESS.phoneDisplay },
+];
+---
+
+<BaseLayout
+  title="Save $25 on Your First Junk Removal Pickup in Mesa"
+  description={`Load Logic Junk Removal mailer offer: ${campaign.offer} with code ${campaign.promoCode}. Local junk removal serving Mesa and the East Valley.`}
+  noindex
+  hideActionBar
+>
+  <Hero
+    eyebrow={`Load Logic Junk Removal · Mesa mailer offer`}
+    heading="Got Junk? Save $25 on Your First Pickup"
+    subhead="Local junk removal serving Mesa and the East Valley."
+    facts={heroFacts}
+  >
+    <div slot="actions" class="hero-actions">
+      <p class="code-chip">
+        Use code <strong class="data">{campaign.promoCode}</strong>
+      </p>
+      <div class="buttons">
+        <Button href="#quote" size="lg">Get My Quote</Button>
+        <Button href={tel} variant="solid" size="lg" onDark>Call or Text</Button>
+      </div>
+      <p class="text-line">
+        Rather text photos? <a href={sms} class="data">{BUSINESS.phoneDisplay}</a>
+      </p>
+    </div>
+  </Hero>
+
+  <Section
+    index="01"
+    label="What we haul"
+    heading="What can we take off your hands?"
+    intro="If it fits on the trailer and it is legal to haul, it goes. We do the lifting."
+  >
+    <ul class="services">
+      {
+        serviceList.map((item) => (
+          <li>
+            <h3>{item.name}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section
+    index="02"
+    label="How it works"
+    tone="white"
+    heading="How it works"
+    intro="Four steps, and you do not lift anything."
+    width="wide"
+  >
+    <HowItWorks variant="quote" layout="banner" />
+  </Section>
+
+  <Section
+    index="03"
+    label="Mailer offer"
+    tone="dark"
+    scale="display"
+    heading={`${campaign.offerShort} your first pickup`}
+    class="offer-section"
+  >
+    <div class="offer">
+      <p class="offer-code">
+        <span class="offer-code-label">Promo code</span>
+        <strong class="data">{campaign.promoCode}</strong>
+      </p>
+      <p class="terms">{campaign.terms}</p>
+      <div class="buttons">
+        <Button href="#quote" size="lg">Get My Quote</Button>
+        <Button href={tel} variant="solid" size="lg" onDark>Call or Text</Button>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    index="04"
+    label="Local"
+    heading="Local to Mesa, serving the East Valley"
+    intro="Load Logic is a Mesa junk removal business. The same number answers whether you call or text."
+  >
+    <div class="local">
+      <dl class="local-facts">
+        <div>
+          <dt>Home base</dt>
+          <dd>Mesa, Arizona</dd>
+        </div>
+        <div>
+          <dt>Your mailer ZIPs</dt>
+          <dd class="data">{campaign.zips.join(' · ')}</dd>
+        </div>
+        <div>
+          <dt>Per trip</dt>
+          <dd>{confirmedCapacityCubicYards()} yd³ trailer load</dd>
+        </div>
+        <div>
+          <dt>Call or text</dt>
+          <dd><a href={tel} class="data">{BUSINESS.phoneDisplay}</a></dd>
+        </div>
+      </dl>
+
+      <div class="local-copy">
+        <ul class="facts-list">
+          {operatingFacts.map((fact) => <li>{fact}</li>)}
+        </ul>
+        <p class="area">
+          Also serving {BUSINESS.areaServed.filter((city) => city !== 'Mesa').join(', ')}.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="quote"
+    class="quote-section"
+    index="05"
+    label="Get your quote"
+    tone="white"
+    heading={`Get your quote with code ${campaign.promoCode}`}
+    intro={`Send photos of what needs to go and we will come back with an estimate. Requests sent from this page are tagged with code ${campaign.promoCode}.`}
+    width="wide"
+  >
+    <div class="quote-layout">
+      <div class="form-col">
+        <QuoteForm campaign={campaign.id} />
+      </div>
+
+      <aside class="rail" aria-label="Call or text instead">
+        <p class="rail-offer">
+          <span class="data">{campaign.promoCode}</span>
+          {campaign.offer}
+        </p>
+        <p class="rail-copy">
+          Rather not fill in a form? Call or text photos to the same number and
+          mention code {campaign.promoCode}.
+        </p>
+        <a class="rail-call" href={tel}>
+          <span class="rail-call-label">Call Now</span>
+          <span class="rail-call-number data">{BUSINESS.phoneDisplay}</span>
+        </a>
+        <a class="rail-sms" href={sms}>Text photos</a>
+        <p class="rail-terms">{campaign.terms}</p>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  /* ─── Hero eyebrow ───
+     The eyebrow is the line that names Load Logic as the advertiser, and Hero
+     sets it in brand orange straight onto the photograph's sky, where it
+     measures about 1.2:1. On this page it gets a dark backing (about 4.9:1).
+     The rule sits in this page's stylesheet, so no other page receives it; the
+     same contrast gap on the homepage hero is a separate, site-wide decision. */
+  :global(.hero .say > .eyebrow) {
+    display: inline-block;
+    padding: var(--s1) var(--s2);
+    background: rgb(24 26 28 / 0.85);
+    border-radius: var(--r);
+  }
+
+  /* ─── Hero actions (slotted into Hero, so scoped to this page) ─── */
+
+  .hero-actions {
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .code-chip {
+    justify-self: start;
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--s2);
+    padding: var(--s2) var(--s4);
+    border: 1px dashed var(--accent);
+    border-radius: var(--r);
+    background: rgb(0 0 0 / 0.35);
+    color: #fff;
+    font-size: var(--t2);
+  }
+
+  .code-chip strong {
+    font-size: var(--t1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+
+  .text-line {
+    font-size: var(--t3);
+    color: var(--on-dark);
+  }
+
+  .text-line a {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ─── Services ─── */
+
+  .services {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .services li {
+    display: grid;
+    gap: var(--s1);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .services h3 {
+    font-size: var(--t1);
+  }
+
+  .services p {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* ─── Offer ─── */
+
+  /* The offer is the one heading on the page set in capitals, as printed on
+     the postcard. Done in CSS so the text itself stays sentence case for
+     assistive technology. */
+  :global(.offer-section h2) {
+    text-transform: uppercase;
+  }
+
+  .offer {
+    display: grid;
+    gap: var(--s5);
+    max-width: 44rem;
+  }
+
+  .offer-code {
+    justify-self: start;
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--s4);
+    padding: var(--s4) var(--s5);
+    border: 2px dashed var(--accent);
+    border-radius: var(--r);
+  }
+
+  .offer-code-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--on-dark-2);
+    font-weight: 700;
+  }
+
+  .offer-code strong {
+    font-size: var(--d2);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .terms {
+    font-size: var(--t3);
+    color: var(--on-dark-2);
+    max-width: 52ch;
+  }
+
+  /* ─── Local ─── */
+
+  .local {
+    display: grid;
+    gap: var(--s6);
+  }
+
+  .local-facts {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .local-facts div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s2) var(--s4);
+    padding: var(--s3) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .local-facts dt {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 700;
+  }
+
+  .local-facts dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .facts-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .facts-list li {
+    position: relative;
+    padding-inline-start: var(--s5);
+    font-weight: 600;
+  }
+
+  .facts-list li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .area {
+    margin-top: var(--s4);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  /* ─── Quote ─── */
+
+  /* "Get My Quote" jumps here; clear the sticky header when it lands.
+     Global because Section renders the element, so this page's scoped
+     selectors cannot reach it; the class name is unique to this page. */
+  :global(.quote-section) {
+    scroll-margin-top: 64px;
+  }
+
+  .quote-layout {
+    display: grid;
+    gap: var(--s8);
+    align-items: start;
+  }
+
+  .rail {
+    display: grid;
+    gap: var(--s4);
+    padding: var(--s6);
+    background: var(--surface-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+
+  .rail-offer {
+    display: grid;
+    gap: var(--s1);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--d3);
+    line-height: 1.15;
+  }
+
+  /* Ink, not orange: orange text on this light rail measures 3.5:1. The brand
+     colour stays as the underline. */
+  .rail-offer .data {
+    justify-self: start;
+    font-size: var(--t2);
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    border-bottom: 3px solid var(--accent);
+  }
+
+  .rail-copy,
+  .rail-terms {
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .rail-call {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s4);
+    background: var(--dark);
+    border-radius: var(--r);
+    text-decoration: none;
+  }
+
+  .rail-call-label {
+    font-size: var(--lbl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .rail-call-number {
+    font-size: var(--t1);
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .rail-sms {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r);
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .rail-sms:hover {
+    border-color: var(--ink);
+  }
+
+  @media (min-width: 800px) {
+    .services {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s7);
+    }
+
+    .local {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s8);
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .quote-layout {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: var(--s9);
+    }
+
+    .rail {
+      position: sticky;
+      top: calc(64px + var(--s5));
+    }
+  }
+</style>

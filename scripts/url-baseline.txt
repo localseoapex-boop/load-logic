@@ -12,6 +12,7 @@
 /locations/san-tan-valley-az/
 /locations/scottsdale-az/
 /locations/tempe-az/
+/mesa25/
 /pricing/
 /quote/
 /quote/thanks/

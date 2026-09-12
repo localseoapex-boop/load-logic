@@ -58,6 +58,50 @@ no query string, so reading it in the component frontmatter could only ever see
 an empty one. `QuoteStarter.astro` is the component that emits `zip` and
 `service`; it is not currently mounted on any page.
 
+## Campaign attribution
+
+Every form carries six hidden fields: `utm_source`, `utm_medium`,
+`utm_campaign`, `utm_content`, `utm_term`, and `campaign`.
+
+- The form's script reads UTM parameters from the landing URL and keeps them in
+  `sessionStorage` (`ll-attribution`), so they survive the visitor browsing
+  before they ask for a quote. A URL with UTM parameters replaces the stored set;
+  a URL without them leaves it alone. The session ends when the tab closes.
+- `campaign` is set by a campaign landing page (`<QuoteForm campaign="…" />`)
+  and rendered into the markup, so it arrives even with JavaScript off. It is
+  stored for the session too, so it follows the visitor to `/quote`.
+- The server accepts `campaign` only if it names an entry in
+  `src/data/campaigns.ts`, and derives the promo code from that entry, so a lead
+  can never claim a code nobody issued. UTM values are trimmed, capped at 120
+  characters and reduced to printable ASCII. **None of this ever rejects a
+  lead**: a bad value is dropped and the lead goes through.
+- The email shows `PROMO <code>: <offer>` at the top when a campaign is present,
+  and an `Attribution` block at the bottom with the campaign and UTM values.
+
+GA4 reads the same UTM parameters from the landing URL by itself; nothing extra
+is sent to analytics.
+
+### Campaign landing pages
+
+A campaign is an entry in `src/data/campaigns.ts` plus a page at its `path`.
+The page must be `noindex` (BaseLayout's `noindex` prop), its path must be added
+to the sitemap filter in `astro.config.mjs`, and nothing in the navigation,
+footer or content should link to it. Do not block it in `robots.txt` — a
+crawler has to fetch the page to see the `noindex`.
+
+| Campaign | Path | Code | Offer |
+|---|---|---|---|
+| `direct-mail-mesa25` | `/mesa25` | `MESA25` | $25 off your first junk removal pickup |
+
+QR codes should point at the canonical domain so no redirect sits in front of
+the page, for example:
+
+```
+https://loadlogicjr.com/mesa25?utm_source=direct_mail&utm_medium=postcard&utm_campaign=mesa25&utm_content=85207
+```
+
+`utm_content` distinguishes the mail routes (85205, 85206, 85207, 85208, 85209).
+
 ## Environment variables
 
 Set these in **Vercel → Project Settings → Environment Variables**, for

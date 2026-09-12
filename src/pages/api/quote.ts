@@ -153,7 +153,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return wantsJson(request) ? json({ ok: false, message }, 400) : htmlError([message], 400);
   }
 
-  const { values, fieldErrors, photos, photoErrors, looksAutomated } = parseSubmission(form);
+  const { values, fieldErrors, photos, photoErrors, looksAutomated, attribution } = parseSubmission(form);
 
   // Automated submissions get the ordinary success answer and nothing is sent.
   // Telling a bot it was caught only teaches whoever wrote it what to change.
@@ -225,6 +225,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     photoLinksExpire,
     sourcePage: request.headers.get('referer') ?? undefined,
     submittedAt: new Date(),
+    attribution,
   };
 
   if (!apiKey) {

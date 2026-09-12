@@ -15,6 +15,7 @@
 import { primaryQuoteAction, timingOptions, contactPreferenceOptions } from '../data/quote-actions';
 import { services } from '../data/services';
 import { loadScale } from '../data/pricing';
+import { getCampaign, type Campaign } from '../data/campaigns';
 
 /* ─────────────────────────── Anti-spam field names ───────────────────────────
  *
@@ -23,6 +24,21 @@ import { loadScale } from '../data/pricing';
  * written by the form's own script on load, so a submission that arrives in
  * well under two seconds did not come from someone typing. Both are cheap,
  * invisible to real visitors, and need no third-party service or CAPTCHA. */
+/* ──────────────────────────── Attribution fields ────────────────────────────
+ *
+ * Hidden, filled by the form's own script from the landing URL and carried in
+ * sessionStorage, so a visitor who arrives from a postcard QR code and browses
+ * before asking for a quote is still attributed to it. None of them is a
+ * question, none is required, and a lead is never rejected over one: a value
+ * that fails the checks below is dropped and the lead goes through without it.
+ *
+ * `campaign` is set by the page that embeds the form (see campaigns.ts) and is
+ * only accepted when it names a real campaign. The UTM fields are free text from
+ * a URL, so they are trimmed, capped, and reduced to printable ASCII. */
+export const UTM_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const;
+export const CAMPAIGN_FIELD = 'campaign';
+const MAX_UTM_LENGTH = 120;
+
 export const HONEYPOT_FIELD = 'company';
 export const TIMESTAMP_FIELD = 'loadedAt';
 /**
@@ -85,7 +101,27 @@ export interface ParsedSubmission {
   photoErrors: string[];
   /** True when the honeypot or the time trap fired. */
   looksAutomated: boolean;
+  /** Where the lead came from, when that is known. Never affects acceptance. */
+  attribution: Attribution;
 }
+
+export interface Attribution {
+  campaign?: Campaign;
+  utm: Partial<Record<(typeof UTM_FIELDS)[number], string>>;
+}
+
+/** Reads the hidden attribution fields. Anything malformed is simply left out. */
+const parseAttribution = (form: FormData): Attribution => {
+  const utm: Attribution['utm'] = {};
+  for (const name of UTM_FIELDS) {
+    const raw = form.get(name);
+    if (typeof raw !== 'string') continue;
+    const clean = raw.replace(/[^\x20-\x7E]/g, '').trim().slice(0, MAX_UTM_LENGTH);
+    if (clean) utm[name] = clean;
+  }
+  const id = form.get(CAMPAIGN_FIELD);
+  return { campaign: typeof id === 'string' ? getCampaign(id.trim()) : undefined, utm };
+};
 
 const str = (form: FormData, name: string): string => {
   const raw = form.get(name);
@@ -190,7 +226,14 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
   const loadedAt = Number(form.get(TIMESTAMP_FIELD) ?? 0);
   const tooFast = Number.isFinite(loadedAt) && loadedAt > 0 && Date.now() - loadedAt < MIN_FILL_MS;
 
-  return { values, fieldErrors, photos, photoErrors, looksAutomated: Boolean(honeypot) || tooFast };
+  return {
+    values,
+    fieldErrors,
+    photos,
+    photoErrors,
+    looksAutomated: Boolean(honeypot) || tooFast,
+    attribution: parseAttribution(form),
+  };
 };
 
 export interface EmailContext {
@@ -203,7 +246,24 @@ export interface EmailContext {
   /** The page the form was submitted from, from the Referer header. */
   sourcePage?: string;
   submittedAt: Date;
+  attribution?: Attribution;
 }
+
+/** The promo line an operator needs first: which code, and what it is worth. */
+const promoLine = (ctx: EmailContext): string =>
+  ctx.attribution?.campaign
+    ? `PROMO ${ctx.attribution.campaign.promoCode}: ${ctx.attribution.campaign.offer}`
+    : '';
+
+/** Campaign id and UTM values, in a fixed order, for the footer of the email. */
+const attributionRows = (ctx: EmailContext): { label: string; value: string }[] => {
+  const a = ctx.attribution;
+  if (!a) return [];
+  return [
+    ...(a.campaign ? [{ label: 'campaign', value: a.campaign.id }] : []),
+    ...UTM_FIELDS.filter((name) => a.utm[name]).map((name) => ({ label: name, value: a.utm[name] as string })),
+  ];
+};
 
 /** Ordered label/value pairs, following the order the form asks in. */
 const rows = (values: Record<string, string>): { label: string; value: string }[] =>
@@ -220,6 +280,7 @@ export const buildSubject = (values: Record<string, string>): string =>
 
 export const buildText = (values: Record<string, string>, ctx: EmailContext): string => {
   const lines: string[] = ['NEW QUOTE REQUEST', ''];
+  if (promoLine(ctx)) lines.push(promoLine(ctx), '');
 
   for (const row of rows(values)) lines.push(`${row.label}: ${row.value}`);
 
@@ -234,6 +295,12 @@ export const buildText = (values: Record<string, string>, ctx: EmailContext): st
   );
   if (ctx.sourcePage) lines.push(`Submitted from: ${ctx.sourcePage}`);
   if (values.email) lines.push(`Reply to this email to reach ${values.email}.`);
+
+  const tracking = attributionRows(ctx);
+  if (tracking.length) {
+    lines.push('', 'Attribution:');
+    for (const row of tracking) lines.push(`  ${row.label}: ${row.value}`);
+  }
 
   return lines.join('\n');
 };
@@ -288,11 +355,23 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
 
   const tel = (values.phone ?? '').replace(/[^\d+]/g, '');
 
+  const promo = promoLine(ctx)
+    ? `<p style="margin:0 0 20px;padding:10px 14px;background:#fff4e5;border-left:4px solid #ff6500;font-weight:700;font-size:15px">${escapeHtml(promoLine(ctx))}</p>`
+    : '';
+
+  const tracking = attributionRows(ctx);
+  const attribution = tracking.length
+    ? `<p style="font-size:12px;color:#5b5b57;margin:12px 0 0">Attribution: ${tracking
+        .map((row) => `${escapeHtml(row.label)}=<strong>${escapeHtml(row.value)}</strong>`)
+        .join(' · ')}</p>`
+    : '';
+
   return `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1c1c19;max-width:640px">
   <h1 style="font-size:20px;margin:0 0 4px">New quote request</h1>
   <p style="margin:0 0 20px;color:#5b5b57;font-size:13px">${escapeHtml(
     ctx.submittedAt.toLocaleString('en-US', { timeZone: 'America/Phoenix' }),
   )} (Phoenix)</p>
+  ${promo}
   ${tel ? `<p style="margin:0 0 20px"><a href="tel:${escapeHtml(tel)}" style="display:inline-block;padding:10px 18px;background:#1c1c19;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">Call ${escapeHtml(values.phone ?? '')}</a></p>` : ''}
   <table style="border-collapse:collapse;width:100%">${body}</table>
   <h2 style="font-size:15px;margin:24px 0 0">Photos (${ctx.photoUrls.length})</h2>
@@ -304,5 +383,6 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
     ${ctx.sourcePage ? `Submitted from ${escapeHtml(ctx.sourcePage)}<br>` : ''}
     ${values.email ? `Reply to this email to reach ${escapeHtml(values.email)}.` : 'No email given — call or text the number above.'}
   </p>
+  ${attribution}
 </div>`;
 };

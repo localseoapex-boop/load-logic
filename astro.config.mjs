@@ -34,11 +34,16 @@ export default defineConfig({
     //                    sitemap while telling crawlers not to index it is a
     //                    contradictory signal, so they are excluded here too.
     //                    Keep this list in step with any page that sets noindex.
+    //
+    //   /mesa25          direct-mail landing page, `noindex`. Campaign pages
+    //                    are listed in src/data/campaigns.ts; each one's path
+    //                    belongs here as well.
     sitemap({
       filter: (page) =>
         !page.endsWith('/knowledge.json') &&
         !/\/quote\/?$/.test(page) &&
-        !/\/quote\/thanks\/?$/.test(page),
+        !/\/quote\/thanks\/?$/.test(page) &&
+        !/\/mesa25\/?$/.test(page),
     }),
   ],
 });

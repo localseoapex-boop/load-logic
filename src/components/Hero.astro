@@ -41,6 +41,12 @@
  *
  * It remains the LCP element: eager, high fetchpriority, explicit dimensions so
  * its box is reserved before it loads.
+ *
+ * ─────────────────────────── Actions slot ───────────────────────────
+ *
+ * The CTAs default to QuoteCta. The optional `actions` slot replaces them, and
+ * exists for campaign landing pages (see campaigns.ts), whose primary action is
+ * the quote form further down the same page.
  */
 import { getImage } from 'astro:assets';
 import QuoteCta from './QuoteCta.astro';
@@ -93,7 +99,7 @@ const tall = await getImage({
     <h1>{heading}</h1>
     <p class="subhead">{subhead}</p>
     <div class="actions">
-      <QuoteCta size="lg" source="hero" onDark />
+      <slot name="actions"><QuoteCta size="lg" source="hero" onDark /></slot>
     </div>
   </div>
 

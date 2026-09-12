@@ -14,6 +14,14 @@
  * empty one, and prefill silently never worked. It is applied in the browser by
  * the script below instead, which is the only place the query string exists.
  *
+ * ATTRIBUTION. Hidden `utm_*` and `campaign` fields ride along with every
+ * request. The script fills them from the landing URL and keeps them in
+ * sessionStorage, so a visitor who arrives from a postcard QR code and browses
+ * the site before asking for a quote is still attributed to it. A page that
+ * embeds this form for a campaign passes `campaign`, which is also rendered
+ * straight into the markup so it reaches the server without JavaScript. The
+ * server validates all of it; see quote-submission.ts.
+ *
  * PROGRESSIVE DISCLOSURE. The five `initial` fields are always visible. The rest
  * sit inside a <details> that opens with no JavaScript, so the form looks short
  * but the detail is one click away and fully present for anyone who wants it.
@@ -31,7 +39,14 @@ import { services } from '../data/services';
 import { loadScale } from '../data/pricing';
 import { accessChecklist } from '../data/access';
 import { BUSINESS } from '../config/site';
-import { HONEYPOT_FIELD, TIMESTAMP_FIELD } from '../lib/quote-submission';
+import { HONEYPOT_FIELD, TIMESTAMP_FIELD, UTM_FIELDS, CAMPAIGN_FIELD } from '../lib/quote-submission';
+
+interface Props {
+  /** Campaign id from campaigns.ts, for a campaign landing page. */
+  campaign?: string;
+}
+
+const { campaign } = Astro.props;
 
 const action = primaryQuoteAction();
 const initial = initialInputs();
@@ -53,6 +68,7 @@ const optionsFor = (from?: string) => {
   action={action.endpoint}
   enctype="multipart/form-data"
   data-quote-form
+  data-campaign={campaign}
   novalidate
 >
   <!--
@@ -68,6 +84,11 @@ const optionsFor = (from?: string) => {
     <input id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="off" />
   </div>
   <input type="hidden" name={TIMESTAMP_FIELD} value="" data-loaded-at />
+
+  <!-- Attribution. Filled by the script below from the landing URL and the
+       session; `campaign` is rendered by the page that embeds the form. -->
+  {UTM_FIELDS.map((name) => <input type="hidden" name={name} value="" data-attribution />)}
+  <input type="hidden" name={CAMPAIGN_FIELD} value={campaign ?? ''} data-attribution />
 
   <div class="fields">
     {
@@ -237,6 +258,47 @@ const optionsFor = (from?: string) => {
     ) {
       serviceField.value = service;
     }
+
+    // Campaign attribution, kept for the session. UTM parameters on this URL
+    // replace any stored set as a whole, so the latest campaign touch wins; a
+    // URL without them leaves the stored set alone. A campaign declared by the
+    // page is stored too, so it follows the visitor to /quote. Storage can be
+    // unavailable (private modes, blocked site data), in which case the fields
+    // simply carry this page's own values.
+    const ATTRIBUTION_KEY = 'll-attribution';
+    const attributionFields = Array.from(form.querySelectorAll<HTMLInputElement>('input[data-attribution]'));
+    const utmNames = attributionFields.map((input) => input.name).filter((name) => name.startsWith('utm_'));
+
+    let attribution: Record<string, string> = {};
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(ATTRIBUTION_KEY) ?? '{}');
+      if (saved && typeof saved === 'object') {
+        for (const [key, value] of Object.entries(saved)) {
+          if (typeof value === 'string') attribution[key] = value;
+        }
+      }
+    } catch {
+      // Unreadable or unavailable storage: start from this page alone.
+    }
+
+    const incoming = utmNames
+      .map((name) => [name, (params.get(name) ?? '').trim().slice(0, 120)] as const)
+      .filter(([, value]) => value);
+    if (incoming.length) {
+      utmNames.forEach((name) => delete attribution[name]);
+      incoming.forEach(([name, value]) => (attribution[name] = value));
+    }
+    if (form.dataset.campaign) attribution.campaign = form.dataset.campaign;
+
+    try {
+      sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    } catch {
+      // Not persisted; this page's values still go with the form.
+    }
+
+    attributionFields.forEach((input) => {
+      if (attribution[input.name]) input.value = attribution[input.name];
+    });
 
     const notice = form.querySelector<HTMLElement>('[data-fail-notice]');
     const noticeMessage = form.querySelector<HTMLElement>('[data-fail-message]');
