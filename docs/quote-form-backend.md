@@ -39,6 +39,26 @@ was added, with the same URLs, canonicals, and sitemap.
 If a build ever reports a number other than 34 prerendered pages, something has
 opted out of the static build by accident.
 
+## Fields
+
+The form asks six things, defined in `src/data/quote-actions.ts`:
+
+| Field | Name | Required |
+|---|---|---|
+| Your name | `name` | Yes |
+| Phone number | `phone` | Yes |
+| ZIP code | `zip` | Yes |
+| What do you need removed? | `service` | Yes |
+| Photos | `photos` | No |
+| Anything else we should know? | `notes` | No |
+
+`loadSize`, `timing`, `email`, `address`, `access` and `contactPreference` are
+marked `retired`: the form no longer shows them, but the server still accepts,
+validates and emails them if a submission carries one (a tab opened before the
+form was shortened, say). None is required, and a bad value in one is dropped
+rather than rejecting the lead. Once nothing can still be sending them they can
+be deleted outright.
+
 ## Prefill
 
 `/quote` accepts two query parameters and fills the matching fields in the
@@ -132,9 +152,11 @@ Once the domain is verified, set:
 QUOTE_FROM_EMAIL="Load Logic Quotes <quotes@loadlogicjr.com>"
 ```
 
-The customer's own address is **never** used as the From address. It is set as
-`Reply-To` when they supply one, so replying in the inbox reaches them without
-failing SPF or DMARC.
+The customer's own address is **never** used as the From address. The form no
+longer asks for an email, so a lead normally has no `Reply-To` and the
+notification says to call or text instead. If a submission does carry a valid
+`email` (the retired field), it is set as `Reply-To`, so replying in the inbox
+reaches them without failing SPF or DMARC.
 
 ## Photos
 

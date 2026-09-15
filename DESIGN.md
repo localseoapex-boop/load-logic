@@ -259,6 +259,9 @@ a content-integrity rule, not a style preference.
   | Quote | **Get a Photo Quote** | Primary (`--hi-vis`) | The primary action on every page. Never also worded "Free quote", "Request estimate" or "Get started". |
   | Phone | **Call Now** | Solid (`--spruce`) | Secondary action, paired with the quote CTA in the header, the sticky mobile bar and every closing CTA block. Never worded "Call us", "Contact us" or "Talk to us". |
 
+- The quote form's own submit button is **Send My Request**, never the quote
+  CTA label. "Get a Photo Quote" is what brings a visitor to the form; repeating
+  it as the final action reads as another step rather than a send.
 - On mobile the two sit side by side in the sticky action bar at equal width.
   Phone remains a first-class conversion path; the quote form supplements it
   rather than replacing it.

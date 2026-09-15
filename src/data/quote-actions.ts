@@ -31,10 +31,20 @@ export interface QuoteInput {
   label: string;
   kind: InputKind;
   required: boolean;
-  /** Why we ask. Shown as helper text and used in the docs. */
+  /** Why we ask. Internal documentation only; never shown to the visitor. */
   reason: string;
-  /** Shown in the first, short version of the form. */
-  initial: boolean;
+  /**
+   * Short helper text under the field. Only where it genuinely helps someone
+   * fill the field in; a field that explains itself gets none.
+   */
+  hint?: string;
+  /**
+   * No longer asked on the form. The server still accepts, validates, and emails
+   * the field when a submission includes one, so a request from a page that was
+   * opened before the form was simplified arrives intact. It is never required
+   * and never rejects a lead.
+   */
+  retired?: boolean;
   /** Where options come from, for select and radio inputs. */
   optionsFrom?: 'services' | 'loadSizes' | 'timing' | 'contactPreference';
   /** Accepted file types and limits, for file inputs. */
@@ -48,6 +58,12 @@ export interface QuoteAction {
   name: string;
   /** The CTA label. Must match the label locked in DESIGN.md. */
   label: string;
+  /**
+   * The form's own submit button, for actions that are a form. Deliberately not
+   * `label`: that is the wording that brings a visitor to the form, and
+   * repeating it on the final button reads as another step rather than a send.
+   */
+  submitLabel?: string;
   description: string;
   /** Where the action happens. */
   href: string;
@@ -66,10 +82,14 @@ export const quoteActions: QuoteAction[] = [
     slug: 'photo-quote',
     name: 'Photo quote request',
     label: 'Get a Photo Quote',
+    submitLabel: 'Send My Request',
     description:
       'Send photos of what needs to go and get an estimate back, usually the same day. Photos let us judge volume and access, which is most of what sets the price.',
     href: '/quote',
     endpoint: '/api/quote',
+    // Short on purpose: what needs to go, how to reach you, send. Everything a
+    // longer form used to ask (size, timing, access, address) is either visible
+    // in the photos, fits in the notes, or is settled on the first call.
     inputs: [
       {
         name: 'name',
@@ -77,7 +97,6 @@ export const quoteActions: QuoteAction[] = [
         kind: 'text',
         required: true,
         reason: 'So we know who we are talking to.',
-        initial: true,
       },
       {
         name: 'phone',
@@ -85,7 +104,6 @@ export const quoteActions: QuoteAction[] = [
         kind: 'tel',
         required: true,
         reason: 'The fastest way to confirm details and give you a number.',
-        initial: true,
       },
       {
         name: 'zip',
@@ -93,7 +111,6 @@ export const quoteActions: QuoteAction[] = [
         kind: 'postal',
         required: true,
         reason: 'Confirms the property is in the service area before we quote it.',
-        initial: true,
       },
       {
         name: 'service',
@@ -101,7 +118,6 @@ export const quoteActions: QuoteAction[] = [
         kind: 'select',
         required: true,
         reason: 'Points the request at the right crew and equipment.',
-        initial: true,
         optionsFrom: 'services',
       },
       {
@@ -109,20 +125,30 @@ export const quoteActions: QuoteAction[] = [
         label: 'Photos',
         kind: 'file',
         required: false,
-        reason:
-          'The single most useful thing you can send. Shoot from far enough back to show the whole pile, plus the path to where a truck can park.',
-        initial: true,
+        reason: 'The single most useful thing a visitor can send: volume and access, at a glance.',
+        hint: 'Photos help us give you a more accurate quote.',
         accept: 'image/*',
         maxFiles: 8,
         maxFileSizeMb: 10,
       },
+      {
+        name: 'notes',
+        label: 'Anything else we should know?',
+        kind: 'textarea',
+        required: false,
+        reason:
+          'One open box in place of separate size, timing, and access questions. Stairs, gates, and long carries are what change a quote after the fact.',
+        hint: "Items, access, timing, or anything else you'd like us to know.",
+      },
+
+      // ─── Retired: no longer asked, still accepted (see `retired`) ───
       {
         name: 'loadSize',
         label: 'Roughly how much is there?',
         kind: 'radio',
         required: false,
         reason: 'A rough size gets you a closer estimate before anyone visits.',
-        initial: false,
+        retired: true,
         optionsFrom: 'loadSizes',
       },
       {
@@ -131,7 +157,7 @@ export const quoteActions: QuoteAction[] = [
         kind: 'select',
         required: false,
         reason: 'Tells us whether to look at today, this week, or further out.',
-        initial: false,
+        retired: true,
         optionsFrom: 'timing',
       },
       {
@@ -140,7 +166,7 @@ export const quoteActions: QuoteAction[] = [
         kind: 'email',
         required: false,
         reason: 'Useful if you would rather get the estimate in writing.',
-        initial: false,
+        retired: true,
       },
       {
         name: 'address',
@@ -148,16 +174,15 @@ export const quoteActions: QuoteAction[] = [
         kind: 'text',
         required: false,
         reason: 'Needed to schedule, but not to get an estimate.',
-        initial: false,
+        retired: true,
       },
       {
         name: 'access',
         label: 'Anything we should know about access?',
         kind: 'textarea',
         required: false,
-        reason:
-          'Stairs, gates, long carries, and elevator rules are the things that change a quote after the fact. Telling us up front keeps the price accurate.',
-        initial: false,
+        reason: 'Stairs, gates, long carries, and elevator rules. Now part of `notes`.',
+        retired: true,
       },
       {
         name: 'contactPreference',
@@ -165,7 +190,7 @@ export const quoteActions: QuoteAction[] = [
         kind: 'radio',
         required: false,
         reason: 'So we contact you the way you actually want to be contacted.',
-        initial: false,
+        retired: true,
         optionsFrom: 'contactPreference',
       },
     ],
@@ -204,7 +229,11 @@ export const quoteActions: QuoteAction[] = [
   },
 ];
 
-/** Option sets for inputs whose choices are not drawn from another module. */
+/**
+ * Option sets for inputs whose choices are not drawn from another module. Both
+ * belong to retired inputs and are kept so the server can still recognise and
+ * label those values.
+ */
 export const timingOptions = [
   { value: 'today', label: 'Today if possible' },
   { value: 'this-week', label: 'This week' },
@@ -224,10 +253,6 @@ export const getQuoteAction = (slug: string): QuoteAction | undefined =>
 
 export const primaryQuoteAction = (): QuoteAction => quoteActions[0];
 
-/** The short first pass of the form. */
-export const initialInputs = (slug = 'photo-quote'): QuoteInput[] =>
-  getQuoteAction(slug)?.inputs.filter((i) => i.initial) ?? [];
-
-/** Fields revealed after the first pass. */
-export const additionalInputs = (slug = 'photo-quote'): QuoteInput[] =>
-  getQuoteAction(slug)?.inputs.filter((i) => !i.initial) ?? [];
+/** The fields the form actually shows, in order. */
+export const formInputs = (slug = 'photo-quote'): QuoteInput[] =>
+  getQuoteAction(slug)?.inputs.filter((i) => !i.retired) ?? [];

@@ -85,6 +85,8 @@ const MAX_LENGTHS: Record<string, number> = {
   name: 120,
   phone: 40,
   zip: 5,
+  notes: 4000,
+  // Retired inputs, still accepted (see `retired` in quote-actions.ts).
   email: 200,
   address: 250,
   access: 4000,
@@ -166,16 +168,16 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
 
   // ─── Required fields ───
   if (!values.name) {
-    fieldErrors.name = 'We need a name to know who we are talking to.';
+    fieldErrors.name = 'Enter your name.';
   }
   if (!/\d{7,}/.test((values.phone ?? '').replace(/\D/g, ''))) {
-    fieldErrors.phone = 'Enter a phone number we can reach you on.';
+    fieldErrors.phone = 'Enter a phone number we can reach you at.';
   }
   if (!/^\d{5}$/.test(values.zip ?? '')) {
-    fieldErrors.zip = 'Enter the five digit ZIP for the property.';
+    fieldErrors.zip = 'Enter a 5-digit ZIP code.';
   }
   if (!values.service) {
-    fieldErrors.service = 'Pick the closest match. We will sort out the detail.';
+    fieldErrors.service = 'Choose the closest match.';
   }
 
   // ─── Known-value fields ───
@@ -190,8 +192,11 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
     }
   }
 
+  // Email is retired, so it can only arrive from an older copy of the form. A
+  // malformed one is dropped rather than rejected: the lead is worth more than
+  // the field, and it must never become a bad Reply-To.
   if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email)) {
-    fieldErrors.email = 'That email address does not look right. Leave it blank if you would rather not.';
+    delete values.email;
   }
 
   // ─── Photos ───
@@ -381,7 +386,7 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
   <hr style="border:0;border-top:1px solid #e2e0da;margin:24px 0">
   <p style="font-size:12px;color:#5b5b57;margin:0">
     ${ctx.sourcePage ? `Submitted from ${escapeHtml(ctx.sourcePage)}<br>` : ''}
-    ${values.email ? `Reply to this email to reach ${escapeHtml(values.email)}.` : 'No email given — call or text the number above.'}
+    ${values.email ? `Reply to this email to reach ${escapeHtml(values.email)}.` : 'Replying to this email does not reach the customer. Call or text the number above.'}
   </p>
   ${attribution}
 </div>`;

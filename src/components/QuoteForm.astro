@@ -22,9 +22,12 @@
  * straight into the markup so it reaches the server without JavaScript. The
  * server validates all of it; see quote-submission.ts.
  *
- * PROGRESSIVE DISCLOSURE. The five `initial` fields are always visible. The rest
- * sit inside a <details> that opens with no JavaScript, so the form looks short
- * but the detail is one click away and fully present for anyone who wants it.
+ * SHORT BY DESIGN. What needs to go, how to reach you, send. Six fields, four
+ * required, one open notes box in place of separate size, timing, and access
+ * questions. Helper text appears only where it helps someone fill the field in
+ * (`hint` in quote-actions.ts), never to explain why a field is asked. Fields
+ * the form no longer asks are `retired` there, not deleted, so the server still
+ * accepts them from a page opened before the change.
  *
  * BACKEND. The POST target is `/api/quote`, the site's only non-static route.
  * It validates against these same field definitions, stores photos in Vercel
@@ -34,10 +37,8 @@
  * fails. Either way a failure is shown, with the call and text fallbacks, rather
  * than swallowed. Nothing here silently loses a lead.
  */
-import { initialInputs, additionalInputs, primaryQuoteAction, timingOptions, contactPreferenceOptions } from '../data/quote-actions';
+import { formInputs, primaryQuoteAction } from '../data/quote-actions';
 import { services } from '../data/services';
-import { loadScale } from '../data/pricing';
-import { accessChecklist } from '../data/access';
 import { BUSINESS } from '../config/site';
 import { HONEYPOT_FIELD, TIMESTAMP_FIELD, UTM_FIELDS, CAMPAIGN_FIELD } from '../lib/quote-submission';
 
@@ -49,17 +50,12 @@ interface Props {
 const { campaign } = Astro.props;
 
 const action = primaryQuoteAction();
-const initial = initialInputs();
-const extra = additionalInputs();
+const inputs = formInputs();
 
-const optionsFor = (from?: string) => {
-  if (from === 'services') return services.map((s) => ({ value: s.slug, label: s.name }));
-  if (from === 'loadSizes')
-    return loadScale().map((l) => ({ value: l.slug, label: `${l.name} — ${l.summary}` }));
-  if (from === 'timing') return timingOptions;
-  if (from === 'contactPreference') return contactPreferenceOptions;
-  return [];
-};
+const optionsFor = (from?: string) =>
+  from === 'services' ? services.map((s) => ({ value: s.slug, label: s.name })) : [];
+
+const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zip: 'postal-code' };
 ---
 
 <form
@@ -92,113 +88,55 @@ const optionsFor = (from?: string) => {
 
   <div class="fields">
     {
-      initial.map((input) => (
-        <div class:list={['field', { wide: input.kind === 'file' }]}>
-          <label class="label" for={input.name}>
-            {input.label}
-            {!input.required && <span class="optional">optional</span>}
-          </label>
-
-          {input.kind === 'select' ? (
-            <select id={input.name} name={input.name} required={input.required}>
-              <option value="">Choose one</option>
-              {optionsFor(input.optionsFrom).map((opt) => (
-                <option value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          ) : input.kind === 'file' ? (
-            <input
-              id={input.name}
-              name={input.name}
-              type="file"
-              accept={input.accept}
-              multiple
-              capture={undefined}
-            />
-          ) : (
-            <input
-              id={input.name}
-              name={input.name}
-              type={input.kind === 'postal' ? 'text' : input.kind}
-              required={input.required}
-              inputmode={input.kind === 'postal' ? 'numeric' : undefined}
-              maxlength={input.kind === 'postal' ? 5 : undefined}
-              autocomplete={
-                input.kind === 'tel'
-                  ? 'tel'
-                  : input.kind === 'email'
-                    ? 'email'
-                    : input.kind === 'postal'
-                      ? 'postal-code'
-                      : input.name === 'name'
-                        ? 'name'
-                        : undefined
-              }
-            />
-          )}
-
-          <p class="reason">{input.reason}</p>
-          <p class="error" data-error-for={input.name} hidden></p>
-        </div>
-      ))
-    }
-  </div>
-
-  <details class="more">
-    <summary>
-      <span>Add more detail</span>
-      <span class="more-hint">Gets you a closer estimate. All optional.</span>
-    </summary>
-
-    <div class="fields">
-      {
-        extra.map((input) => (
-          <div class:list={['field', { wide: input.kind === 'textarea' || input.kind === 'radio' }]}>
+      inputs.map((input) => {
+        const hintId = input.hint ? `${input.name}-hint` : undefined;
+        return (
+          <div class:list={['field', { wide: input.kind === 'file' || input.kind === 'textarea' }]}>
             <label class="label" for={input.name}>
               {input.label}
-              <span class="optional">optional</span>
+              {!input.required && <span class="optional">(optional)</span>}
             </label>
 
             {input.kind === 'select' ? (
-              <select id={input.name} name={input.name}>
+              <select id={input.name} name={input.name} required={input.required}>
                 <option value="">Choose one</option>
                 {optionsFor(input.optionsFrom).map((opt) => (
                   <option value={opt.value}>{opt.label}</option>
                 ))}
               </select>
-            ) : input.kind === 'radio' ? (
-              <div class="radios" role="group" aria-labelledby={input.name}>
-                {optionsFor(input.optionsFrom).map((opt) => (
-                  <label class="radio">
-                    <input type="radio" name={input.name} value={opt.value} />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>
+            ) : input.kind === 'file' ? (
+              <input
+                id={input.name}
+                name={input.name}
+                type="file"
+                accept={input.accept}
+                multiple
+                aria-describedby={hintId}
+              />
             ) : input.kind === 'textarea' ? (
-              <textarea id={input.name} name={input.name} rows="4" />
+              <textarea id={input.name} name={input.name} rows="3" aria-describedby={hintId} />
             ) : (
-              <input id={input.name} name={input.name} type={input.kind} />
+              <input
+                id={input.name}
+                name={input.name}
+                type={input.kind === 'postal' ? 'text' : input.kind}
+                required={input.required}
+                inputmode={input.kind === 'postal' ? 'numeric' : undefined}
+                maxlength={input.kind === 'postal' ? 5 : undefined}
+                autocomplete={autocompleteFor[input.name]}
+              />
             )}
 
-            <p class="reason">{input.reason}</p>
+            {input.hint && <p class="hint" id={hintId}>{input.hint}</p>}
+            <p class="error" data-error-for={input.name} hidden></p>
           </div>
-        ))
-      }
-    </div>
-
-    <!-- The access checklist, drawn from access.ts, so the visitor knows what is
-         worth mentioning rather than guessing. -->
-    <div class="checklist">
-      <p class="label">Worth mentioning if any apply</p>
-      <ul>
-        {accessChecklist().map((item) => <li>{item.name}</li>)}
-      </ul>
-    </div>
-  </details>
+        );
+      })
+    }
+  </div>
 
   <div class="submit">
-    <button type="submit">{action.label}</button>
+    <button type="submit">{action.submitLabel}</button>
     <p class="fallback">
       Prefer to talk? Call
       <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>
@@ -318,10 +256,6 @@ const optionsFor = (from?: string) => {
         el.hidden = false;
       }
       input?.setAttribute('aria-invalid', 'true');
-
-      // A field inside the collapsed detail section is useless if it cannot be
-      // seen, so open it when that is where the problem is.
-      input?.closest('details')?.setAttribute('open', '');
     };
 
     const clearErrors = () => {
@@ -356,19 +290,19 @@ const optionsFor = (from?: string) => {
         (form.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value ?? '').trim();
 
       if (!value('name')) {
-        showError('name', 'We need a name to know who we are talking to.');
+        showError('name', 'Enter your name.');
         valid = false;
       }
       if (!/\d{7,}/.test(value('phone').replace(/\D/g, ''))) {
-        showError('phone', 'Enter a phone number we can reach you on.');
+        showError('phone', 'Enter a phone number we can reach you at.');
         valid = false;
       }
       if (!/^\d{5}$/.test(value('zip'))) {
-        showError('zip', 'Enter the five digit ZIP for the property.');
+        showError('zip', 'Enter a 5-digit ZIP code.');
         valid = false;
       }
       if (!value('service')) {
-        showError('service', 'Pick the closest match. We will sort out the detail.');
+        showError('service', 'Choose the closest match.');
         valid = false;
       }
 
@@ -470,7 +404,7 @@ const optionsFor = (from?: string) => {
   }
 
   textarea {
-    min-height: 7rem;
+    min-height: 6rem;
     resize: vertical;
   }
 
@@ -490,7 +424,7 @@ const optionsFor = (from?: string) => {
     border-color: var(--rust);
   }
 
-  .reason {
+  .hint {
     font-size: var(--t3);
     color: var(--ink-2);
     max-width: 56ch;
@@ -500,101 +434,6 @@ const optionsFor = (from?: string) => {
     font-size: var(--t3);
     font-weight: 600;
     color: var(--rust);
-  }
-
-  .radios {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s3);
-  }
-
-  .radio {
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    padding: var(--s2) var(--s4);
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--r-pill);
-    cursor: pointer;
-  }
-
-  .radio input {
-    width: auto;
-    min-height: 0;
-  }
-
-  .radio:has(input:checked) {
-    border-color: var(--ink);
-    background: var(--surface);
-  }
-
-  /* ─── Progressive disclosure ─── */
-
-  .more {
-    border-block: 1px solid var(--rule);
-    padding-block: var(--s4);
-  }
-
-  .more > summary {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--s2) var(--s4);
-    cursor: pointer;
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: var(--t1);
-    list-style: none;
-  }
-
-  .more > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .more > summary::after {
-    content: '+';
-    margin-inline-start: auto;
-    font-family: var(--font-data);
-    font-size: 1.5rem;
-    color: var(--ink-3);
-    line-height: 1;
-  }
-
-  .more[open] > summary::after {
-    content: '\2013';
-  }
-
-  .more-hint {
-    font-family: var(--font-text);
-    font-size: var(--t3);
-    font-weight: 400;
-    color: var(--ink-2);
-  }
-
-  .more[open] .fields {
-    margin-top: var(--s5);
-  }
-
-  .checklist {
-    margin-top: var(--s5);
-    padding-top: var(--s4);
-    border-top: 1px solid var(--rule);
-  }
-
-  .checklist ul {
-    list-style: none;
-    padding: 0;
-    margin-top: var(--s3);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s2);
-  }
-
-  .checklist li {
-    padding: var(--s1) var(--s3);
-    background: var(--surface-alt-2);
-    border-radius: var(--r-pill);
-    font-size: var(--t3);
   }
 
   /* ─── Submit ─── */
