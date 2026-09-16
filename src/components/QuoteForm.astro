@@ -105,14 +105,29 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
                 ))}
               </select>
             ) : input.kind === 'file' ? (
-              <input
-                id={input.name}
-                name={input.name}
-                type="file"
-                accept={input.accept}
-                multiple
-                aria-describedby={hintId}
-              />
+              /*
+               * A styled drop area over the REAL file input, not a replacement
+               * for it. The input covers the whole box at zero opacity, so the
+               * browser's own behaviour is untouched: tapping opens the camera
+               * and photo library on a phone, a desktop drag-and-drop still
+               * lands on the input, and the control stays keyboard focusable.
+               * The visible wording is decoration over a control the label
+               * above already names, so it is hidden from assistive tech; the
+               * status line is announced instead, and it is the one thing the
+               * native control would have shown that this styling covers up.
+               */
+              <div class="upload">
+                <input
+                  id={input.name}
+                  name={input.name}
+                  type="file"
+                  accept={input.accept}
+                  multiple
+                  aria-describedby={hintId}
+                />
+                <span class="upload-cta" aria-hidden="true">Add Photos</span>
+                <span class="upload-status" data-photo-status role="status" aria-live="polite"></span>
+              </div>
             ) : input.kind === 'textarea' ? (
               <textarea id={input.name} name={input.name} rows="3" aria-describedby={hintId} />
             ) : (
@@ -238,6 +253,18 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
       if (attribution[input.name]) input.value = attribution[input.name];
     });
 
+    // The drop area hides the native "no file chosen" text, so say what was
+    // picked. Without this script the picker still works; only this line is
+    // missing, and photos are optional either way.
+    const photoField = form.querySelector<HTMLInputElement>('input[type="file"]');
+    const photoStatus = form.querySelector<HTMLElement>('[data-photo-status]');
+    photoField?.addEventListener('change', () => {
+      const count = photoField.files?.length ?? 0;
+      if (photoStatus) {
+        photoStatus.textContent = count ? `${count} photo${count === 1 ? '' : 's'} selected` : '';
+      }
+    });
+
     const notice = form.querySelector<HTMLElement>('[data-fail-notice]');
     const noticeMessage = form.querySelector<HTMLElement>('[data-fail-message]');
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -351,9 +378,23 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 </script>
 
 <style>
+  /* ─── The card ───
+     The form is a genuinely discrete object, so it takes a border, and it is
+     the one element on the page allowed to lift off the surface behind it.
+     Radius stays at the system's 4px: this reads as a document, not an app
+     card. The orange edge is the whole brand statement here, which is why
+     nothing else inside the card is orange except the action. */
   .quote-form {
     display: grid;
-    gap: var(--s6);
+    gap: var(--s4);
+    /* Tighter block padding than inline on a phone: the card has to earn its
+       decoration without pushing the button further down the screen. */
+    padding: var(--s4) var(--s5);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-float);
   }
 
   /* The honeypot. Removed from the layout and from assistive technology, but
@@ -369,7 +410,7 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 
   .fields {
     display: grid;
-    gap: var(--s5);
+    gap: var(--s4);
   }
 
   .field {
@@ -391,6 +432,10 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
     font-weight: 400;
   }
 
+  /* ─── Fields ───
+     A steel hairline rather than the site's lightest rule: inside a white card
+     the field edge is the only thing saying "type here", and it has to clear
+     3:1 against the card to be perceivable. */
   input,
   select,
   textarea {
@@ -398,30 +443,127 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
     min-height: 52px;
     padding: var(--s3) var(--s4);
     background: var(--surface);
-    border: 1px solid var(--rule-strong);
+    border: 1px solid var(--ink-3);
     border-radius: var(--r);
+    font-family: var(--font-text);
     font-size: var(--t2);
+    color: var(--ink);
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
   }
 
-  textarea {
-    min-height: 6rem;
-    resize: vertical;
-  }
-
-  input[type='file'] {
-    padding: var(--s3);
-    font-size: var(--t3);
-  }
-
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible {
+  input:hover,
+  select:hover,
+  textarea:hover {
     border-color: var(--ink);
   }
 
+  /* The accent marks the field in hand. The global :focus-visible outline is
+     left alone on top of it, so the keyboard indicator does not depend on this
+     colour alone. */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(255 101 0 / 0.16);
+    outline-offset: 2px;
+  }
+
+  textarea {
+    min-height: 4.5rem;
+    resize: vertical;
+  }
+
+  /* Native caret replaced so the control matches the text fields rather than
+     the browser's own chrome. */
+  select {
+    appearance: none;
+    padding-inline-end: var(--s7);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23697077' stroke-width='1.5'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--s4) center;
+    background-size: 16px 16px;
+  }
+
   input[aria-invalid],
-  select[aria-invalid] {
+  select[aria-invalid],
+  textarea[aria-invalid] {
     border-color: var(--rust);
+  }
+
+  input[aria-invalid]:focus,
+  select[aria-invalid]:focus,
+  textarea[aria-invalid]:focus {
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgb(168 70 42 / 0.16);
+  }
+
+  /* ─── Photo drop area ───
+     The real input sits on top at zero opacity and carries every native
+     behaviour: tap to open the camera or library, drag a file onto the box,
+     tab to it and press Enter. */
+  .upload {
+    position: relative;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--s1);
+    min-height: 64px;
+    padding: var(--s4);
+    background: var(--surface-alt);
+    border: 1px dashed var(--ink-3);
+    border-radius: var(--r);
+    text-align: center;
+    transition:
+      border-color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  .upload input[type='file'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--r);
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload:hover {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  .upload:has(input:focus-visible) {
+    border-color: var(--accent);
+    border-style: solid;
+    box-shadow: 0 0 0 3px rgb(255 101 0 / 0.16);
+  }
+
+  .upload-cta {
+    font-family: var(--font-text);
+    font-weight: 600;
+    font-size: var(--t2);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .upload-status {
+    font-family: var(--font-data);
+    font-size: var(--t3);
+    color: var(--ink-2);
+  }
+
+  .upload-status:empty {
+    display: none;
   }
 
   .hint {
@@ -438,12 +580,19 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 
   /* ─── Submit ─── */
 
+  /* ─── Submit ───
+     Separated from the last field by a hairline so the action reads as the end
+     of the form rather than another row in it. Full width on a phone: it is
+     the one thing a thumb has to find. */
   .submit {
     display: grid;
     gap: var(--s3);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
   }
 
   button[type='submit'] {
+    width: 100%;
     min-height: 56px;
     padding-inline: var(--s7);
     background: var(--accent);
@@ -451,10 +600,10 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
     border: 0;
     border-radius: var(--r);
     font-family: var(--font-text);
-    font-weight: 600;
+    font-weight: 700;
     font-size: var(--t1);
+    letter-spacing: 0.01em;
     cursor: pointer;
-    justify-self: start;
     transition: background-color var(--dur) var(--ease);
   }
 
@@ -478,6 +627,7 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 
   .fallback a {
     font-weight: 600;
+    white-space: nowrap;
   }
 
   /* ─── Visible failure state ─── */
@@ -538,6 +688,11 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
   }
 
   @media (min-width: 700px) {
+    .quote-form {
+      gap: var(--s6);
+      padding: var(--s7);
+    }
+
     .fields {
       grid-template-columns: 1fr 1fr;
       gap: var(--s5) var(--s6);
@@ -545,6 +700,13 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 
     .wide {
       grid-column: 1 / -1;
+    }
+
+    /* Width is a phone affordance; on a wide card a full-bleed button reads as
+       a banner, so it goes back to its own size. */
+    button[type='submit'] {
+      width: auto;
+      justify-self: start;
     }
   }
 </style>

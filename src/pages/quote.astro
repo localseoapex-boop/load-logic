@@ -79,17 +79,39 @@ const nextSteps = [
 </BaseLayout>
 
 <style>
+  /* ─── The quote surface ───
+     Off-white rather than page white, so the form card reads as the object on
+     top of it. The hairline grid is the site's field-record register drawn in
+     CSS: two sets of 1px steel lines at 5% over the alt surface, no gradient
+     wash and no image. At this strength it registers as paper texture from a
+     normal viewing distance, not as a pattern competing with the form. */
   .quote-page {
-    padding-block: var(--s8) var(--s10);
+    padding-block: var(--s7) var(--s9);
+    background-color: var(--surface-alt);
+    background-image:
+      repeating-linear-gradient(90deg, rgb(105 112 119 / 0.05) 0 1px, transparent 1px 72px),
+      repeating-linear-gradient(0deg, rgb(105 112 119 / 0.05) 0 1px, transparent 1px 72px);
+    border-bottom: 1px solid var(--rule);
   }
 
   .head {
     max-width: 40ch;
-    margin-bottom: var(--s8);
+    margin-bottom: var(--s6);
+  }
+
+  /* The accent as a mark above the heading, which is how the rest of the site
+     carries it in type: a rule, never coloured words. */
+  .head::before {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin-bottom: var(--s4);
+    background: var(--accent);
   }
 
   .lede {
-    margin-top: var(--s4);
+    margin-top: var(--s3);
     font-size: var(--t1);
     color: var(--ink-2);
   }
@@ -100,20 +122,22 @@ const nextSteps = [
     align-items: start;
   }
 
+  /* ─── Supporting panel ───
+     Deliberately not a second card. On the off-white surface it is held
+     together by hairlines and space alone, so the white form card is the only
+     object with weight and the eye goes there first. */
   .rail {
     display: grid;
-    gap: var(--s6);
-    padding: var(--s6);
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: var(--r);
+    gap: var(--s5);
+    padding-inline-start: var(--s5);
+    border-inline-start: 1px solid var(--rule-strong);
   }
 
   .rail h2 {
     font-size: var(--t1);
     padding-bottom: var(--s2);
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: var(--s3);
+    border-bottom: 1px solid var(--rule-strong);
+    margin-bottom: var(--s4);
   }
 
   .rail ol {
@@ -121,24 +145,39 @@ const nextSteps = [
     list-style: none;
     padding: 0;
     display: grid;
-    gap: var(--s3);
   }
 
+  /* Hairline between steps, so the sequence is legible as three stages rather
+     than a paragraph broken into three. */
   .rail ol li {
     counter-increment: step;
     position: relative;
+    padding-block: var(--s3);
     padding-inline-start: var(--s6);
     font-size: var(--t3);
     color: var(--ink-2);
+    border-top: 1px solid var(--rule);
   }
 
+  .rail ol li:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .rail ol li:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The numeral is the marker, in the site's operational mono at full ink
+     strength: it has to be readable, and orange numerals this size would not
+     clear AA on the surface behind them. */
   .rail ol li::before {
     content: counter(step, decimal-leading-zero);
     position: absolute;
     inset-inline-start: 0;
     font-family: var(--font-data);
     font-weight: 600;
-    color: var(--ink-3);
+    color: var(--ink);
   }
 
   /* One line, not a list: the only photo guidance that is not obvious from
