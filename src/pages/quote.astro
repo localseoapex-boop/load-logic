@@ -15,11 +15,19 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import QuoteForm from '../components/QuoteForm.astro';
-import { primaryQuoteAction } from '../data/quote-actions';
-import { accessChecklist } from '../data/access';
 import { BUSINESS } from '../config/site';
 
-const action = primaryQuoteAction();
+/**
+ * Worded for this page, so it answers the two questions someone has with their
+ * thumb over the button: who gets back to me, and can the price still move.
+ * Deliberately NOT `quoteAction.nextSteps`, which is the site-wide four-step
+ * version still rendered on /quote/thanks, the homepage and /pricing.
+ */
+const nextSteps = [
+  'We review your request and confirm we cover your area.',
+  'We call or text you with an estimate and available pickup times.',
+  'The crew confirms the final price before anything is loaded.',
+];
 ---
 
 <BaseLayout
@@ -44,30 +52,25 @@ const action = primaryQuoteAction();
           <section>
             <h2>What happens next</h2>
             <ol>
-              {action.nextSteps.map((step) => <li>{step}</li>)}
+              {nextSteps.map((step) => <li>{step}</li>)}
             </ol>
           </section>
 
-          <section>
-            <h2>Taking useful photos</h2>
-            <ul class="tips">
-              <li>Stand back far enough to get the whole pile in one shot.</li>
-              <li>Take one of the path from the items to where a truck can park.</li>
-              <li>Include anything unusually heavy, close up.</li>
-              <li>Three or four photos is plenty.</li>
-            </ul>
-          </section>
+          <p class="tip">
+            Photo tip: One wide shot of everything, plus the path to where we can
+            park.
+          </p>
 
           <section>
-            <h2>Rather not fill in a form?</h2>
+            <h2>Prefer to call or text?</h2>
             <p class="call-copy">
-              Call or text photos to the same number and you get the same
-              estimate.
+              Call us or text photos to
+              <a class="data" href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a>.
             </p>
-            <a class="call" href={`tel:${BUSINESS.phone}`}>
-              <span class="call-label">Call Now</span>
-              <span class="call-number data">{BUSINESS.phoneDisplay}</span>
-            </a>
+            <div class="call-actions">
+              <a class="call" href={`tel:${BUSINESS.phone}`}>Call Now</a>
+              <a class="text" href={`sms:${BUSINESS.phone}`}>Text Us</a>
+            </div>
           </section>
         </aside>
       </div>
@@ -138,21 +141,16 @@ const action = primaryQuoteAction();
     color: var(--ink-3);
   }
 
-  .tips {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: var(--s2);
-  }
-
-  .tips li {
+  /* One line, not a list: the only photo guidance that is not obvious from
+     standing in front of the pile. */
+  .tip {
     position: relative;
     padding-inline-start: var(--s5);
     font-size: var(--t3);
     color: var(--ink-2);
   }
 
-  .tips li::before {
+  .tip::before {
     content: '';
     position: absolute;
     inset-inline-start: 0;
@@ -168,28 +166,38 @@ const action = primaryQuoteAction();
     margin-bottom: var(--s4);
   }
 
-  .call {
+  .call-copy a {
+    font-weight: 600;
+  }
+
+  /* Both actions are real links, so texting is one tap rather than a number to
+     copy out by hand. */
+  .call-actions {
     display: flex;
-    flex-direction: column;
-    gap: var(--s1);
-    padding: var(--s4);
-    background: var(--dark);
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+
+  .call,
+  .text {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: var(--s5);
     border-radius: var(--r);
+    font-family: var(--font-text);
+    font-weight: 600;
     text-decoration: none;
   }
 
-  .call-label {
-    font-size: var(--lbl);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 700;
+  .call {
+    background: var(--dark);
+    color: #fff;
   }
 
-  .call-number {
-    font-size: var(--t1);
-    font-weight: 700;
-    color: #fff;
+  .text {
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
   }
 
   @media (min-width: 1000px) {

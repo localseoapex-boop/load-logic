@@ -133,12 +133,12 @@ export const quoteActions: QuoteAction[] = [
       },
       {
         name: 'notes',
-        label: 'Anything else we should know?',
+        label: 'Anything else?',
         kind: 'textarea',
         required: false,
         reason:
           'One open box in place of separate size, timing, and access questions. Stairs, gates, and long carries are what change a quote after the fact.',
-        hint: "Items, access, timing, or anything else you'd like us to know.",
+        hint: 'Add details about the items, access, or timing if helpful.',
       },
 
       // ─── Retired: no longer asked, still accepted (see `retired`) ───

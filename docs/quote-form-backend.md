@@ -50,7 +50,7 @@ The form asks six things, defined in `src/data/quote-actions.ts`:
 | ZIP code | `zip` | Yes |
 | What do you need removed? | `service` | Yes |
 | Photos | `photos` | No |
-| Anything else we should know? | `notes` | No |
+| Anything else? | `notes` | No |
 
 `loadSize`, `timing`, `email`, `address`, `access` and `contactPreference` are
 marked `retired`: the form no longer shows them, but the server still accepts,
