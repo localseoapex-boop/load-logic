@@ -60,6 +60,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   gtag('js', new Date());
 
   gtag('config', 'G-ZDCJT7TM99');
+
+  // Google Ads, on the SAME gtag.js loader above. A second loader would double
+  // every hit; one loader with two destinations is the supported setup.
+  // Conversions are sent from the quote form, and only after the API has
+  // confirmed the lead was accepted. See QuoteForm.astro.
+  gtag('config', 'AW-18409034271');
 </script>
 
 <meta name="google-site-verification" content="ZIbhBe5F_FEOiVn6Rbs6Cy5FfBSuhg5cu9ZoAYYJ-BI" />

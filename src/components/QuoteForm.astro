@@ -303,6 +303,58 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
       }
     };
 
+    /**
+     * Google Ads conversion, fired ONCE per accepted submission.
+     *
+     * WHERE IT FIRES. Only from the success branch below, which is reached
+     * exactly when the API answered 2xx with `{ok:true}` — the lead was
+     * validated, stored and emailed. Arriving on the page, focusing a field,
+     * pressing the button and every failure path (inline validation, field
+     * errors from the server, a 4xx/5xx, a dropped connection) all return
+     * before this is called.
+     *
+     * WHY IT GUARDS. `sent` makes a second call a no-op, so a double submit,
+     * a retry after a failure, or any duplicate listener can still only
+     * produce one conversion per page.
+     *
+     * WHY IT DELAYS NAVIGATION. The redirect that follows would cancel an
+     * in-flight beacon. `event_callback` continues as soon as the hit is away,
+     * and the timeout makes sure a blocked or missing gtag never traps the
+     * visitor on the form: the thank-you page is reached either way.
+     */
+    const CONVERSION_ID = 'AW-18409034271/XuMMCKrK7v4cEJ-kjspE';
+    let sent = false;
+
+    const sendConversion = (done: () => void) => {
+      if (sent) {
+        done();
+        return;
+      }
+      sent = true;
+
+      const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+      if (typeof gtag !== 'function') {
+        // Consent tooling or a blocker removed it. Never a reason to lose the lead.
+        done();
+        return;
+      }
+
+      let moved = false;
+      const go = () => {
+        if (moved) return;
+        moved = true;
+        done();
+      };
+
+      try {
+        gtag('event', 'conversion', { send_to: CONVERSION_ID, event_callback: go });
+      } catch {
+        go();
+        return;
+      }
+      window.setTimeout(go, 1000);
+    };
+
     const setBusy = (busy: boolean) => {
       if (!button) return;
       button.disabled = busy;
@@ -352,8 +404,10 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
 
         const result = await response.json().catch(() => null);
 
+        // Accepted by the server: the only place a conversion is counted.
         if (response.ok && result?.ok) {
-          window.location.assign(result.redirect ?? '/quote/thanks');
+          const next = result.redirect ?? '/quote/thanks';
+          sendConversion(() => window.location.assign(next));
           return;
         }
 
