@@ -10,7 +10,7 @@
  * Canonical + OG URLs are built as ABSOLUTE urls from Astro.site (set in
  * astro.config.mjs) + the current path, which is what crawlers require.
  */
-import { SITE } from '../config/site';
+import { SITE, BUSINESS } from '../config/site';
 
 interface Props {
   title: string;
@@ -21,6 +21,22 @@ interface Props {
   type?: 'website' | 'article';
   /** Set true to keep a page out of the index (e.g. thank-you pages). */
   noindex?: boolean;
+}
+
+/*
+ * The phone snippet below hardcodes the displayed number, because Google
+ * requires the literal to match the page character for character and an
+ * inline script cannot read a component value. This guard is what keeps the
+ * two in step: change the number in site.ts and the build stops here until
+ * the snippet is updated to match.
+ */
+const CALL_CONVERSION_NUMBER = '(480) 650-0905';
+if (BUSINESS.phoneDisplay !== CALL_CONVERSION_NUMBER) {
+  throw new Error(
+    `[BaseHead] phone_conversion_number is "${CALL_CONVERSION_NUMBER}" but the site displays ` +
+      `"${BUSINESS.phoneDisplay}". Google can only swap in a forwarding number when the two match; ` +
+      'update the call-conversion snippet in this file.',
+  );
 }
 
 const {
@@ -66,6 +82,70 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   // Conversions are sent from the quote form, and only after the API has
   // confirmed the lead was accepted. See QuoteForm.astro.
   gtag('config', 'AW-18409034271');
+
+  /*
+   * Calls from the website, on the SAME tag again — a conversion label under
+   * the Ads account above, which is what Google's phone snippet is.
+   *
+   * WHAT GOOGLE DOES. For a visitor who arrived from an eligible Google Ads
+   * click, the tag fetches a Google forwarding number and hands it to the
+   * callback. Everyone else gets no callback at all, so the real number stays
+   * exactly as rendered. The conversion is counted by Google when a call to
+   * that forwarding number lasts the length set in Ads — a tap on a phone
+   * link is NOT the conversion and is not reported as one here.
+   *
+   * WHY A CALLBACK RATHER THAN `phone_conversion_css_class`. The class option
+   * only rewrites the text inside matching elements. Every number on this site
+   * sits inside a `tel:` link, so text-only replacement would show the
+   * forwarding number while still dialling the real one: the call would
+   * connect but Google could never attribute it. Google's own documented
+   * answer for clickable numbers is this callback, which sets both the href
+   * and the text.
+   *
+   * `phone_conversion_number` must match what the page displays, character for
+   * character, so it comes from the same BUSINESS.phoneDisplay every component
+   * renders.
+   */
+  gtag('config', 'AW-18409034271/UIX9CNYgtIQdEJ-kjspE', {
+    phone_conversion_number: '(480) 650-0905',
+    phone_conversion_callback: function (formatted_number, mobile_number) {
+      var digitsOf = function (value) { return (value || '').replace(/\D/g, ''); };
+      var ours = '4806500905';
+
+      var swap = function () {
+        // 1. Every call link dials the forwarding number, including the
+        //    buttons labelled "Call Now" that never show a number.
+        var links = document.querySelectorAll('a[href^="tel:"]');
+        for (var i = 0; i < links.length; i++) {
+          links[i].setAttribute('href', 'tel:' + mobile_number);
+        }
+
+        // 2. The number wherever it is printed, so a visitor who reads it and
+        //    dials by hand is still calling a number Ads can attribute.
+        //    `sms:` links are deliberately left alone: a forwarding number
+        //    takes calls, not texts, and rewriting them would break texting.
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+        var pending = [];
+        var node;
+        while ((node = walker.nextNode())) {
+          if (digitsOf(node.nodeValue) !== ours) continue;
+          var el = node.parentElement;
+          if (!el || el.closest('script, style, noscript, a[href^="sms:"]')) continue;
+          pending.push(node);
+        }
+        for (var j = 0; j < pending.length; j++) {
+          pending[j].nodeValue = pending[j].nodeValue.replace(/\(?\d[\d()\s.+-]{8,}\d/, formatted_number);
+        }
+      };
+
+      // The callback can return before the document is parsed.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', swap);
+      } else {
+        swap();
+      }
+    },
+  });
 </script>
 
 <meta name="google-site-verification" content="ZIbhBe5F_FEOiVn6Rbs6Cy5FfBSuhg5cu9ZoAYYJ-BI" />
