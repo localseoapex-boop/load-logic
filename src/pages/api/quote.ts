@@ -30,7 +30,6 @@ import {
   type EmailContext,
 } from '../../lib/quote-submission';
 import { PHOTO_PREFIX, signPhotoLink } from '../../lib/quote-photo-links';
-import { recordBusinessAgentWebsiteLead } from '../../lib/business-agent-intake';
 import { SITE } from '../../config/site';
 
 export const prerender = false;
@@ -220,7 +219,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   // ─── Email ───
   const apiKey = env('RESEND_API_KEY');
+  const submissionId = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
   const ctx: EmailContext = {
+    submissionId,
+    isTest: process.env.VERCEL_ENV !== 'production',
+    photoCount: photos.length,
     photoUrls,
     photoNotes,
     photoLinksExpire,
@@ -258,22 +261,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     console.error('[quote] undelivered submission:', buildText(values, ctx));
     const message = 'We could not send your request just now. Please call or text us and we will take the details directly.';
     return wantsJson(request) ? json({ ok: false, message }, 502) : htmlError([message], 502);
-  }
-
-  try {
-    await recordBusinessAgentWebsiteLead({
-      submissionId: `website-${crypto.randomUUID()}`,
-      values,
-      attribution,
-      sourcePage: ctx.sourcePage,
-      submittedAt: ctx.submittedAt,
-      photoCount: photos.length,
-    });
-  } catch (error) {
-    // The Resend notification above is the operational delivery path. Business
-    // Agent is a secondary durable mirror, so its outage must not turn a
-    // successfully delivered customer request into a false form failure.
-    console.error('[quote] Business Agent intake mirror failed', error);
   }
 
   return wantsJson(request)
