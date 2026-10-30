@@ -49,6 +49,8 @@ export async function recordBusinessAgentWebsiteLead(input: BusinessAgentWebsite
     utm_content: input.attribution.utm.utm_content ?? null,
     utm_term: input.attribution.utm.utm_term ?? null,
     photoCount: input.photoCount,
+    environment: process.env.VERCEL_ENV ?? null,
+    isTest: process.env.VERCEL_ENV !== 'production',
   };
 
   const response = await fetch(endpoint, {
