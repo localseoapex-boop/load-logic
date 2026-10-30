@@ -242,6 +242,12 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
 };
 
 export interface EmailContext {
+  /** Stable per-submission reference carried into the operations email. */
+  submissionId: string;
+  /** True only for Preview/non-production form submissions. */
+  isTest: boolean;
+  /** Number of valid photos submitted, whether or not Blob storage succeeded. */
+  photoCount: number;
   /** Signed view links to the stored photos, in upload order. */
   photoUrls: { name: string; url: string }[];
   /** When those links stop working. The photos themselves stay in the store. */
@@ -270,6 +276,28 @@ const attributionRows = (ctx: EmailContext): { label: string; value: string }[] 
   ];
 };
 
+const machineReference = (values: Record<string, string>, ctx: EmailContext): string => {
+  const digits = (values.phone ?? '').replace(/\D/g, '').slice(0, 15);
+  const token = (key: string, value: string | undefined | null) =>
+    value ? `${key}=${encodeURIComponent(value)}` : null;
+  return [
+    'BA1',
+    token('i', ctx.submissionId),
+    token('p', digits),
+    token('e', values.email),
+    token('z', values.zip),
+    token('s', values.service),
+    token('c', ctx.attribution?.campaign?.id),
+    token('us', ctx.attribution?.utm.utm_source),
+    token('um', ctx.attribution?.utm.utm_medium),
+    token('ua', ctx.attribution?.utm.utm_campaign),
+    token('uc', ctx.attribution?.utm.utm_content),
+    token('ut', ctx.attribution?.utm.utm_term),
+    token('pc', String(ctx.photoCount)),
+    token('t', ctx.isTest ? '1' : '0'),
+  ].filter(Boolean).join('|');
+};
+
 /** Ordered label/value pairs, following the order the form asks in. */
 const rows = (values: Record<string, string>): { label: string; value: string }[] =>
   action.inputs
@@ -284,7 +312,9 @@ export const buildSubject = (values: Record<string, string>): string =>
   `New Load Logic Quote Request — ${values.name || values.phone || 'no name given'}`;
 
 export const buildText = (values: Record<string, string>, ctx: EmailContext): string => {
-  const lines: string[] = ['NEW QUOTE REQUEST', ''];
+  const lines: string[] = [machineReference(values, ctx)];
+  if (values.notes) lines.push(`NOTES: ${values.notes.slice(0, 300)}`);
+  lines.push('NEW QUOTE REQUEST', '');
   if (promoLine(ctx)) lines.push(promoLine(ctx), '');
 
   for (const row of rows(values)) lines.push(`${row.label}: ${row.value}`);
@@ -372,6 +402,8 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
     : '';
 
   return `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1c1c19;max-width:640px">
+  <p style="font-size:10px;color:#777;margin:0 0 4px">${escapeHtml(machineReference(values, ctx))}</p>
+  ${values.notes ? `<p style="font-size:12px;color:#5b5b57;margin:0 0 8px">NOTES: ${escapeHtml(values.notes.slice(0, 300))}</p>` : ''}
   <h1 style="font-size:20px;margin:0 0 4px">New quote request</h1>
   <p style="margin:0 0 20px;color:#5b5b57;font-size:13px">${escapeHtml(
     ctx.submittedAt.toLocaleString('en-US', { timeZone: 'America/Phoenix' }),
