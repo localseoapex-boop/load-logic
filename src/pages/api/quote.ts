@@ -219,7 +219,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   // ─── Email ───
   const apiKey = env('RESEND_API_KEY');
+  const submissionId = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
   const ctx: EmailContext = {
+    submissionId,
+    isTest: process.env.VERCEL_ENV !== 'production',
+    photoCount: photos.length,
     photoUrls,
     photoNotes,
     photoLinksExpire,
