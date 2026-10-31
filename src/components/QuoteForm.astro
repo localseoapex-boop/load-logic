@@ -41,6 +41,7 @@ import { formInputs, primaryQuoteAction } from '../data/quote-actions';
 import { services } from '../data/services';
 import { BUSINESS } from '../config/site';
 import { HONEYPOT_FIELD, TIMESTAMP_FIELD, UTM_FIELDS, CAMPAIGN_FIELD } from '../lib/quote-submission';
+import { SMS_CONSENT_FIELD, SMS_CONSENT_SEGMENTS, SMS_CONSENT_VALUE } from '../data/sms-consent';
 
 interface Props {
   /** Campaign id from campaigns.ts, for a campaign landing page. */
@@ -148,6 +149,32 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
         );
       })
     }
+  </div>
+
+  <!--
+    SMS consent. Optional, unchecked, and deliberately NOT one of the generated
+    fields above: it is a permission with a version and a disclosure to
+    preserve, not a question about the job. See src/data/sms-consent.ts.
+
+    A real checkbox with a real <label for>, so the whole sentence is a hit
+    area, Space toggles it, and assistive tech announces the wording that was
+    agreed to. The links inside the label stay independently reachable by Tab.
+    Nothing here can block a submission.
+  -->
+  <div class="consent">
+    <input
+      type="checkbox"
+      id={SMS_CONSENT_FIELD}
+      name={SMS_CONSENT_FIELD}
+      value={SMS_CONSENT_VALUE}
+    />
+    <label for={SMS_CONSENT_FIELD}>
+      {
+        SMS_CONSENT_SEGMENTS.map((segment) =>
+          segment.href ? <a href={segment.href}>{segment.text}</a> : segment.text,
+        )
+      }
+    </label>
   </div>
 
   <div class="submit">
@@ -630,6 +657,44 @@ const autocompleteFor: Record<string, string> = { name: 'name', phone: 'tel', zi
     font-size: var(--t3);
     font-weight: 600;
     color: var(--rust);
+  }
+
+  /* ─── SMS consent ───
+     Quiet by construction: small type, muted ink, a hairline above it. It is a
+     permission the customer may skip, so it must not compete with the action
+     below it. */
+  .consent {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s3);
+    align-items: start;
+    padding-top: var(--s4);
+    border-top: 1px solid var(--rule);
+  }
+
+  /* The generic field rule above sizes text inputs; a checkbox needs its own. */
+  .consent input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--accent);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .consent label {
+    display: block;
+    font-size: var(--t3);
+    line-height: 1.5;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .consent a {
+    color: var(--link);
+    font-weight: 600;
   }
 
   /* ─── Submit ─── */

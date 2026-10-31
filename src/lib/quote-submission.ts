@@ -16,6 +16,11 @@ import { primaryQuoteAction, timingOptions, contactPreferenceOptions } from '../
 import { services } from '../data/services';
 import { loadScale } from '../data/pricing';
 import { getCampaign, type Campaign } from '../data/campaigns';
+import {
+  SMS_CONSENT_FIELD,
+  SMS_CONSENT_VALUE,
+  type SmsConsentRecord,
+} from '../data/sms-consent';
 
 /* ─────────────────────────── Anti-spam field names ───────────────────────────
  *
@@ -103,6 +108,12 @@ export interface ParsedSubmission {
   photoErrors: string[];
   /** True when the honeypot or the time trap fired. */
   looksAutomated: boolean;
+  /**
+   * Whether the SMS consent box was ticked on THIS submission. Optional, never
+   * required, and never a reason to reject a lead. The durable record built
+   * from it, including the server-side timestamp, is assembled in the route.
+   */
+  smsConsent: boolean;
   /** Where the lead came from, when that is known. Never affects acceptance. */
   attribution: Attribution;
 }
@@ -226,6 +237,15 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
     photos.push(file);
   }
 
+  /* ─── SMS consent ───
+   *
+   * Only the exact opt-in value counts. Anything else, including a missing
+   * field, the browser's default "on", or a value from an older copy of the
+   * form, is read as no consent. Validation deliberately stops here: this
+   * field can never produce a field error, because a customer who does not
+   * want texts is still entitled to a quote. */
+  const smsConsent = form.get(SMS_CONSENT_FIELD) === SMS_CONSENT_VALUE;
+
   // ─── Automation checks ───
   const honeypot = (form.get(HONEYPOT_FIELD) ?? '').toString().trim();
   const loadedAt = Number(form.get(TIMESTAMP_FIELD) ?? 0);
@@ -237,6 +257,7 @@ export const parseSubmission = (form: FormData): ParsedSubmission => {
     photos,
     photoErrors,
     looksAutomated: Boolean(honeypot) || tooFast,
+    smsConsent,
     attribution: parseAttribution(form),
   };
 };
@@ -254,6 +275,11 @@ export interface EmailContext {
   photoLinksExpire?: Date;
   /** Anything that stopped a photo being stored, for the operator to see. */
   photoNotes: string[];
+  /**
+   * The consent record for this submission, built server-side. Always present,
+   * so a lead that declined says so explicitly rather than saying nothing.
+   */
+  consent: SmsConsentRecord;
   /** The page the form was submitted from, from the Referer header. */
   sourcePage?: string;
   submittedAt: Date;
@@ -295,6 +321,14 @@ const machineReference = (values: Record<string, string>, ctx: EmailContext): st
     token('ut', ctx.attribution?.utm.utm_term),
     token('pc', String(ctx.photoCount)),
     token('t', ctx.isTest ? '1' : '0'),
+    /* Consent, APPENDED. Every token above keeps its name and position, so a
+     * reader written against the earlier reference still parses this line and
+     * simply does not see these. `sc` is always present; the timestamp only
+     * exists when consent was actually given. */
+    token('sc', ctx.consent.sms_consent ? '1' : '0'),
+    token('scv', ctx.consent.consent_version),
+    token('scs', ctx.consent.consent_source),
+    token('sct', ctx.consent.consent_timestamp),
   ].filter(Boolean).join('|');
 };
 
@@ -323,6 +357,16 @@ export const buildText = (values: Record<string, string>, ctx: EmailContext): st
   for (const photo of ctx.photoUrls) lines.push(`  ${photo.name} — ${photo.url}`);
   for (const note of ctx.photoNotes) lines.push(`  NOTE: ${note}`);
   if (expiryNote(ctx)) lines.push(`  ${expiryNote(ctx)}`);
+
+  /* The inbox is where consent evidence lives, so the email carries the whole
+   * record: the answer, which disclosure was on screen, where it was captured,
+   * when, and the exact sentence agreed to. */
+  lines.push('', 'SMS CONSENT');
+  lines.push(`  Consent given: ${ctx.consent.sms_consent ? 'YES' : 'NO'}`);
+  lines.push(`  Version: ${ctx.consent.consent_version}`);
+  lines.push(`  Source: ${ctx.consent.consent_source}`);
+  if (ctx.consent.consent_timestamp) lines.push(`  Timestamp: ${ctx.consent.consent_timestamp}`);
+  if (ctx.consent.consent_text) lines.push(`  Agreed to: "${ctx.consent.consent_text}"`);
 
   lines.push('', '---');
   lines.push(
@@ -388,6 +432,21 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
     ? `<p style="margin:8px 0;color:#5b5b57;font-size:12px">${escapeHtml(expiryNote(ctx))}</p>`
     : '';
 
+  const consent = ctx.consent.sms_consent
+    ? `<div style="margin:24px 0 0;padding:12px 14px;background:#f3f4f4;border-left:3px solid #1c1c19">
+    <p style="margin:0 0 6px;font-weight:700;font-size:13px">SMS consent: YES</p>
+    <p style="margin:0;font-size:12px;color:#5b5b57">
+      ${escapeHtml(ctx.consent.consent_version)} &middot; ${escapeHtml(ctx.consent.consent_source)}
+      &middot; ${escapeHtml(ctx.consent.consent_timestamp ?? '')}
+    </p>
+    <p style="margin:6px 0 0;font-size:12px;color:#5b5b57">Agreed to: &ldquo;${escapeHtml(
+      ctx.consent.consent_text ?? '',
+    )}&rdquo;</p>
+  </div>`
+    : `<p style="margin:24px 0 0;font-size:12px;color:#5b5b57">SMS consent: NO (${escapeHtml(
+        ctx.consent.consent_version,
+      )} &middot; ${escapeHtml(ctx.consent.consent_source)})</p>`;
+
   const tel = (values.phone ?? '').replace(/[^\d+]/g, '');
 
   const promo = promoLine(ctx)
@@ -411,6 +470,7 @@ export const buildHtml = (values: Record<string, string>, ctx: EmailContext): st
   ${promo}
   ${tel ? `<p style="margin:0 0 20px"><a href="tel:${escapeHtml(tel)}" style="display:inline-block;padding:10px 18px;background:#1c1c19;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">Call ${escapeHtml(values.phone ?? '')}</a></p>` : ''}
   <table style="border-collapse:collapse;width:100%">${body}</table>
+  ${consent}
   <h2 style="font-size:15px;margin:24px 0 0">Photos (${ctx.photoUrls.length})</h2>
   ${photos}
   ${notes}

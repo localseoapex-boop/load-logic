@@ -30,6 +30,7 @@ import {
   type EmailContext,
 } from '../../lib/quote-submission';
 import { PHOTO_PREFIX, signPhotoLink } from '../../lib/quote-photo-links';
+import { buildSmsConsentRecord } from '../../data/sms-consent';
 import { SITE } from '../../config/site';
 
 export const prerender = false;
@@ -153,7 +154,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return wantsJson(request) ? json({ ok: false, message }, 400) : htmlError([message], 400);
   }
 
-  const { values, fieldErrors, photos, photoErrors, looksAutomated, attribution } = parseSubmission(form);
+  const { values, fieldErrors, photos, photoErrors, looksAutomated, smsConsent, attribution } = parseSubmission(form);
 
   // Automated submissions get the ordinary success answer and nothing is sent.
   // Telling a bot it was caught only teaches whoever wrote it what to change.
@@ -220,15 +221,19 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   // ─── Email ───
   const apiKey = env('RESEND_API_KEY');
   const submissionId = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+  /* One server clock for the whole submission. The consent timestamp is taken
+   * here, never from the browser: a client-supplied time is not evidence. */
+  const submittedAt = new Date();
   const ctx: EmailContext = {
     submissionId,
+    consent: buildSmsConsentRecord(smsConsent, submittedAt),
     isTest: process.env.VERCEL_ENV !== 'production',
     photoCount: photos.length,
     photoUrls,
     photoNotes,
     photoLinksExpire,
     sourcePage: request.headers.get('referer') ?? undefined,
-    submittedAt: new Date(),
+    submittedAt,
     attribution,
   };
 
