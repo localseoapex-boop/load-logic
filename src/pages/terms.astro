@@ -1,0 +1,135 @@
+---
+/**
+ * /terms — the Terms & Conditions.
+ *
+ * The SMS section is what A2P 10DLC registration is checked against, so it
+ * states the program name, what the messages are, frequency, rates, STOP,
+ * HELP, that consent is not a condition of purchase, and that carriers do not
+ * guarantee delivery.
+ *
+ * TRANSACTIONAL ONLY, deliberately. This site collects one permission, for
+ * messages about a quote the customer asked for. There is no marketing opt-in
+ * anywhere in the codebase, so no promotional program is described here. If
+ * marketing messages are ever added, they need their own consent, their own
+ * disclosure version in sms-consent.ts, and their own section here.
+ */
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { BUSINESS } from '../config/site';
+---
+
+<LegalLayout
+  title="Terms & Conditions"
+  description="The terms for using the Load Logic Junk Removal website, including our text messaging program, quote requests, and service."
+  updated="October 30, 2026"
+>
+  <p>
+    These terms apply to this website and to the text messages we send about work you
+    ask us to do. Using the site means you accept them. The site is operated by
+    {' '}{BUSINESS.legalName}.
+  </p>
+
+  <h2>Quote requests and estimates</h2>
+  <p>
+    An estimate is based on what you tell us and on the photos you send. It is not a
+    contract. The crew confirms the final price on site before anything is loaded, and
+    you are free to decline at that point.
+  </p>
+  <p>
+    Please send accurate details. Access, volume, and weight are what set the price, so
+    anything we cannot see may change the estimate.
+  </p>
+
+  <h2>What we do not haul</h2>
+  <p>
+    Some materials are restricted by law or by the landfills and recyclers we use. If an
+    item cannot be taken, we will tell you and, where we can, point you to the right
+    place for it.
+  </p>
+
+  <h2>Text messaging program</h2>
+
+  <h3>Program name</h3>
+  <p>{BUSINESS.legalName}, operating as Load Logic Junk Removal.</p>
+
+  <h3>What we send</h3>
+  <p>
+    Messages are transactional. They relate to a quote you requested, scheduling, the
+    service itself, and customer care. We do not send promotional or marketing text
+    messages through this program.
+  </p>
+
+  <h3>How you opt in</h3>
+  <p>
+    By ticking the text message checkbox on our quote form. The box is never checked for
+    you. <strong>Consent is not a condition of purchase.</strong> You can request a quote
+    and receive service without agreeing to texts, and you can call or text us directly
+    instead.
+  </p>
+
+  <h3>Message frequency</h3>
+  <p>Message frequency varies and depends on your request and the job.</p>
+
+  <h3>Cost</h3>
+  <p>Message and data rates may apply. Your mobile carrier sets those rates, not us.</p>
+
+  <h3>How to opt out</h3>
+  <p>
+    Reply <strong>STOP</strong> to any message to stop receiving texts. We will send one
+    confirmation and then stop. You can still call us, and you can opt back in by ticking
+    the box again on a new request.
+  </p>
+
+  <h3>How to get help</h3>
+  <p>
+    Reply <strong>HELP</strong> for help, or contact us at
+    {' '}<a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a> or
+    {' '}<a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
+  </p>
+
+  <h3>Delivery</h3>
+  <p>
+    Carriers are not liable for delayed or undelivered messages, and delivery is not
+    guaranteed.
+  </p>
+
+  <h3>Your privacy</h3>
+  <p>
+    We do not sell your mobile information, and we do not share it with third parties or
+    affiliates for their marketing purposes. See our
+    {' '}<a href="/privacy">Privacy Policy</a> for the detail.
+  </p>
+
+  <h2>Using this website</h2>
+  <p>
+    Please use the site for its purpose: learning what we do and asking for a quote. Do
+    not submit other people's information, upload anything you do not have the right to
+    send, or attempt to disrupt the site or its forms.
+  </p>
+  <p>
+    The content, photographs, and branding on this site belong to us and may not be
+    copied for commercial use without permission.
+  </p>
+
+  <h2>Accuracy</h2>
+  <p>
+    We keep pricing guidance, service areas, and equipment details current, but they can
+    change. Nothing on this site is a guaranteed offer until we confirm it with you.
+  </p>
+
+  <h2>Liability</h2>
+  <p>
+    The website is provided as is. To the extent the law allows, we are not liable for
+    losses arising from use of the site. This does not limit any rights you have under
+    the terms of the service we actually perform for you.
+  </p>
+
+  <h2>Changes</h2>
+  <p>If these terms change, the date at the top of the page changes with them.</p>
+
+  <h2>Contact us</h2>
+  <p>
+    {BUSINESS.legalName}<br />
+    Phone: <a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a><br />
+    Email: <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>
+  </p>
+</LegalLayout>

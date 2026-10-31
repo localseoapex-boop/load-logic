@@ -78,6 +78,12 @@ const areas = serviceAreaLocations;
 
   <div class="container container-wide legal">
     <p>&copy; {year} {offices[0].legalName}. All rights reserved.</p>
+    <!-- Site-wide, on every page the footer renders on, because carrier review
+         for text messaging has to be able to reach both without a login. -->
+    <nav class="policies" aria-label="Policies">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms &amp; Conditions</a>
+    </nav>
     <p class="mesa">Based in Mesa, Arizona. Serving the East Valley.</p>
   </div>
 </footer>
@@ -188,6 +194,21 @@ const areas = serviceAreaLocations;
     border-top: 1px solid var(--rule-on-dark);
     font-size: var(--lbl);
     letter-spacing: 0.02em;
+  }
+
+  .policies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+  }
+
+  .policies a {
+    color: var(--on-dark);
+    text-decoration-color: var(--accent);
+  }
+
+  .policies a:hover {
+    color: #fff;
   }
 
   .mesa {

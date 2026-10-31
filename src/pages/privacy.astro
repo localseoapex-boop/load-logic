@@ -1,0 +1,169 @@
+---
+/**
+ * /privacy — the Privacy Policy.
+ *
+ * WRITTEN FROM THE CODE, not from a template. Every practice described below
+ * is one this repository actually performs: the quote form fields in
+ * quote-actions.ts, the attribution fields and spam checks in
+ * quote-submission.ts, the private Blob upload and signed links in
+ * api/quote.ts and quote-photo-links.ts, the Resend hand-off in api/quote.ts,
+ * and the Google tags in BaseHead.astro. If a practice stops being true in the
+ * code, it has to stop being claimed here in the same change.
+ *
+ * The SMS section is required for A2P 10DLC registration and states, in plain
+ * words, that mobile information is never sold or handed to anyone else for
+ * their own marketing.
+ */
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { BUSINESS } from '../config/site';
+---
+
+<LegalLayout
+  title="Privacy Policy"
+  description="How Load Logic Junk Removal collects, uses, and protects the information you share through this website, including text message consent."
+  updated="October 30, 2026"
+>
+  <p>
+    This policy explains what {BUSINESS.legalName} collects through this website, why we
+    collect it, and who it is shared with. It covers this website only.
+  </p>
+
+  <h2>Information you give us</h2>
+  <p>
+    The quote form is the only place this site asks you for anything. When you send a
+    request, we collect:
+  </p>
+  <ul>
+    <li>Your name</li>
+    <li>Your phone number</li>
+    <li>The ZIP code of the property</li>
+    <li>What you need removed</li>
+    <li>Photos, if you choose to add them</li>
+    <li>Anything you type in the notes box</li>
+  </ul>
+  <p>
+    Photos and notes are optional. Older versions of our form also accepted an email
+    address and a service address, and we still accept those if your browser sends them.
+  </p>
+
+  <h2>Information collected automatically</h2>
+  <p>When you submit the form, our server also records:</p>
+  <ul>
+    <li>The page you submitted from</li>
+    <li>
+      Campaign tags from the link you arrived on, such as the code on a mailer, so we
+      know which advertising brought you to us
+    </li>
+    <li>
+      Your network address, held briefly in memory to limit how many requests one
+      connection can send
+    </li>
+    <li>Two hidden anti-spam values: an unused field and the time the page loaded</li>
+  </ul>
+  <p>
+    Campaign tags are kept in your browser for the length of your visit so they still
+    reach us if you browse before asking for a quote. Closing the tab clears them.
+  </p>
+
+  <h2>Analytics and advertising</h2>
+  <p>
+    We use Google Analytics, Google Tag Manager, and Google Ads to understand how people
+    find the site and whether our advertising works. These tools set cookies and collect
+    usage data under Google's own policies.
+  </p>
+  <p>
+    If you reach us from a Google ad, Google may show you a temporary forwarding phone
+    number in place of ours so the resulting call can be measured. The call still rings
+    our business line.
+  </p>
+
+  <h2>How we use your information</h2>
+  <ul>
+    <li>To prepare and send you an estimate</li>
+    <li>To contact you about your request, schedule the work, and complete the job</li>
+    <li>To confirm the property is in our service area</li>
+    <li>To apply a promotional code you arrived with</li>
+    <li>To protect the form from automated abuse</li>
+  </ul>
+
+  <h2>Who we share it with</h2>
+  <p>
+    We do not sell your information. We share it only with the services that make this
+    site run:
+  </p>
+  <ul>
+    <li><strong>Vercel</strong>, which hosts the site and stores submitted photos</li>
+    <li><strong>Resend</strong>, which delivers your request to our inbox</li>
+    <li><strong>Google</strong>, for the analytics and advertising described above</li>
+  </ul>
+  <p>
+    We may also disclose information when the law requires it. Nobody receives your
+    information for their own advertising.
+  </p>
+
+  <h2>Text messages</h2>
+  <p>
+    The quote form includes an optional checkbox for text messages about your quote,
+    scheduling, and service. It is never checked for you, and you can request a quote
+    and receive service without ticking it.
+  </p>
+  <p>
+    <strong>
+      We will not sell your mobile information. We will not share your mobile information
+      with third parties or affiliates for their marketing or promotional purposes.
+    </strong>
+    Your text message opt-in and the consent record behind it are never shared for
+    unrelated marketing, and they are used only to message you about the work you asked
+    us about.
+  </p>
+  <p>
+    You can stop messages at any time by replying <strong>STOP</strong>. For help, reply
+    <strong>HELP</strong>. Message frequency varies, and message and data rates may
+    apply. Our <a href="/terms">Terms &amp; Conditions</a> describe the messaging program
+    in full.
+  </p>
+  <p>
+    When you tick the box, we record that you agreed, the wording you agreed to, the time
+    our server received it, and that it came from this website's quote form. We keep that
+    record so we can show what you consented to.
+  </p>
+
+  <h2>Photos</h2>
+  <p>
+    Photos you send are stored privately. They are not public, and they are not indexed by
+    search engines. The link in our notification email opens one photo and stops working
+    after 30 days.
+  </p>
+
+  <h2>How long we keep it</h2>
+  <p>
+    Quote requests arrive as email in our business inbox and stay there as our record of
+    the job. Photos remain in private storage. You can ask us to delete either.
+  </p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>Ask us what we hold about you, or ask us to delete it</li>
+    <li>Reply STOP to any text message to end messages</li>
+    <li>Use your browser settings to block or clear cookies</li>
+    <li>Call or text us instead of using the form</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>
+    This site is for our customers and is not directed to children under 13. We do not
+    knowingly collect information from them.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes, the date at the top of the page changes with it.
+  </p>
+
+  <h2>Contact us</h2>
+  <p>
+    {BUSINESS.legalName}<br />
+    Phone: <a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phoneDisplay}</a><br />
+    Email: <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>
+  </p>
+</LegalLayout>
