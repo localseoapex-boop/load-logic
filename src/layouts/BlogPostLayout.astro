@@ -83,4 +83,12 @@ const articleSchema = {
   .prose :global(p) {
     margin: 1rem 0;
   }
+  /* Markdown images carry width/height attributes from astro:assets; without
+     height:auto they shrink in width but keep their pixel height and stretch. */
+  .prose :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: var(--r);
+    margin: 1.5rem 0;
+  }
 </style>

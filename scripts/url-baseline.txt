@@ -2,6 +2,8 @@
 /blog/
 /blog/donation-recycling-junk-removal/
 /blog/how-to-prepare-for-junk-removal/
+/blog/mesa-bulk-trash-pickup/
+/blog/tenant-left-belongings-arizona-14-day-rule/
 /locations/
 /locations/ahwatukee-az/
 /locations/apache-junction-az/
