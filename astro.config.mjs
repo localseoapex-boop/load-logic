@@ -20,6 +20,18 @@ export default defineConfig({
   // adapter change that the build still reports 34 prerendered pages.
   adapter: vercel(),
 
+  build: {
+    // Inline every page's CSS into its HTML instead of linking 2 to 4 small
+    // stylesheets. Each <link rel="stylesheet"> is a render-blocking round trip
+    // on the critical path before the hero can paint; Lighthouse (mobile,
+    // 2026-11-27, ticket #16) put the cost at 200 to 270 ms of FCP/LCP per page.
+    // The whole site's CSS is about 55 KB uncompressed (10 KB brotli), so
+    // inlining it costs a few KB of HTML per page and loses only cross-page
+    // caching of the stylesheets, which is cheap for a 34-page site. The CSS
+    // itself and its cascade order are unchanged; nothing renders differently.
+    inlineStylesheets: 'always',
+  },
+
   integrations: [
     // Generates /sitemap-index.xml + /sitemap-0.xml at build time from every
     // statically-rendered page. Referenced from robots.txt so crawlers find it.

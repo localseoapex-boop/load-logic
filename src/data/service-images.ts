@@ -128,7 +128,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supFurniture,
-      alt: 'A worn three-seat sofa and an armchair set out on a driveway ready to be loaded',
+      alt: 'Two workers carrying a cushioned loveseat through a hallway doorway inside a home',
     },
   },
 
@@ -143,7 +143,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supAppliance,
-      alt: 'A disconnected refrigerator and washer standing on a concrete driveway',
+      alt: 'Two workers wheeling a refrigerator on a dolly out of a laundry room, past stacked washers and dryers',
     },
   },
 
@@ -158,11 +158,11 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supGarage,
-      alt: 'A packed two-car garage filled with storage totes, utility shelving, boxes and a bicycle',
+      alt: 'A packed garage with storage totes, cardboard boxes, a shelving unit and a shop vacuum, seen from the driveway',
     },
     outcome: {
       src: outGarage,
-      alt: 'A two-car garage completely empty with a clean swept concrete floor',
+      alt: 'An empty single-bay garage with a bare concrete floor, seen from the driveway',
     },
   },
 
@@ -177,11 +177,11 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supEstate,
-      alt: 'A room of mixed household contents, furniture and packed boxes mid-cleanout',
+      alt: 'A living room with packed cardboard boxes stacked along both walls, a wooden dresser and framed pictures still in place',
     },
     outcome: {
       src: outEstate,
-      alt: 'The same room cleared and empty with bare floor',
+      alt: 'An empty bedroom with one window and bare carpet, seen through the doorway',
     },
   },
 
@@ -196,7 +196,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supHotTub,
-      alt: 'A worn out hot tub on a residential patio ready for removal',
+      alt: 'An old hot tub with its cover open and a stained shell, sitting in a backyard beside a block wall',
     },
   },
 
@@ -211,7 +211,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supConstruction,
-      alt: 'Renovation debris including drywall, lumber and flooring piled for removal',
+      alt: 'Sheets of plywood and drywall stacked on the floor of a stripped room with exposed ceiling joists',
     },
   },
 
@@ -226,11 +226,11 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supYard,
-      alt: 'Branches, palm fronds and green waste gathered beside a driveway',
+      alt: 'A large heap of dried branches and brush on the gravel front yard of a house, beside the sidewalk',
     },
     outcome: {
       src: outYard,
-      alt: 'The same yard cleared, with the gravel raked clean',
+      alt: 'A cleared backyard corner with block walls, raked gravel and a few small plants',
     },
   },
 
@@ -245,7 +245,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supMattress,
-      alt: 'A mattress and box spring laid out on a driveway ready for collection',
+      alt: 'Two mattresses lying on the gravel front yard of a house beside the sidewalk',
     },
   },
 
@@ -260,7 +260,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supShed,
-      alt: 'An old backyard shed emptied and ready to be dismantled',
+      alt: 'An old wooden backyard shed with its doors open, full of buckets, hand tools and lumber',
     },
   },
 
@@ -275,7 +275,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supHoarder,
-      alt: 'A room part way through a careful cleanout, belongings sorted into groups with bare floor showing',
+      alt: 'A room with cardboard boxes and bags of belongings stacked along the walls and a clear path of bare tile floor between them',
     },
   },
 
@@ -290,7 +290,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supOffice,
-      alt: 'Office desks, chairs and shelving gathered for removal',
+      alt: 'A vacated office with wooden desks, rolling chairs and a filing cabinet left in place',
     },
   },
 
@@ -305,7 +305,7 @@ export const serviceImages: Record<string, ServiceImages> = {
     },
     support: {
       src: supTurnover,
-      alt: 'A vacated rental property with leftover contents waiting to be cleared',
+      alt: 'An empty room in a vacated rental with a stained mattress leaning on the wall and tied trash bags on the floor',
     },
   },
 

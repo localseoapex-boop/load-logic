@@ -38,7 +38,7 @@ and still charge the trip fee.
 HOA and multi-unit residents may need to go through their property manager,
 the city notes.
 
-![A worn sofa, a tied carpet bundle and boxes at the end of a Mesa driveway in the early morning](../../assets/photos/blog/mesa-bulk-trash-pickup/mesa-bulk-pile-driveway.jpg)
+![A worn sofa, a rolled carpet, two boxes and a tied bundle of branches set out at the curb end of a driveway](../../assets/photos/blog/mesa-bulk-trash-pickup/mesa-bulk-pile-driveway.jpg)
 
 ## What the city takes, and what it refuses
 

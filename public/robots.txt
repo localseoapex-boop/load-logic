@@ -1,6 +1,21 @@
 # robots.txt — lives in /public so it's served verbatim at /robots.txt.
 # Allows all crawlers and points them to the sitemap that @astrojs/sitemap
 # generates at build time. Update the Sitemap URL if you change `site`.
+#
+# AI crawlers are deliberately allowed (checked 2026-11-27 against each
+# vendor's own documentation): GPTBot, OAI-SearchBot, ChatGPT-User (OpenAI);
+# ClaudeBot, Claude-SearchBot, Claude-User (Anthropic); PerplexityBot,
+# Perplexity-User (Perplexity); Google-Extended and Googlebot (Google);
+# Applebot and Applebot-Extended (Apple); CCBot (Common Crawl); Bingbot (Bing).
+# The single `User-agent: *` group below covers every one of them. Do not add
+# a named group per bot: a crawler that finds its own name obeys ONLY that
+# group and stops inheriting whatever `*` says, so one extra Disallow added
+# to `*` later would silently miss every bot that is named separately.
+#
+# Pages that must stay out of search (/quote, /quote/thanks, /mesa25) use a
+# `noindex` meta tag, not a Disallow here: a crawler has to be able to fetch
+# the page to see the noindex. /knowledge.json is the machine-readable
+# description of the business for AI consumers and must stay fetchable too.
 
 User-agent: *
 Allow: /
